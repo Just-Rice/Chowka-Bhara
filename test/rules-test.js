@@ -37,11 +37,13 @@ function check(name, cond, detail) {
   var mid = (N - 1) / 2;
   var tag = 'N=' + N + ': ';
 
-  var expected = 0;
-  for (var k = 0; N - 2 * k > 1; k++) expected += 4 * (N - 2 * k - 1);
-  expected += 1;
-  check(tag + 'path length', path.length === expected,
-        'got ' + path.length + ', expected ' + expected);
+  /* Every square once, plus the centre — and on boards whose parity needs it,
+     one extra step to finish the last lap before turning into the centre. */
+  var squares = 0;
+  for (var k = 0; N - 2 * k > 1; k++) squares += 4 * (N - 2 * k - 1);
+  squares += 1;
+  check(tag + 'path length', path.length === squares || path.length === squares + 1,
+        'got ' + path.length + ', expected ' + squares + ' or ' + (squares + 1));
 
   check(tag + 'starts at own edge middle',
         path[0][0] === 0 && path[0][1] === mid, JSON.stringify(path[0]));
@@ -50,15 +52,22 @@ function check(name, cond, detail) {
         JSON.stringify(path[path.length - 1]));
 
   var seen = {};
-  var dupes = 0;
+  var dupeCells = [];
   path.forEach(function (rc) {
     var key = rc[0] + ',' + rc[1];
-    if (seen[key]) dupes++;
+    if (seen[key]) dupeCells.push(key);
     seen[key] = true;
   });
-  check(tag + 'visits every square exactly once',
-        dupes === 0 && Object.keys(seen).length === N * N,
-        dupes + ' duplicates, ' + Object.keys(seen).length + ' distinct of ' + N * N);
+  check(tag + 'reaches every square', Object.keys(seen).length === N * N,
+        Object.keys(seen).length + ' distinct of ' + N * N);
+  check(tag + 'repeats at most one square', dupeCells.length <= 1,
+        dupeCells.join(' '));
+  /* The only permitted repeat is the approach square next to the centre. */
+  if (dupeCells.length === 1) {
+    var d = dupeCells[0].split(',').map(Number);
+    check(tag + 'the repeated square is the one beside the centre',
+          Math.abs(d[0] - mid) + Math.abs(d[1] - mid) === 1, dupeCells[0]);
+  }
 
   /* Consecutive path cells must be orthogonally adjacent, except where the
    * path cuts inward between rings (also adjacent) — so: always adjacent. */
@@ -92,11 +101,14 @@ function check(name, cond, detail) {
   });
 
   /* layerOf must agree with physical ring for every path index. */
-  var mismatch = 0;
+  var mismatch = [];
   for (i = 0; i < path.length; i++) {
-    if (layerOf(i, b) !== physicalRing(path[i][0], path[i][1], N)) mismatch++;
+    if (layerOf(i, b) !== physicalRing(path[i][0], path[i][1], N)) {
+      mismatch.push(i + ':' + path[i]);
+    }
   }
-  check(tag + 'layerOf matches physical ring', mismatch === 0, mismatch + ' mismatches');
+  check(tag + 'layerOf matches physical ring', mismatch.length === 0,
+        mismatch.slice(0, 3).join(' '));
 });
 
 /* ------------------------------------------------- shell throw --------- */

@@ -142,19 +142,27 @@ itself** — that needs two real devices. `js/net.js` is deliberately split so t
 part that can be tested is as large as possible and the WebRTC adapter is as thin
 as possible.
 
-### Known failure
+### Path geometry
 
-`rules-test.js` reports one real bug: **the path jumps diagonally at every ring
-transition.** Here is the visit order for a player entering from the top:
+Every step on the board is orthogonal — pieces never move diagonally. The visit
+order for a player entering from the top edge:
 
 ```
-  2  1  0 15 14      index 15 is at [0,3]
-  3 23 16 17 13      index 16 is at [1,2]  ← diagonal
-  4 22 24 18 12
-  5 21 20 19 11      index 23 is at [1,1]
-  6  7  8  9 10      index 24 is at [2,2]  ← diagonal
+5x5 — 25 steps                7x7 — 50 steps
+  2  1  0 15 14                 3  2  1  0 23 22 21
+  3 22 23 16 13                 4 37 38 39 24 25 20
+  4 21 24 17 12                 5 36 41 40 47 26 19
+  5 20 19 18 11                 6 35 42 49 46 27 18
+  6  7  8  9 10                 7 34 43 44 45 28 17
+                                8 33 32 31 30 29 16
+                                9 10 11 12 13 14 15
 ```
 
-Every other step on the board is orthogonal, so a piece visibly slides sideways
-mid-hop. Unfixed pending a decision on which way the path should turn inward —
-both candidate fixes change how long a lap is, which is a gameplay decision.
+A lap turns inward from the square it actually ends on, which keeps that step
+orthogonal like every other move.
+
+The centre is only reachable straight-on from the four edge-middles of the
+innermost ring. On 5x5 the last lap happens to end on one of those, so the piece
+steps straight in. On 7x7 it ends on a corner, so the piece takes one extra step
+back onto the square beside the centre — the only square any path visits twice —
+before going in. That is why a 7x7 journey is 50 steps rather than 49.

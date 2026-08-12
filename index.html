@@ -830,19 +830,48 @@
     var path = [];
     var ringBoundaries = [];
     var startCell = [0, mid]; // top-edge middle
+    var lastRingStart = null;
     var clockwise = false;    // outer ring travels anti-clockwise
     var k = 0;
+
     while (true) {
       var sideLen = N - 2 * k;
       if (sideLen <= 0) break;
+
+      if (sideLen === 1) {
+        // The centre. A 3x3 ring only touches it from its four edge-middles, so
+        // if the lap happened to end on a corner we finish the lap first rather
+        // than cutting diagonally across. That costs one extra step, and only
+        // on boards where the parity works out that way (7x7, not 5x5).
+        var tail = path[path.length - 1];
+        if (tail && Math.abs(tail[0] - mid) + Math.abs(tail[1] - mid) > 1) {
+          path.push([lastRingStart[0], lastRingStart[1]]);
+          // That square belongs to the ring it is part of, not to the centre.
+          ringBoundaries[ringBoundaries.length - 1] = path.length;
+        }
+        path.push([mid, mid]);
+        ringBoundaries.push(path.length);
+        break;
+      }
+
       var ringCells = ringLoop(N, k, startCell, clockwise);
+      lastRingStart = startCell;
       path = path.concat(ringCells);
       ringBoundaries.push(path.length);
-      if (sideLen === 1) break;
-      startCell = [startCell[0] + 1, startCell[1]]; // radially inward, same column
+
+      // Turn inward from the square the lap actually ended on. Turning in from
+      // the square below the player's *start* instead leaves a diagonal step,
+      // which is illegal everywhere else on this board.
+      var last = ringCells[ringCells.length - 1];
+      var lo = k + 1, hi = N - 2 - k;
+      startCell = [
+        Math.min(Math.max(last[0], lo), hi),
+        Math.min(Math.max(last[1], lo), hi)
+      ];
       clockwise = !clockwise;
       k++;
     }
+
     return { path: path, ringBoundaries: ringBoundaries };
   }
 
