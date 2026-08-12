@@ -11,7 +11,10 @@ var t = function (k, params) { return I18N.t(k, params); };
 var PLAYER_NAMES = ['Madder', 'Indigo', 'Turmeric', 'Areca'];
 function playerName(id) { return PLAYER_NAMES[id]; }
 
-var SRC = read('index.html');
+/* The game is split across js/ modules now, so read them all and let grab()
+   pick functions out of the combined source exactly as before. */
+var SRC = ['config','path','rules','ai','render','game','online','main']
+  .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
 
 function grab(name) {
   var start = SRC.indexOf('function ' + name + '(');

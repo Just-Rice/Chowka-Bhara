@@ -1,0 +1,29 @@
+/* Chowka-Bhara — Page shell, panels and the game-screen grid. */
+
+  /* ============================= LAYOUT SHELLS ============================= */
+  #app { max-width: 1080px; margin: 0 auto; }
+
+  .title-block { text-align:center; margin-bottom: clamp(16px, 3vw, 28px); }
+  .title-block h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    letter-spacing: 0.06em;
+    margin: 0 0 6px;
+    color: var(--khaki-text);
+  }
+  .title-block p {
+    margin: 0;
+    color: var(--khaki-text-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+  }
+
+  .mat-panel {
+    background: var(--mat);
+    color: var(--ink-text);
+    border-radius: var(--radius);
+    border: 1px solid var(--mat-edge);
+    box-shadow: 0 18px 40px -18px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.15);
+    padding: clamp(18px, 3.5vw, 34px);
+  }

@@ -104,7 +104,9 @@ check('language labels are in their own script',
 
 /* ----------------------------------- the game asks for keys that exist --- */
 
-var SRC = read('index.html');
+/* Keys appear as t("...") in the modules and as data-i18n in the markup. */
+var SRC = read('index.html') + '\n' + ['config','path','rules','ai','render','game','online','main']
+  .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
 var used = {};
 var re = /\bt\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"/g, m;
 while ((m = re.exec(SRC))) used[m[1]] = true;

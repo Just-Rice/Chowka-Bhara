@@ -2,7 +2,10 @@
  * The CPU functions read module-level `state` and touch no DOM, so they can be
  * exercised directly against constructed positions. */
 
-var SRC = read('index.html');
+/* The game is split across js/ modules now, so read them all and let grab()
+   pick functions out of the combined source exactly as before. */
+var SRC = ['config','path','rules','ai','render','game','online','main']
+  .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
 
 function grab(name) {
   var start = SRC.indexOf('function ' + name + '(');

@@ -1,0 +1,55 @@
+/* Chowka-Bhara — Reset, palette and page ground. */
+
+  /* ============================= RESET ============================= */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  button { font: inherit; color: inherit; }
+  ul, ol { margin:0; padding:0; list-style:none; }
+
+  /* ============================= TOKENS ============================= */
+  :root {
+    --page-bg: #241a13;
+    --page-bg-2: #2c2018;
+    --mat: #d8c295;
+    --mat-edge: #b9a06a;
+    --ink-0: #33415a;
+    --ink-1: #29344a;
+    --ink-2: #202940;
+    --home-glow: #f3e6c3;
+    --home-ring: #c9932f;
+    --ink-text: #241a13;
+    --khaki-text: #ecdfc0;
+    --khaki-text-dim: #cbb98f;
+    --accent: #ad7f2c;
+    --accent-hover: #c4953c;
+    --chip: #8a6420;              /* banked throw, waiting to be spent */
+    --chip-on: #e9c25c;           /* banked throw, currently selected */
+    --danger: #a8432f;
+    --p-madder: #c1543c;
+    --p-indigo: #4a72a8;
+    --p-turmeric: #d9a53a;
+    --p-areca: #5c8a5f;
+    --shell-ivory: #f3e6c3;
+    --shell-ivory-deep: #ddc89a;
+    --shell-mouth: #6b3a2e;
+    --font-display: Iowan Old Style, Palatino Linotype, Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+    --radius: 10px;
+  }
+
+  body {
+    background: radial-gradient(ellipse at top, var(--page-bg-2), var(--page-bg) 70%);
+    color: var(--khaki-text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    padding: clamp(14px, 3vw, 36px);
+  }
+
+  .hidden { display: none !important; }
+  /* Any class that sets `display` would otherwise out-specify the UA rule for
+     [hidden] and leave the element on screen. */
+  [hidden] { display: none !important; }
+
+  a, button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 2px; }

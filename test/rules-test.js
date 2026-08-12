@@ -2,7 +2,10 @@
  * out of index.html and evaluating it — no reimplementation, so a bug in the
  * game is a failure here. */
 
-var SRC = read('index.html');
+/* The game is split across js/ modules now, so read them all and let grab()
+   pick functions out of the combined source exactly as before. */
+var SRC = ['config','path','rules','ai','render','game','online','main']
+  .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
 
 /* Pull a named function's full text by brace-matching from its declaration. */
 function grab(name) {

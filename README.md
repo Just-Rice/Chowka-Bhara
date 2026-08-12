@@ -1,7 +1,7 @@
 # Chowka-Bhara
 
-A digital Chowka-Bhara (Ashta Chamma) — the traditional Indian cowrie-shell race
-to the centre. Single file, vanilla JavaScript, no dependencies, no build step.
+A digital Chowka-Bhara (Ashta Chamma) — the traditional Indian cowrie race to
+the centre. Vanilla JavaScript, no dependencies, no build step.
 
 ```sh
 open index.html
@@ -123,6 +123,37 @@ the first place.
   `index.html` offline still gives you the full local and computer game.
 - Room codes skip vowels and lookalike characters, so they can be read aloud
   without spelling anything rude or ambiguous.
+
+## Layout
+
+```
+index.html          markup only, ~210 lines
+css/
+  tokens.css        reset, palette, page ground
+  layout.css        page shell, panels, the game-screen grid
+  screens.css       setup screen controls
+  board.css         the board, its squares, the pieces on them
+  sidebar.css       cowries, throw button, banked throws, roster, log
+  online.css        lobby, seats, overlays, how-to-play drawer
+js/
+  i18n.js           translation tables and lookup
+  net.js            the online protocol, transport-agnostic
+  config.js         shared configuration and game state
+  path.js           board geometry — the ring walk to the centre
+  rules.js          throws, legal moves, the banked-throw pool
+  ai.js             the computer opponent
+  render.js         drawing board, sidebar and cowrie animation
+  game.js           setup, turn flow, placings
+  online.js         lobby, seats, snapshots, liveness
+  main.js           language switching and start-up wiring
+test/               five suites, run with ./test/run.sh
+vendor/peerjs.min.js
+```
+
+Stylesheets load in cascade order; scripts load in dependency order with
+`main.js` last, since it is the only one that runs anything at load time. They
+are plain scripts rather than ES modules on purpose: the game still opens by
+double-clicking `index.html`, with no server and no build step.
 
 ## Languages
 
