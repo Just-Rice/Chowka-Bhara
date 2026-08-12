@@ -648,7 +648,7 @@
         </div>
       </div>
 
-      <div class="setup-section">
+      <div class="setup-section" id="cpu-skill-section">
         <span class="setup-label">Computer skill</span>
         <div class="segmented" id="cpu-skill-group">
           <input type="radio" name="cpu-skill" id="skill-easy" value="easy">
@@ -2224,9 +2224,12 @@
       input.disabled = tooMany;
       if (tooMany && input.checked) document.getElementById("cpu-0").checked = true;
     });
+    // Skill is meaningless with nobody to apply it to.
+    var numCPU = parseInt(document.querySelector('input[name="num-cpu"]:checked').value, 10);
+    document.getElementById("cpu-skill-section").hidden = numCPU === 0;
   }
   Array.prototype.forEach.call(
-    document.querySelectorAll('input[name="num-players"]'),
+    document.querySelectorAll('input[name="num-players"], input[name="num-cpu"]'),
     function(el) { el.addEventListener("change", syncCPUOptions); }
   );
   syncCPUOptions();
