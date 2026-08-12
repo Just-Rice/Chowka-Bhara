@@ -290,24 +290,23 @@
     background: radial-gradient(ellipse at 35% 30%, #fff7e6, var(--shell-ivory) 55%, var(--shell-ivory-deep) 100%);
     box-shadow: 0 3px 5px rgba(0,0,0,0.4), inset 0 0 4px rgba(255,255,255,0.6);
   }
+  /* The mouth. A real cowrie has teeth either side of the slit, but at 34px
+     they render as detached dashes rather than teeth, so this is just the
+     opening: a tapered slit with a soft shadow to read as depth. */
   .shell::after {
     content:"";
     position:absolute;
     top:50%; left:50%;
-    width: 3px; height: 68%;
-    background: var(--shell-mouth);
-    border-radius: 3px;
+    width: 4px; height: 70%;
+    background: linear-gradient(to bottom,
+      transparent 0%,
+      var(--shell-mouth) 12%,
+      var(--shell-mouth) 88%,
+      transparent 100%);
+    border-radius: 50% / 8%;
     transform: translate(-50%,-50%);
     opacity:0;
-    box-shadow:
-      -5px -14px 0 -1.4px var(--shell-mouth),
-      5px -14px 0 -1.4px var(--shell-mouth),
-      -5px -4px 0 -1.4px var(--shell-mouth),
-      5px -4px 0 -1.4px var(--shell-mouth),
-      -5px 6px 0 -1.4px var(--shell-mouth),
-      5px 6px 0 -1.4px var(--shell-mouth),
-      -5px 16px 0 -1.4px var(--shell-mouth),
-      5px 16px 0 -1.4px var(--shell-mouth);
+    box-shadow: 0 0 3px 1px rgba(107,58,46,0.35);
   }
   .shell.up::after { opacity:1; }
   .shell.down { background: radial-gradient(ellipse at 40% 30%, #efe0b8, var(--shell-ivory-deep) 70%, #c9b284 100%); }
