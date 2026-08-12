@@ -198,6 +198,58 @@ var text = standingsText();
 check('standings are numbered in finishing order',
       text.indexOf('1st') === 0 && text.indexOf('4th') > 0, JSON.stringify(text));
 
+/* ------------------------------------------------ stalling, not ending -- */
+
+/* A stall is not an ending. Two players one square from home, each needing an
+   exact count, can sit for several rounds — at a real board you keep throwing.
+   The game used to declare whoever was marginally ahead the winner, which is
+   how a drawn position got recorded as a win for Madder. */
+
+/* Reconstruct advanceTurn's stall bookkeeping, which is the part that decides. */
+function stallAfter(rounds, numPlayers, movedEach) {
+  var st = { deadTurns: 0, stalled: false, movedThisTurn: false };
+  var active = numPlayers;
+  for (var turn = 0; turn < rounds * numPlayers; turn++) {
+    st.movedThisTurn = movedEach;
+    if (st.movedThisTurn) { st.deadTurns = 0; st.stalled = false; }
+    else st.deadTurns++;
+    if (!st.stalled && st.deadTurns >= active * 2) st.stalled = true;
+  }
+  return st;
+}
+
+check('one quiet round does not raise the offer',
+      stallAfter(1, 2, false).stalled === false);
+check('two quiet rounds do raise it',
+      stallAfter(2, 2, false).stalled === true);
+check('a game where pieces keep moving never raises it',
+      stallAfter(8, 2, true).stalled === false);
+/* The threshold is active*2 turns, which is two full rounds whatever the
+   player count — so the offer always appears after the same amount of play. */
+check('two rounds is the threshold at any player count',
+      stallAfter(1, 3, false).stalled === false &&
+      stallAfter(2, 3, false).stalled === true &&
+      stallAfter(1, 4, false).stalled === false &&
+      stallAfter(2, 4, false).stalled === true);
+
+/* Calling it a tie needs at least two players still in. */
+state = makeState(5, 2);
+check('two players still playing can agree a tie',
+      state.players.filter(playerActive).length === 2);
+state.players[1].pieces.forEach(function (pc) { pc.status = 'finished'; });
+check('with only one left it is a win, not a tie',
+      state.players.filter(playerActive).length === 1);
+
+/* Progress ranking still exists for a genuine finish, but must no longer be
+   what decides a stalled game. */
+state = makeState(5, 2);
+var p0 = state.players[0], p1 = state.players[1];
+p0.pieces[0].pathIndex = state.pathLength - 2;
+p1.pieces[0].pathIndex = state.pathLength - 2;
+check('two players one square out rank equally',
+      progressOf(p0) === progressOf(p1),
+      progressOf(p0) + ' vs ' + progressOf(p1));
+
 /* ------------------------------------------------------- report ------- */
 
 print('');

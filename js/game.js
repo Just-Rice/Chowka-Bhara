@@ -63,6 +63,7 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
     playOn: false,
     movedThisTurn: false,
     deadTurns: 0,
+    stalled: false,
     cpuSkill: cpuSkill || "sharp",
     cpuTimer: null,
     reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -265,17 +266,27 @@ function advanceTurn() {
   state.selectedChipId = null;
   state.legalMoves = [];
 
-  // Deadlock guard: it is possible, if rare, for every player to have all
-  // their pieces stranded on the outer ring with nobody able to capture and
-  // so nobody able to unlock the inner rings. Two full rounds without a
-  // single piece moving means the game cannot progress.
-  if (state.movedThisTurn) state.deadTurns = 0;
-  else state.deadTurns++;
+  // A stall is not the same as an ending. Play can sit for a while with
+  // nobody able to move — everyone needing an exact count for the centre, say
+  // — and at a real board you would simply keep throwing until it broke. So
+  // after two rounds with no piece moving the game offers a way out rather
+  // than picking a winner: the players may call it a tie, or carry on.
+  if (state.movedThisTurn) {
+    state.deadTurns = 0;
+    if (state.stalled) {
+      state.stalled = false;
+      addLog("log.unstalled");
+    }
+  } else {
+    state.deadTurns++;
+  }
 
   var active = state.players.filter(playerActive);
   if (!active.length) return endGame();
-  if (state.deadTurns >= active.length * 2) {
-    return endGame("log.deadlock");
+
+  if (!state.stalled && state.deadTurns >= active.length * 2) {
+    state.stalled = true;
+    addLog("log.stalled");
   }
 
   var n = state.players.length;
@@ -344,6 +355,7 @@ function endGame(reason) {
   clearHighlights();
   state.pool = [];
   state.selectedChipId = null;
+  state.stalled = false;
 
   // Rank anyone still on the board by how far they got.
   var unplaced = state.players.filter(function(p) {
@@ -355,6 +367,44 @@ function endGame(reason) {
   if (reason) addLog(reason);
   addLog("log.final", { list: standingsText().replace(/\n/g, " \u00b7 ") });
   showWinOverlay(state.players[state.placements[0]], false);
+  updateUI();
+}
+
+/* Everyone still playing agrees to stop. Nobody is ranked above anybody else,
+   which is the honest outcome when the position simply would not break. */
+function callItATie() {
+  if (!state || state.turnState === "GAME_OVER") return;
+
+  var drawn = state.players.filter(playerActive);
+  if (drawn.length < 2) return;          // only one left: that is a win, not a tie
+
+  state.turnState = "GAME_OVER";
+  state.stalled = false;
+  clearHighlights();
+  state.pool = [];
+  state.selectedChipId = null;
+
+  addLog("log.tieCalled", {
+    names: drawn.map(function(p) { return playerName(p.id); }).join(", ")
+  });
+
+  var overlay = document.getElementById("win-overlay");
+  var nameEl = overlay.querySelector(".win-name");
+  nameEl.textContent = drawn.map(function(p) { return playerName(p.id); }).join("  ·  ");
+  nameEl.style.color = "var(--khaki-text)";
+  document.getElementById("win-eyebrow").textContent = t("win.drawn");
+
+  // Anyone already home keeps their place; the rest share what is left.
+  var lines = [];
+  state.placements.forEach(function(pid, i) {
+    lines.push(ordinal(i + 1) + "   " + playerName(pid));
+  });
+  lines.push(t("win.drawNote"));
+  document.getElementById("win-standings").textContent = lines.join("\n");
+
+  document.getElementById("play-on-btn").hidden = true;
+  document.getElementById("play-again-btn").textContent = t("win.playAgain");
+  overlay.classList.remove("hidden");
   updateUI();
 }
 

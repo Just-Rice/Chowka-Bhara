@@ -140,6 +140,14 @@ function updateUI() {
 
   renderPool();
 
+  // Only offered while play is genuinely stuck, and only to someone who can
+  // act on it — it disappears again the moment a piece moves.
+  var tieBtn = document.getElementById("tie-btn");
+  if (tieBtn) {
+    tieBtn.hidden = !state.stalled || state.turnState === "GAME_OVER";
+    tieBtn.disabled = online.mode === "guest" && online.mySeat === null;
+  }
+
   var statusLine = document.getElementById("status-line");
   if (over) {
     statusLine.textContent = "";

@@ -71,9 +71,11 @@ nearest you. Everyone sees their own colour at the bottom.
 - First player with all 4 pieces on the exact centre takes 1st place
 - The game then asks whether to **play on** for the remaining places. Play on and
   the finished player drops out while the rest race for 2nd, 3rd and 4th
-- If the board ever deadlocks — every piece stranded on the outer ring with nobody
-  able to capture, so nobody can ever unlock — the game ends and places are
-  awarded by how far each player got
+- Play can stall: two players each one square from home, both needing an exact
+  count, can sit for several rounds. After two rounds with nobody moving, a
+  **Call it a tie** button appears in the corner of the sidebar. Take it and the
+  remaining players are drawn level; ignore it and simply keep throwing, exactly
+  as you would at a real board. It disappears again the moment a piece moves
 
 ## Computer opponent
 

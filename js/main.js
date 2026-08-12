@@ -69,6 +69,11 @@ buildLangPicker();
 buildHowTo();
 renderSpaceLabels();
 
+el("tie-btn").addEventListener("click", function() {
+  if (online.mode === "guest") return online.guest.sendIntent({ kind: "tie" });
+  callItATie();
+});
+
 el("howto-btn").addEventListener("click", function() {
   el("howto-drawer").classList.remove("hidden");
 });

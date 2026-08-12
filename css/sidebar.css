@@ -101,3 +101,21 @@
     white-space: pre-line;
   }
   .win-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top: 16px; }
+
+/* The sidebar's bottom corner. "Call it a tie" only appears when play has
+   actually stalled, and sits quietly beside New game rather than competing
+   with the controls above. */
+.sidebar-foot { display:flex; gap:8px; align-items:stretch; }
+.sidebar-foot .new-game-btn { flex:1 1 auto; }
+.tie-btn {
+  flex: 0 0 auto;
+  padding: 11px 14px;
+  border: 1.5px dashed var(--mat-edge);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-text);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.tie-btn:hover:not(:disabled) { background: rgba(255,255,255,0.3); }
+.tie-btn:disabled { opacity: 0.4; cursor: default; }

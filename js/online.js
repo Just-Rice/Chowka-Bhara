@@ -164,6 +164,12 @@ function applyRemoteIntent(seatId, intent) {
     onRollClick();
     return true;
   }
+  if (intent.kind === "tie") {
+    // A guest may propose it; the host is what actually ends the game.
+    if (!state.stalled) return false;
+    callItATie();
+    return true;
+  }
   if (intent.kind === "move") {
     if (state.turnState !== "AWAITING_MOVE") return false;
     var has = state.pool.some(function(c) { return c.id === intent.chipId; });
