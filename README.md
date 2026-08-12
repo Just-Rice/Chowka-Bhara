@@ -73,9 +73,15 @@ nearest you. Everyone sees their own colour at the bottom.
   the finished player drops out while the rest race for 2nd, 3rd and 4th
 - Play can stall: two players each one square from home, both needing an exact
   count, can sit for several rounds. After two rounds with nobody moving, a
-  **Call it a tie** button appears in the corner of the sidebar. Take it and the
-  remaining players are drawn level; ignore it and simply keep throwing, exactly
-  as you would at a real board. It disappears again the moment a piece moves
+  **Call it a tie** button appears in the corner of the sidebar. Ignore it and
+  simply keep throwing, exactly as you would at a real board; it disappears
+  again the moment a piece moves
+- Online, a tie is **agreed rather than declared**, as at a chess board. Asking
+  puts it to the others: two of two, two of three, or three of four carries it.
+  Everyone else gets a notice saying who asked and where the vote stands, and
+  pressing again withdraws your own. Computer players and anyone already home
+  get no say. Playing on this device alone there is nobody to ask, so it simply
+  ends
 
 ## Computer opponent
 

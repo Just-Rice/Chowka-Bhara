@@ -64,6 +64,7 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
     movedThisTurn: false,
     deadTurns: 0,
     stalled: false,
+    tieVotes: [],
     cpuSkill: cpuSkill || "sharp",
     cpuTimer: null,
     reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -275,6 +276,7 @@ function advanceTurn() {
     state.deadTurns = 0;
     if (state.stalled) {
       state.stalled = false;
+      state.tieVotes = [];      // the position broke; any votes are void
       addLog("log.unstalled");
     }
   } else {
@@ -370,6 +372,62 @@ function endGame(reason) {
   updateUI();
 }
 
+/* Who gets a say: everyone still playing whom a person is actually operating.
+   The computer has no opinion about stopping. */
+function tieVoters() {
+  return state.players.filter(function(p) {
+    if (!playerActive(p)) return false;
+    if (online.mode === "local") return !p.isCPU;
+    return online.config && online.config.seatKinds[p.id] !== "cpu";
+  });
+}
+
+/* A majority, as at a chess board: both of two, two of three, three of four. */
+function tieThreshold() {
+  return Math.floor(tieVoters().length / 2) + 1;
+}
+
+/* Which seat the person at this screen votes with. */
+function myVotingSeat() {
+  if (online.mode === "guest") return online.mySeat;
+  if (online.mode === "host") {
+    for (var i = 0; i < online.config.seatKinds.length; i++) {
+      if (online.config.seatKinds[i] === "local") return i;
+    }
+  }
+  return state.currentPlayerIndex;
+}
+
+function hasVotedForTie(playerId) {
+  return state.tieVotes.indexOf(playerId) >= 0;
+}
+
+/* One player asking. On this device alone there is nobody to ask, so it simply
+   ends; online it takes a majority, and asking again withdraws your vote. */
+function requestTie(playerId) {
+  if (!state || state.turnState === "GAME_OVER" || !state.stalled) return;
+  if (playerId === null || playerId === undefined) return;
+
+  if (online.mode === "local") return callItATie();
+
+  var at = state.tieVotes.indexOf(playerId);
+  if (at >= 0) {
+    state.tieVotes.splice(at, 1);
+    addLog("log.tieWithdrawn", { name: PLAYER_DEFS[playerId].key });
+  } else {
+    state.tieVotes.push(playerId);
+    addLog("log.tieAsked", {
+      name: PLAYER_DEFS[playerId].key,
+      have: state.tieVotes.length,
+      need: tieThreshold()
+    });
+    notifyTieRequest(playerId);
+  }
+
+  if (state.tieVotes.length >= tieThreshold()) return callItATie();
+  updateUI();
+}
+
 /* Everyone still playing agrees to stop. Nobody is ranked above anybody else,
    which is the honest outcome when the position simply would not break. */
 function callItATie() {
@@ -380,6 +438,7 @@ function callItATie() {
 
   state.turnState = "GAME_OVER";
   state.stalled = false;
+  state.tieVotes = [];
   clearHighlights();
   state.pool = [];
   state.selectedChipId = null;

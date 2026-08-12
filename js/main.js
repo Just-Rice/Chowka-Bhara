@@ -71,7 +71,7 @@ renderSpaceLabels();
 
 el("tie-btn").addEventListener("click", function() {
   if (online.mode === "guest") return online.guest.sendIntent({ kind: "tie" });
-  callItATie();
+  requestTie(myVotingSeat());
 });
 
 el("howto-btn").addEventListener("click", function() {

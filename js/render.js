@@ -1,3 +1,29 @@
+/* A brief notice across the top of the board. Used when something happens on
+   someone else's turn that you would otherwise only find in the log. */
+var noticeTimer = null;
+function showNotice(text) {
+  var n = document.getElementById("notice");
+  if (!n) return;
+  n.textContent = text;
+  n.hidden = false;
+  n.classList.add("show");
+  if (noticeTimer) clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(function() {
+    n.classList.remove("show");
+    setTimeout(function() { n.hidden = true; }, 250);
+  }, 5000);
+}
+
+/* Tell everyone except the person who asked. */
+function notifyTieRequest(playerId) {
+  if (playerId === myVotingSeat()) return;
+  showNotice(t("notice.tieAsked", {
+    name: playerName(playerId),
+    have: state.tieVotes.length,
+    need: tieThreshold()
+  }));
+}
+
 /* Chowka-Bhara — Drawing the board, the sidebar and the cowrie animation. */
 "use strict";
 
@@ -139,6 +165,28 @@ function updateUI() {
     : t("btn.throw");
 
   renderPool();
+
+  var tieBtn = document.getElementById("tie-btn");
+  if (tieBtn) {
+    tieBtn.hidden = !state.stalled || state.turnState === "GAME_OVER";
+    var seat = myVotingSeat();
+    if (online.mode === "local") {
+      tieBtn.textContent = t("btn.callTie");
+      tieBtn.disabled = false;
+      tieBtn.classList.remove("voted");
+    } else {
+      // Online it is a vote, so the button reports where the vote stands and
+      // pressing again takes yours back.
+      var mine = seat !== null && hasVotedForTie(seat);
+      tieBtn.textContent = mine
+        ? t("btn.tieWaiting", { have: state.tieVotes.length, need: tieThreshold() })
+        : state.tieVotes.length
+          ? t("btn.tieAgree", { have: state.tieVotes.length, need: tieThreshold() })
+          : t("btn.callTie");
+      tieBtn.disabled = seat === null || seat === undefined;
+      tieBtn.classList.toggle("voted", !!mine);
+    }
+  }
 
   // Only offered while play is genuinely stuck, and only to someone who can
   // act on it — it disappears again the moment a piece moves.

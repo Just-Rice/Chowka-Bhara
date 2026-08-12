@@ -31,7 +31,8 @@ eval([
   'ringLoop', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
   'layerOf', 'computeLegalMoves', 'currentPlayer',
   'playableChips', 'selectedEntry', 'ensureSelection', 'spendChip',
-  'playerActive', 'ordinal', 'progressOf', 'standingsText'
+  'playerActive', 'ordinal', 'progressOf', 'standingsText',
+  'tieVoters', 'tieThreshold', 'hasVotedForTie'
 ].map(grab).join('\n'));
 
 var PIECES_PER_PLAYER = 4;
@@ -249,6 +250,74 @@ p1.pieces[0].pathIndex = state.pathLength - 2;
 check('two players one square out rank equally',
       progressOf(p0) === progressOf(p1),
       progressOf(p0) + ' vs ' + progressOf(p1));
+
+/* --------------------------------------------------- the tie vote ------ */
+
+/* Online, calling a tie takes a majority of the people still playing, the way
+   a draw is agreed at a chess board. The computer gets no say. */
+
+var online = { mode: 'host', config: { seatKinds: [] } };
+
+function seatsOf(n, kinds) {
+  state = makeState(5, n);
+  online.config.seatKinds = kinds;
+  state.tieVotes = [];
+  return state;
+}
+
+/* Two players: both must agree. */
+seatsOf(2, ['local', 'remote']);
+check('two players need both votes', tieThreshold() === 2, String(tieThreshold()));
+state.tieVotes = [0];
+check('one of two is not enough', state.tieVotes.length < tieThreshold());
+state.tieVotes = [0, 1];
+check('two of two carries', state.tieVotes.length >= tieThreshold());
+
+/* Three players: two is a majority — your example. */
+seatsOf(3, ['local', 'remote', 'remote']);
+check('three players need two votes', tieThreshold() === 2, String(tieThreshold()));
+state.tieVotes = [0];
+check('one of three is not enough', state.tieVotes.length < tieThreshold());
+state.tieVotes = [0, 1];
+check('two want it and one does not — still a tie',
+      state.tieVotes.length >= tieThreshold());
+
+/* Four players: three is a majority, two is not — your example. */
+seatsOf(4, ['local', 'remote', 'remote', 'remote']);
+check('four players need three votes', tieThreshold() === 3, String(tieThreshold()));
+state.tieVotes = [0, 1];
+check('two of four is not enough', state.tieVotes.length < tieThreshold());
+state.tieVotes = [0, 1, 2];
+check('three want it and one does not — still a tie',
+      state.tieVotes.length >= tieThreshold());
+
+/* The computer has no opinion, so it does not raise the bar. */
+seatsOf(4, ['local', 'remote', 'cpu', 'cpu']);
+check('computer seats are not counted as voters',
+      tieVoters().length === 2, tieVoters().length + ' voters');
+check('so two humans among four seats need both',
+      tieThreshold() === 2, String(tieThreshold()));
+
+/* Nor does a player who has already finished. */
+seatsOf(3, ['local', 'remote', 'remote']);
+state.players[2].pieces.forEach(function (pc) { pc.status = 'finished'; });
+check('a player already home no longer votes',
+      tieVoters().length === 2, tieVoters().length + ' voters');
+
+/* Votes are tracked per player. */
+seatsOf(3, ['local', 'remote', 'remote']);
+state.tieVotes = [1];
+check('a vote is remembered against its player', hasVotedForTie(1) === true);
+check('and nobody else is counted as having voted',
+      hasVotedForTie(0) === false && hasVotedForTie(2) === false);
+
+/* On this device alone there is nobody to ask. */
+online.mode = 'local';
+seatsOf(2, ['local', 'local']);
+state.players[1].isCPU = true;
+check('playing the computer, only the person counts',
+      tieVoters().length === 1, tieVoters().length + ' voters');
+online.mode = 'host';
 
 /* ------------------------------------------------------- report ------- */
 

@@ -67,6 +67,8 @@ function serializeState() {
     selectedChipId: state.selectedChipId,
     placements: state.placements.slice(),
     playOn: state.playOn,
+    stalled: state.stalled,
+    tieVotes: state.tieVotes.slice(),
     lastRoll: state.lastRoll
   };
 }
@@ -109,6 +111,15 @@ function applySnapshot(snap) {
   state.selectedChipId = snap.selectedChipId;
   state.placements = snap.placements.slice();
   state.playOn = snap.playOn;
+  state.stalled = !!snap.stalled;
+
+  // A vote that is new to us, and not our own, is worth announcing.
+  var votedBefore = state.tieVotes || [];
+  var votedNow = (snap.tieVotes || []).slice();
+  state.tieVotes = votedNow;
+  votedNow.forEach(function(pid) {
+    if (votedBefore.indexOf(pid) < 0) notifyTieRequest(pid);
+  });
   state.lastRoll = snap.lastRoll;
   state.busy = false;
 
@@ -165,9 +176,9 @@ function applyRemoteIntent(seatId, intent) {
     return true;
   }
   if (intent.kind === "tie") {
-    // A guest may propose it; the host is what actually ends the game.
+    // The guest is voting, not deciding — the majority decides.
     if (!state.stalled) return false;
-    callItATie();
+    requestTie(seatId);
     return true;
   }
   if (intent.kind === "move") {

@@ -154,3 +154,33 @@
   /* trays inside board area are for board cells; hand/finished trays live in sidebar */
   .tray { display:flex; flex-wrap:wrap; gap:6px; min-height: 30px; align-items:center; }
   .tray .token { position:static; }
+
+/* A brief notice across the top of the board, for things that happen on
+   somebody else's turn. */
+.notice {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translate(-50%, -12px);
+  z-index: 80;
+  max-width: min(460px, calc(100vw - 28px));
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: var(--ink-0);
+  color: var(--khaki-text);
+  border: 1px solid var(--home-ring);
+  box-shadow: 0 14px 34px -14px rgba(0,0,0,0.8);
+  font-size: 0.9rem;
+  text-align: center;
+  opacity: 0;
+  transition: opacity .22s ease, transform .22s ease;
+}
+.notice.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { .notice { transition: none; } }
+
+.tie-btn.voted {
+  border-style: solid;
+  border-color: var(--home-ring);
+  background: rgba(201,147,47,0.18);
+  font-weight: 600;
+}
