@@ -20,7 +20,8 @@
   }
 
   .mat-panel {
-    background: var(--mat);
+    background: url("../img/mat-texture.jpg") center / 320px repeat, var(--mat);
+    background-blend-mode: multiply;
     color: var(--ink-text);
     border-radius: var(--radius);
     border: 1px solid var(--mat-edge);

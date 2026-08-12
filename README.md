@@ -124,9 +124,30 @@ the first place.
 - Room codes skip vowels and lookalike characters, so they can be read aloud
   without spelling anything rude or ambiguous.
 
+## Artwork
+
+The cowries, pieces, board tile, centre and mat are generated images, processed
+into game assets by `tools/process-art.py`. That script exists because the raw
+output needs three things undoing: a watermark near one edge, no alpha channel,
+and the occasional stray second object. It crops the outer band away, keys out
+the flat magenta backdrop, pulls the colour fringe off the edges, keeps only the
+largest connected shape, and squares everything up.
+
+```sh
+python3 tools/process-art.py "~/Downloads/CHOWKA-BHARA IMAGES"
+```
+
+Textures ship as JPEG since they carry no transparency; the whole set is about
+800 KB. Every image sits on top of the colour it replaced, so a slow or missing
+asset degrades to the original drawn look rather than to nothing. The safe-square
+diamond is applied as a CSS mask, which lets one picture take each player's
+colour instead of shipping four tinted copies.
+
 ## Layout
 
 ```
+img/                the artwork, built by tools/process-art.py
+tools/process-art.py
 index.html          markup only, ~210 lines
 css/
   tokens.css        reset, palette, page ground

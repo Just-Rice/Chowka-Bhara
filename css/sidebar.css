@@ -19,33 +19,13 @@
 
   .shell-tray { display:flex; justify-content:center; gap:10px; padding: 10px 0; perspective: 400px; }
   .shell {
-    width: 34px; height: 46px;
-    border-radius: 50% / 55%;
+    width: 44px; height: 44px;
     position:relative;
     transform-style: preserve-3d;
-    background: radial-gradient(ellipse at 35% 30%, #fff7e6, var(--shell-ivory) 55%, var(--shell-ivory-deep) 100%);
-    box-shadow: 0 3px 5px rgba(0,0,0,0.4), inset 0 0 4px rgba(255,255,255,0.6);
+    background: url("../img/cowrie-up.png") center / contain no-repeat;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.45));
   }
-  /* The mouth. A real cowrie has teeth either side of the slit, but at 34px
-     they render as detached dashes rather than teeth, so this is just the
-     opening: a tapered slit with a soft shadow to read as depth. */
-  .shell::after {
-    content:"";
-    position:absolute;
-    top:50%; left:50%;
-    width: 4px; height: 70%;
-    background: linear-gradient(to bottom,
-      transparent 0%,
-      var(--shell-mouth) 12%,
-      var(--shell-mouth) 88%,
-      transparent 100%);
-    border-radius: 50% / 8%;
-    transform: translate(-50%,-50%);
-    opacity:0;
-    box-shadow: 0 0 3px 1px rgba(107,58,46,0.35);
-  }
-  .shell.up::after { opacity:1; }
-  .shell.down { background: radial-gradient(ellipse at 40% 30%, #efe0b8, var(--shell-ivory-deep) 70%, #c9b284 100%); }
+  .shell.down { background-image: url("../img/cowrie-down.png"); }
   .shell.flipping { animation: shell-flip 0.65s ease-in-out; }
   @keyframes shell-flip {
     0% { transform: rotateY(0) rotateX(0); }
