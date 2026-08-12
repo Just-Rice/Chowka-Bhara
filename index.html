@@ -226,14 +226,11 @@
     width: 92%;
     height: 92%;
   }
-  .pieces.many .token { width: 42%; height:42%; }
-  .pieces.crowded .token { width: 32%; height:32%; }
-  #board.board-n7 .pieces.many .token { width: 38%; height:38%; }
-  #board.board-n7 .pieces.crowded .token { width: 28%; height:28%; }
-
   .token {
-    width: 62%;
-    height: 62%;
+    /* Sized by updateCellDensity so every piece on a square stays visible
+       instead of stacking over its neighbours. */
+    width: var(--tok, 62%);
+    height: var(--tok, 62%);
     border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.25);
     flex: 0 0 auto;
@@ -1016,6 +1013,7 @@
 
     renderBoardStructure();
     renderSidebar();
+    updateCellDensity();
     addLog("New game: " + N + "\u00d7" + N + " board, " + numPlayers + " players.");
     updateUI();
   }
@@ -1142,12 +1140,21 @@
     });
   }
 
+  // Pieces sharing a square shrink to fit rather than piling up and spilling
+  // over the edges. They lay out on the smallest square grid that holds them
+  // and each takes an equal share of it, so one piece is large and sixteen —
+  // possible on a safe square, where every player can sit — are all still
+  // visible.
   function updateCellDensity() {
     var els = document.querySelectorAll(".pieces");
     els.forEach(function(el) {
       var n = el.children.length;
-      el.classList.toggle("many", n > 2);
-      el.classList.toggle("crowded", n > 4);
+      if (!n) { el.style.removeProperty("--tok"); return; }
+      var cols = Math.ceil(Math.sqrt(n));
+      // Reserve a little of the box for the gutters, and cap a lone piece so
+      // it does not swell to fill the whole square.
+      var size = Math.min(64, (96 - 6 * (cols - 1)) / cols);
+      el.style.setProperty("--tok", size.toFixed(1) + "%");
     });
   }
 
