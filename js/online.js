@@ -336,7 +336,9 @@ function startHosting() {
     online.peer = peer;
     online.roomCode = code;
 
+    var opened = false;      // has this room ever come up?
     peer.on("open", function() {
+      opened = true;
       online.transport = ChowkaNet.createPeerTransport({ peer: peer, onDiag: netDiag });
       online.host = ChowkaNet.createHost({
         transport: online.transport,
@@ -356,9 +358,17 @@ function startHosting() {
     });
 
     peer.on("error", function(err) {
+      // Before the room exists, a clash just means picking another code.
+      // Afterwards the same error means the signalling server still holds our
+      // old session while we reconnect, and re-hosting there would mint a
+      // fresh code and cut loose everybody already in the room.
       if (err && err.type === "unavailable-id") {
-        try { peer.destroy(); } catch (e) {}
-        return startHosting();   // 17 million codes; a clash just means retry
+        if (!opened) {
+          try { peer.destroy(); } catch (e) {}
+          return startHosting();
+        }
+        netDiag("signalling still holds the old session — retrying");
+        return;
       }
       setLobbyStatus(peerErrorMessage(err), true);
     });
