@@ -2,7 +2,7 @@
  * out of index.html and evaluating it — no reimplementation, so a bug in the
  * game is a failure here. */
 
-var SRC = read('/Users/rishirao/workspace/chowkabara/index.html');
+var SRC = read('index.html');
 
 /* Pull a named function's full text by brace-matching from its declaration. */
 function grab(name) {
@@ -145,7 +145,7 @@ function makeState(N, numPlayers) {
   var players = [];
   for (var i = 0; i < numPlayers; i++) {
     var pieces = [];
-    for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: 'home', pathIndex: -1 });
+    for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: 'active', pathIndex: 0 });
     players.push({
       id: i, name: 'P' + i, slot: slots[i], path: all[slots[i]],
       hasCaptured: false, pieces: pieces
@@ -161,16 +161,22 @@ state = makeState(5, 2);
 var P = state.players[0];
 var last = state.pathLength - 1;
 
-/* Entering. */
-var m = computeLegalMoves(P, 3);
-check('entering: all four hand pieces offered', m.length === 4, JSON.stringify(m.length));
-check('entering: roll 3 lands at path index 2',
-      m[0].type === 'enter' && m[0].destIndex === 2, JSON.stringify(m[0]));
+/* Pieces start on the board, so a roll always moves its full value. */
+check('pieces start on the start square',
+      P.pieces.every(function (pc) { return pc.status === 'active' && pc.pathIndex === 0; }),
+      JSON.stringify(P.pieces));
+
+P.hasCaptured = true;
+var m = computeLegalMoves(P, 2);
+check('all four pieces can move', m.length === 4, JSON.stringify(m.length));
+check('a roll of 2 moves two squares, not one',
+      m[0].type === 'move' && m[0].destIndex === 2, JSON.stringify(m[0]));
+check('no move is ever an "enter"',
+      m.every(function (x) { return x.type !== 'enter'; }), JSON.stringify(m));
+P.hasCaptured = false;
 
 /* Inner-ring gate. */
-P.pieces[0].status = 'active';
 P.pieces[0].pathIndex = 14;          /* outer ring, near its end (0..15) */
-P.pieces[1].status = 'active';
 P.pieces[1].pathIndex = 2;
 P.pieces[2].status = 'finished';
 P.pieces[3].status = 'finished';

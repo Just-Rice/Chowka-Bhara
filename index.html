@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Chowka Bhara</title>
+<title>Chowka-Bhara</title>
 <style>
   /* ============================= RESET ============================= */
   *, *::before, *::after { box-sizing: border-box; }
@@ -161,6 +161,10 @@
   .turn-banner-mobile { display:none; }
 
   #board {
+    /* The board turns so the viewer's own start square is nearest them.
+       Everything inside that reads as text or has a "up" is counter-rotated. */
+    transform: rotate(var(--board-rot, 0deg));
+    transition: transform .35s ease;
     display:grid;
     aspect-ratio: 1;
     width: 100%;
@@ -184,12 +188,18 @@
   .cell.layer-2 { background: var(--ink-2); }
   .cell.layer-3 { background: var(--ink-2); }
 
-  .cell.safe-cell:not(.player-start)::before {
+  /* Every safe square is the same diamond. The four player starts get theirs
+     in that player's colour, set inline as --seat-colour. */
+  .cell.safe-cell::before {
     content:"";
     position:absolute;
     width: 34%; height:34%;
-    border: 1.5px solid rgba(243,230,195,0.55);
+    border: 1.5px solid var(--seat-colour, rgba(243,230,195,0.55));
     transform: rotate(45deg);
+  }
+  .cell.player-start::before {
+    border-width: 2.5px;
+    width: 40%; height: 40%;
   }
 
   .cell.center-cell {
@@ -197,6 +207,7 @@
     box-shadow: 0 0 0 2px var(--home-ring), 0 0 18px 2px rgba(201,147,47,0.55);
   }
   .cell.center-cell .center-label {
+    transform: rotate(calc(-1 * var(--board-rot, 0deg)));
     font-family: var(--font-display);
     color: #4a3312;
     font-size: clamp(9px, 2.4vw, 15px);
@@ -605,7 +616,7 @@
 <div id="app">
 
   <div class="title-block">
-    <h1>Chowka Bhara</h1>
+    <h1>Chowka-Bhara</h1>
     <p>A cowrie-shell race to the center &middot; house rules edition</p>
   </div>
 
@@ -956,7 +967,10 @@
     var players = [];
     for (var i = 0; i < numPlayers; i++) {
       var pieces = [];
-      for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: "home", pathIndex: -1 });
+      // Every piece begins on its owner's start square, as it would on a real
+      // board. There is no separate "entering" move, so a roll of 2 always
+      // moves two squares.
+      for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: "active", pathIndex: 0 });
       players.push({
         id: i,
         name: PLAYER_DEFS[i].name,
@@ -1009,6 +1023,26 @@
 
   function currentPlayer() { return state.players[state.currentPlayerIndex]; }
 
+  // Which seat the person at this screen is playing. Hotseat and hosting both
+  // sit in seat 0; a guest sits wherever they claimed.
+  function viewingSeat() {
+    if (online.mode === "guest" && online.mySeat !== null && online.mySeat !== undefined) {
+      return online.mySeat;
+    }
+    return 0;
+  }
+
+  function applyBoardRotation() {
+    var board = document.getElementById("board");
+    if (!board || !state) return;
+    var seat = viewingSeat();
+    var player = state.players[seat] || state.players[0];
+    // Slots run 0=top, 1=right, 2=bottom, 3=left. Put the viewer's slot at the
+    // bottom; the CSS counter-rotates any text so it stays readable.
+    var quarters = (2 - player.slot + 4) % 4;
+    board.style.setProperty("--board-rot", (quarters * 90) + "deg");
+  }
+
   /* ============================= BOARD RENDER ============================= */
   function renderBoardStructure() {
     var boardEl = document.getElementById("board");
@@ -1049,8 +1083,10 @@
       var startRC = p.path[0];
       var cell = document.getElementById("cell-" + startRC[0] + "-" + startRC[1]);
       cell.classList.add("player-start");
-      cell.style.boxShadow = "inset 0 0 0 2px var(--" + p.colorVar + ")";
+      cell.style.setProperty("--seat-colour", "var(--" + p.colorVar + ")");
     });
+
+    applyBoardRotation();
   }
 
   /* ============================= SIDEBAR RENDER ============================= */
@@ -1072,7 +1108,6 @@
           '</span>' +
         '</div>' +
         '<div class="tray-row">' +
-          '<div class="tray hand" id="hand-' + p.id + '"></div>' +
           '<div class="tray finished" id="finished-' + p.id + '"></div>' +
         '</div>';
       roster.appendChild(row);
@@ -1087,7 +1122,10 @@
         token.addEventListener("keydown", function(e){
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestMove(p.id, piece.id); }
         });
-        document.getElementById("hand-" + p.id).appendChild(token);
+        // Tokens start on the board, on their owner's start square.
+        var startRC = p.path[0];
+        document.getElementById("pieces-" + startRC[0] + "-" + startRC[1])
+          .appendChild(token);
       });
     });
 
@@ -1096,9 +1134,9 @@
 
   function renderRoster() {
     state.players.forEach(function(p) {
-      var handCount = p.pieces.filter(function(pc){ return pc.status === "home"; }).length;
+      var onBoard = p.pieces.filter(function(pc){ return pc.status === "active"; }).length;
       var finCount  = p.pieces.filter(function(pc){ return pc.status === "finished"; }).length;
-      document.getElementById("hand-count-" + p.id).textContent = handCount + " in hand";
+      document.getElementById("hand-count-" + p.id).textContent = onBoard + " on board";
       document.getElementById("finished-count-" + p.id).textContent = finCount + "/" + PIECES_PER_PLAYER + " home";
       var row = document.getElementById("roster-" + p.id);
       row.classList.toggle("active-player", p.id === state.currentPlayerIndex && state.turnState !== "GAME_OVER");
@@ -1172,10 +1210,7 @@
     var moves = [];
     var lastIndex = state.pathLength - 1;
     player.pieces.forEach(function(piece) {
-      if (piece.status === "home") {
-        var dest = moveValue - 1;
-        moves.push({ pieceId: piece.id, type: "enter", destIndex: dest });
-      } else if (piece.status === "active") {
+      if (piece.status === "active") {
         var d = piece.pathIndex + moveValue;
         if (d > lastIndex) return; // overshoot: illegal
         if (d === lastIndex) {
@@ -1224,17 +1259,11 @@
       state.players.forEach(function(p) {
         if (p.id === againstPlayer.id) return;
         p.pieces.forEach(function(piece) {
-          var destIndex;
-          if (piece.status === "home") {
-            destIndex = roll.value - 1;
-          } else if (piece.status === "active") {
-            var d = piece.pathIndex + roll.value;
-            if (d >= lastIndex) return;   // the centre captures nothing
-            if (layerOf(d, state.ringBoundaries) > 0 && !p.hasCaptured) return;
-            destIndex = d;
-          } else {
-            return;                        // already home
-          }
+          if (piece.status !== "active") return;      // already home
+          var d = piece.pathIndex + roll.value;
+          if (d >= lastIndex) return;                  // the centre captures nothing
+          if (layerOf(d, state.ringBoundaries) > 0 && !p.hasCaptured) return;
+          var destIndex = d;
           var rc = p.path[destIndex];
           if (isSafeCell(rc)) return;
           reachable[cellKey(rc)] = true;
@@ -1310,14 +1339,13 @@
     if (destSafe) score += 120;
 
     // Credit for vacating a square that is currently in danger.
-    if (piece.status === "active") {
-      var fromRC = player.path[piece.pathIndex];
-      if (!isSafeCell(fromRC)) score += (threats[cellKey(fromRC)] || 0) * 600;
+    var fromRC = player.path[piece.pathIndex];
+    if (fromRC && !isSafeCell(fromRC)) {
+      score += (threats[cellKey(fromRC)] || 0) * 600;
     }
 
     score += threatCreated(player, move.destIndex) * 300;
     score += move.destIndex * 3;                 // general progress
-    if (move.type === "enter") score += 90;      // pieces in hand do nothing
 
     return score;
   }
@@ -1486,6 +1514,7 @@
 
     var result = throwShells();
     state.lastRoll = result;
+    if (online.mode === "host" && online.host) online.host.announceRoll(result);
 
     animateShells(result).then(function(){
       var player = currentPlayer();
@@ -1562,12 +1591,13 @@
               if (op.status !== "active") return;
               var opRC = p.path[op.pathIndex];
               if (opRC[0] === destRC[0] && opRC[1] === destRC[1]) {
-                op.status = "home";
-                op.pathIndex = -1;
+                op.pathIndex = 0;                 // all the way back to their start
                 var opToken = document.getElementById("token-p" + p.id + "-" + op.id);
-                document.getElementById("hand-" + p.id).appendChild(opToken);
+                var backRC = p.path[0];
+                document.getElementById("pieces-" + backRC[0] + "-" + backRC[1])
+                  .appendChild(opToken);
                 captured = true;
-                addLog(player.name + " sent " + p.name + "'s piece back to hand!");
+                addLog(player.name + " sent " + p.name + "'s piece back to the start!");
               }
             });
           });
@@ -1826,8 +1856,7 @@
         var token = el("token-p" + p.id + "-" + pc.id);
         if (!token) return;
         var target;
-        if (pc.status === "home") target = el("hand-" + p.id);
-        else if (pc.status === "finished") target = el("finished-" + p.id);
+        if (pc.status === "finished") target = el("finished-" + p.id);
         else {
           var rc = p.path[pc.pathIndex];
           target = rc ? el("pieces-" + rc[0] + "-" + rc[1]) : null;
@@ -1861,6 +1890,7 @@
     state.busy = false;
 
     syncTokensToState();
+    applyBoardRotation();
     updateCellDensity();
     refreshMoveOptions();
     updateUI();
@@ -2087,6 +2117,7 @@
         el("room-code").textContent = code;
         el("start-online-btn").hidden = false;
         refreshStartButton();
+        startHeartbeat();
         setLobbyStatus("Room open. Share the code, then start when everyone is seated.");
         renderSeatList(online.host.seats());
       });
@@ -2127,19 +2158,31 @@
             online.myReady = !!(mine && mine.ready);
             renderSeatList(seats);
             updateNetBadge();
-            if (mine) {
-              setLobbyStatus(mine.ready
+            setLobbyStatus(!mine
+              ? "Connected to " + code + ". Pick a seat."
+              : mine.ready
                 ? "Ready. Waiting for the host to start."
                 : "Seat taken. Press \u201cI'm ready\u201d when you are.");
-            }
+            applyBoardRotation();
           },
           onSnapshot: onGuestSnapshot,
+          onRoll: function(result) {
+            if (state) { state.lastRoll = result; animateShells(result); }
+          },
+          onHostLost: function() {
+            setLobbyStatus("Lost contact with the host.", true);
+            onSeatDropped(null, "The host");
+          },
+          onHostBack: function() {
+            onSeatReturned(null);
+          },
           onNote: addLog,
           onReject: function(reason) { setLobbyStatus(reason, true); },
           onPaused: onSeatDropped,
           onResumed: onSeatReturned
         });
         transport.connectTo(ChowkaNet.ROOM_PREFIX + code);
+        startHeartbeat();
       });
 
       peer.on("error", function(err) { setLobbyStatus(peerErrorMessage(err), true); });
@@ -2181,6 +2224,16 @@
     el("pause-overlay").classList.add("hidden");
     updateNetBadge();
     if (state) updateUI();
+  }
+
+  // Both sides beat every couple of seconds; the other end drops you after
+  // roughly seven seconds of silence.
+  function startHeartbeat() {
+    if (online.beat) clearInterval(online.beat);
+    online.beat = setInterval(function() {
+      if (online.host) online.host.tick(Date.now());
+      else if (online.guest) online.guest.tick(Date.now());
+    }, 2000);
   }
 
   function updateNetBadge() {

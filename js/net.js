@@ -40,6 +40,8 @@
     NOTE: "note",         // host -> all, a line for the log
     PAUSED: "paused",     // host -> all, someone dropped
     RESUMED: "resumed",   // host -> all
+    ROLL: "roll",         // host -> all, the cowries that were just thrown
+    PING: "ping",         // both ways, liveness
     REJECT: "reject"      // host -> guest, intent refused (with a reason)
   };
 
@@ -52,9 +54,16 @@
     var onPeerChange = opts.onPeerChange || function () {};
     var onReject = opts.onReject || function () {};
 
-    var peers = {};        // peerId -> { name, seatId }
+    var peers = {};        // peerId -> { name, seatId, ready, lastSeen }
     var paused = false;
     var pausedFor = null;
+
+    // A closed tab does not reliably fire a data-channel close event —
+    // especially on mobile — so liveness is tracked by heartbeat instead of
+    // trusting the transport to tell us.
+    var TIMEOUT = opts.timeout || 7000;
+    // Injectable so tests can fast-forward instead of sleeping.
+    var now = opts.now || function () { return Date.now(); };
 
     function seatOwner(seatId) {
       var found = null;
@@ -94,17 +103,18 @@
     }
 
     transport.onPeerJoin(function (peerId) {
-      peers[peerId] = { name: null, seatId: null };
+      peers[peerId] = { name: null, seatId: null, ready: false, lastSeen: now() };
       onPeerChange(Object.keys(peers).length);
     });
 
-    transport.onPeerLeave(function (peerId) {
+    function dropPeer(peerId) {
       var info = peers[peerId];
+      if (!info) return;
       delete peers[peerId];
       onPeerChange(Object.keys(peers).length);
 
       // Losing a spectator is harmless; losing a seated player stops the game.
-      if (info && info.seatId !== null && info.seatId !== undefined) {
+      if (info.seatId !== null && info.seatId !== undefined) {
         paused = true;
         pausedFor = info.seatId;
         transport.broadcast({
@@ -113,10 +123,15 @@
         if (opts.onPaused) opts.onPaused(info.seatId, info.name);
       }
       pushSeats();
-    });
+    }
+
+    transport.onPeerLeave(dropPeer);
 
     transport.onMessage(function (peerId, msg) {
       if (!msg || !peers[peerId]) return;
+      peers[peerId].lastSeen = now();
+
+      if (msg.t === M.PING) return;        // liveness only
 
       if (msg.t === M.HELLO) {
         peers[peerId].name = String(msg.name || "Guest").slice(0, 20);
@@ -206,6 +221,20 @@
         }).length;
       },
 
+      announceRoll: function (result) {
+        transport.broadcast({ t: M.ROLL, result: result });
+      },
+
+      // Call on an interval. Sends a heartbeat and drops anyone who has gone
+      // quiet for longer than the timeout.
+      tick: function (at) {
+        at = at === undefined ? now() : at;
+        transport.broadcast({ t: M.PING });
+        Object.keys(peers).forEach(function (pid) {
+          if (at - peers[pid].lastSeen > TIMEOUT) dropPeer(pid);
+        });
+      },
+
       // Used when the remaining players decide to hand a dropped seat to the CPU.
       resumeWithCPU: function (seatId) {
         if (!paused || pausedFor !== seatId) return false;
@@ -225,6 +254,10 @@
     var transport = opts.transport;
     var name = opts.name || "Guest";
     var mySeat = null;
+    var TIMEOUT = opts.timeout || 7000;
+    var now = opts.now || function () { return Date.now(); };
+    var hostLastSeen = now();
+    var hostLost = false;
 
     transport.onPeerJoin(function () {
       transport.broadcast({ t: M.HELLO, name: name });
@@ -232,7 +265,17 @@
 
     transport.onMessage(function (peerId, msg) {
       if (!msg) return;
+      hostLastSeen = now();
+      if (hostLost) {
+        hostLost = false;
+        if (opts.onHostBack) opts.onHostBack();
+      }
       switch (msg.t) {
+        case M.PING:
+          break;
+        case M.ROLL:
+          if (opts.onRoll) opts.onRoll(msg.result);
+          break;
         case M.WELCOME:
           if (msg.protocol !== PROTOCOL && opts.onVersionMismatch) {
             opts.onVersionMismatch(msg.protocol, PROTOCOL);
@@ -283,6 +326,17 @@
       setSeat: function (s) { mySeat = s; },
       sendIntent: function (intent) {
         transport.broadcast({ t: M.INTENT, intent: intent });
+      },
+
+      // Mirror of the host's tick: heartbeat out, and notice if the host has
+      // gone quiet for too long.
+      tick: function (at) {
+        at = at === undefined ? now() : at;
+        transport.broadcast({ t: M.PING });
+        if (!hostLost && at - hostLastSeen > TIMEOUT) {
+          hostLost = true;
+          if (opts.onHostLost) opts.onHostLost();
+        }
       }
     };
   }

@@ -1,6 +1,6 @@
-# Chowkabara
+# Chowka-Bhara
 
-A digital Chowka Bhara (Ashta Chamma) — the traditional Indian cowrie-shell race
+A digital Chowka-Bhara (Ashta Chamma) — the traditional Indian cowrie-shell race
 to the centre. Single file, vanilla JavaScript, no dependencies, no build step.
 
 ```sh
@@ -44,10 +44,13 @@ There is **no cap** on consecutive bonus throws.
   after another throw captures and unlocks your inner rings
 - A capture earns another throw, which joins the bank mid-spend
 
+**Orientation** — the board turns so that your own start square is always the one
+nearest you. Everyone sees their own colour at the bottom.
+
 **Movement**
 
-- Entering: a piece leaves your hand and lands on the rolled number, counting the
-  start square as the first space — so a roll of 1 lands on the start square
+- All four pieces begin **on** your start square. There is no separate entering
+  move, so a roll of 2 always moves two squares
 - No piece may enter an inner ring until your side has captured. The unlock is
   **per player, not per piece**: once *any* of your pieces captures, *all* of them
   are permanently free to go inside
@@ -59,8 +62,8 @@ There is **no cap** on consecutive bonus throws.
 
 **Capturing**
 
-- Landing exactly on an opponent's piece sends it back to their hand, and you
-  throw again
+- Landing exactly on an opponent's piece sends it back to their own start
+  square, and you throw again
 - Landing on a square holding several opponent pieces sends **all** of them back
 
 **Winning**

@@ -2,7 +2,7 @@
  * The CPU functions read module-level `state` and touch no DOM, so they can be
  * exercised directly against constructed positions. */
 
-var SRC = read('/Users/rishirao/workspace/chowkabara/index.html');
+var SRC = read('index.html');
 
 function grab(name) {
   var start = SRC.indexOf('function ' + name + '(');
@@ -53,7 +53,7 @@ function makeState(N, numPlayers, skill) {
   for (var i = 0; i < numPlayers; i++) {
     var pieces = [];
     for (var j = 0; j < PIECES_PER_PLAYER; j++) {
-      pieces.push({ id: j, status: 'home', pathIndex: -1 });
+      pieces.push({ id: j, status: 'active', pathIndex: 0 });
     }
     players.push({
       id: i, name: 'P' + i, slot: slots[i], path: all[slots[i]],
@@ -204,8 +204,7 @@ function randomPosition(N, numPlayers, skill) {
     p.hasCaptured = Math.random() < 0.5;
     p.pieces.forEach(function (pc) {
       var r = Math.random();
-      if (r < 0.35) { pc.status = 'home'; pc.pathIndex = -1; }
-      else if (r < 0.9) {
+      if (r < 0.9) {
         pc.status = 'active';
         pc.pathIndex = Math.floor(Math.random() * (s.pathLength - 1));
         if (!p.hasCaptured && layerOf(pc.pathIndex, s.ringBoundaries) > 0) {

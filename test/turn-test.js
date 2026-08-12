@@ -3,7 +3,7 @@
  * deadlock ranking. Functions are extracted from index.html, so this tests the
  * shipping code. */
 
-var SRC = read('/Users/rishirao/workspace/chowkabara/index.html');
+var SRC = read('index.html');
 
 function grab(name) {
   var start = SRC.indexOf('function ' + name + '(');
@@ -42,7 +42,7 @@ function makeState(N, numPlayers) {
   for (var i = 0; i < numPlayers; i++) {
     var pieces = [];
     for (var j = 0; j < PIECES_PER_PLAYER; j++) {
-      pieces.push({ id: j, status: 'home', pathIndex: -1 });
+      pieces.push({ id: j, status: 'active', pathIndex: 0 });
     }
     players.push({
       id: i, name: 'P' + i, colorVar: 'x', slot: slots[i], path: all[slots[i]],

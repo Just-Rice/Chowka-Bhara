@@ -7,7 +7,7 @@
  * other through the signalling server. That needs two actual devices. */
 
 var root = this;
-load('/Users/rishirao/workspace/chowkabara/js/net.js');
+load('js/net.js');
 var Net = root.ChowkaNet;
 
 var fails = [];
@@ -329,6 +329,112 @@ check('a connected spectator does not block the start',
       host4.allReady() === true);
 check('spectators are not counted as seated', host4.seatedCount() === 2,
       String(host4.seatedCount()));
+
+/* -------------------------------------------------- heartbeat liveness --- */
+
+/* A closed tab does not reliably fire a close event, so the host drops peers
+   that go quiet. tick() takes the clock so the test can fast-forward. */
+var net5 = Net.createFakeNetwork({ schedule: schedule });
+var h5 = net5.endpoint('H5');
+var q1 = net5.endpoint('Q1');
+var game5 = makeGame(['local', 'open']);
+var h5Paused = [];
+var clock = Date.now();
+function nowFn() { return clock; }
+var host5 = Net.createHost({
+  transport: h5, game: game5, timeout: 7000, now: nowFn,
+  onPaused: function (seatId, name) { h5Paused.push([seatId, name]); }
+});
+var q1Guest = Net.createGuest({ transport: q1, name: 'Quiet', selfPeerId: 'Q1', now: nowFn });
+net5.connect('H5', 'Q1');
+pump();
+q1.broadcast({ t: Net.M.CLAIM, seatId: 1 });
+pump();
+
+var t0 = clock;
+host5.tick(t0);
+pump();
+check('a live peer survives a tick', host5.isPaused() === false);
+check('a live peer is still seated', host5.seatedCount() === 1,
+      String(host5.seatedCount()));
+
+/* Guest keeps beating: still fine well past the timeout. */
+for (var beat = 1; beat <= 6; beat++) {
+  clock = t0 + beat * 2000;      // the shared clock the host stamps with
+  q1Guest.tick(clock);
+  pump();
+  host5.tick(clock);
+  pump();
+}
+check('a peer that keeps beating is never dropped', host5.isPaused() === false,
+      JSON.stringify(h5Paused));
+
+/* Now the guest goes silent — a closed tab, no close event. */
+clock = t0 + 20000;            // guest has gone quiet
+host5.tick(clock);
+pump();
+check('a silent peer is dropped even with no close event',
+      h5Paused.length === 1, JSON.stringify(h5Paused));
+check('dropping a silent seated peer pauses the game', host5.isPaused() === true);
+check('the right seat is reported empty', host5.pausedSeat() === 1,
+      String(host5.pausedSeat()));
+
+/* The guest notices a silent host too. */
+var net6 = Net.createFakeNetwork({ schedule: schedule });
+var h6 = net6.endpoint('H6');
+var q2 = net6.endpoint('Q2');
+Net.createHost({ transport: h6, game: makeGame(['local', 'open']) });
+var lostCount = 0, backCount = 0;
+var clock6 = Date.now();
+var g6 = Net.createGuest({
+  transport: q2, name: 'G', selfPeerId: 'Q2', timeout: 7000,
+  now: function () { return clock6; },
+  onHostLost: function () { lostCount++; },
+  onHostBack: function () { backCount++; }
+});
+net6.connect('H6', 'Q2');
+pump();
+
+var u0 = clock6;
+g6.tick(u0);
+pump();
+check('a live host is not reported lost', lostCount === 0);
+
+clock6 = u0 + 20000;
+g6.tick(clock6);
+pump();
+check('a silent host is reported lost', lostCount === 1, String(lostCount));
+check('the host is only reported lost once', (clock6 = u0 + 30000, g6.tick(clock6), lostCount) === 1,
+      String(lostCount));
+
+/* Any message from the host counts as it coming back. */
+clock6 = u0 + 30000;
+h6.broadcast({ t: Net.M.PING });
+pump();
+check('a returning host is reported back', backCount === 1, String(backCount));
+
+/* ------------------------------------------------------ roll broadcast --- */
+
+var net7 = Net.createFakeNetwork({ schedule: schedule });
+var h7 = net7.endpoint('H7');
+var q3 = net7.endpoint('Q3');
+var host7 = Net.createHost({ transport: h7, game: makeGame(['local', 'open']) });
+var rollsSeen = [];
+Net.createGuest({ transport: q3, name: 'R', selfPeerId: 'Q3',
+                  onRoll: function (r) { rollsSeen.push(r); } });
+net7.connect('H7', 'Q3');
+pump();
+
+host7.announceRoll({ shells: [true, false, true, true], upCount: 3, moveValue: 3, bonus: false });
+pump();
+check('the guest is told what was thrown', rollsSeen.length === 1,
+      String(rollsSeen.length));
+check('the individual cowries come through, not just the total',
+      rollsSeen[0].shells.length === 4 && rollsSeen[0].shells[1] === false,
+      JSON.stringify(rollsSeen[0]));
+check('the move value and bonus flag survive the trip',
+      rollsSeen[0].moveValue === 3 && rollsSeen[0].bonus === false,
+      JSON.stringify(rollsSeen[0]));
 
 /* --------------------------------------------------------- room codes --- */
 
