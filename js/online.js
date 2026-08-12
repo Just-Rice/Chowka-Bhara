@@ -393,8 +393,13 @@ function startJoining(code) {
           if (state) { state.lastRoll = result; animateShells(result); }
         },
         onHostLost: function() {
-          setLobbyStatus("Lost contact with the host.", true);
-          onSeatDropped(null, "The host");
+          setLobbyStatus(t("err.hostLost"), true);
+          onSeatDropped(null, t("pause.host"));
+        },
+        onConnectFailed: function() {
+          // Never got through at all, which is a different problem from
+          // having been connected and lost them.
+          setLobbyStatus(t("err.noReach"), true);
         },
         onHostBack: function() {
           onSeatReturned(null);

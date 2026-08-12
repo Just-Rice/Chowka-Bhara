@@ -413,6 +413,72 @@ h6.broadcast({ t: Net.M.PING });
 pump();
 check('a returning host is reported back', backCount === 1, String(backCount));
 
+/* ------------------------------------ slow to connect is not a disconnect -- */
+
+/* Reaching the host the first time means signalling plus ICE, which regularly
+   takes longer than the seven-second liveness timeout. A guest that has not
+   heard from the host yet must not conclude the host dropped out — that bug
+   made online play unusable the moment a connection took a few seconds. */
+var net8 = Net.createFakeNetwork({ schedule: schedule });
+var h8 = net8.endpoint('H8');
+var q4 = net8.endpoint('Q4');
+Net.createHost({ transport: h8, game: makeGame(['local', 'open']) });
+
+var slowClock = Date.now();
+var lostCalls = 0, failCalls = 0;
+var slow = Net.createGuest({
+  transport: q4, name: 'Slow', selfPeerId: 'Q4',
+  timeout: 7000, connectTimeout: 25000,
+  now: function () { return slowClock; },
+  onHostLost: function () { lostCalls++; },
+  onConnectFailed: function () { failCalls++; }
+});
+
+check('a fresh guest has not heard from anyone', slow.hasConnected() === false);
+
+/* Ten seconds of trying to connect — well past the liveness timeout. */
+for (var beat = 1; beat <= 5; beat++) {
+  slowClock += 2000;
+  slow.tick(slowClock);
+  pump();
+}
+check('a guest still connecting is never told the host dropped out',
+      lostCalls === 0, lostCalls + ' calls');
+check('nor has it given up yet', failCalls === 0, failCalls + ' calls');
+
+/* Now the connection completes. */
+net8.connect('H8', 'Q4');
+pump();
+check('the guest has now heard from the host', slow.hasConnected() === true);
+
+/* From here the ordinary liveness check applies. */
+slowClock += 20000;
+slow.tick(slowClock);
+pump();
+check('once connected, silence does mean the host is gone', lostCalls === 1,
+      lostCalls + ' calls');
+
+/* A guest that never gets through reports that instead, and only once. */
+var net9 = Net.createFakeNetwork({ schedule: schedule });
+var q5 = net9.endpoint('Q5');
+var clock9 = Date.now();
+var neverLost = 0, neverFail = 0;
+var never = Net.createGuest({
+  transport: q5, name: 'Never', selfPeerId: 'Q5',
+  timeout: 7000, connectTimeout: 25000,
+  now: function () { return clock9; },
+  onHostLost: function () { neverLost++; },
+  onConnectFailed: function () { neverFail++; }
+});
+clock9 += 30000;
+never.tick(clock9);
+pump();
+check('never connecting reports a failure to connect', neverFail === 1, String(neverFail));
+check('never connecting is not reported as a drop-out', neverLost === 0, String(neverLost));
+clock9 += 30000;
+never.tick(clock9);
+check('the failure is reported only once', neverFail === 1, String(neverFail));
+
 /* ------------------------------------------------------ roll broadcast --- */
 
 var net7 = Net.createFakeNetwork({ schedule: schedule });

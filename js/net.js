@@ -41,6 +41,8 @@
     PAUSED: "paused",     // host -> all, someone dropped
     RESUMED: "resumed",   // host -> all
     ROLL: "roll",         // host -> all, the cowries that were just thrown
+    ASK: "ask",           // host -> one guest, "answer this for me"
+    REPLY: "reply",       // guest -> host, the answer
     PING: "ping",         // both ways, liveness
     REJECT: "reject"      // host -> guest, intent refused (with a reason)
   };
@@ -169,6 +171,11 @@
         return;
       }
 
+      if (msg.t === M.REPLY) {
+        if (opts.onReply) opts.onReply(msg);
+        return;
+      }
+
       if (msg.t === M.READY) {
         peers[peerId].ready = !!msg.ready;
         pushSeats();
@@ -221,6 +228,14 @@
         }).length;
       },
 
+      // Which peer, if any, is sitting in that seat.
+      peerForSeat: function (seatId) { return seatOwner(seatId); },
+
+      askPeer: function (peerId, question) {
+        transport.send(peerId, { t: M.ASK, id: question.id,
+                                 kind: question.kind, payload: question.payload });
+      },
+
       announceRoll: function (result) {
         transport.broadcast({ t: M.ROLL, result: result });
       },
@@ -255,9 +270,17 @@
     var name = opts.name || "Guest";
     var mySeat = null;
     var TIMEOUT = opts.timeout || 7000;
+    // Reaching the host the first time means signalling plus ICE, which
+    // routinely takes longer than the liveness timeout. So the "have they gone
+    // quiet" check only arms once we have actually heard from them; until then
+    // a separate, much longer budget covers "could not connect at all".
+    var CONNECT_TIMEOUT = opts.connectTimeout || 25000;
     var now = opts.now || function () { return Date.now(); };
+    var startedAt = now();
     var hostLastSeen = now();
+    var everHeard = false;
     var hostLost = false;
+    var gaveUp = false;
 
     transport.onPeerJoin(function () {
       transport.broadcast({ t: M.HELLO, name: name });
@@ -266,6 +289,7 @@
     transport.onMessage(function (peerId, msg) {
       if (!msg) return;
       hostLastSeen = now();
+      everHeard = true;
       if (hostLost) {
         hostLost = false;
         if (opts.onHostBack) opts.onHostBack();
@@ -275,6 +299,9 @@
           break;
         case M.ROLL:
           if (opts.onRoll) opts.onRoll(msg.result);
+          break;
+        case M.ASK:
+          if (opts.onAsk) opts.onAsk(msg);
           break;
         case M.WELCOME:
           if (msg.protocol !== PROTOCOL && opts.onVersionMismatch) {
@@ -327,17 +354,35 @@
       sendIntent: function (intent) {
         transport.broadcast({ t: M.INTENT, intent: intent });
       },
+      replyToAsk: function (answer) {
+        transport.broadcast({ t: M.REPLY, id: answer.id, answer: answer.answer });
+      },
 
       // Mirror of the host's tick: heartbeat out, and notice if the host has
       // gone quiet for too long.
       tick: function (at) {
         at = at === undefined ? now() : at;
         transport.broadcast({ t: M.PING });
+
+        if (!everHeard) {
+          // Never connected. This is a failure to arrive, not a disconnection,
+          // and it deserves a different message.
+          if (!gaveUp && at - startedAt > CONNECT_TIMEOUT) {
+            gaveUp = true;
+            if (opts.onConnectFailed) opts.onConnectFailed();
+          }
+          return;
+        }
+
         if (!hostLost && at - hostLastSeen > TIMEOUT) {
           hostLost = true;
           if (opts.onHostLost) opts.onHostLost();
         }
-      }
+      },
+
+      /* Exposed so the interface can tell "still connecting" from "was
+         connected and lost them". */
+      hasConnected: function () { return everHeard; }
     };
   }
 
