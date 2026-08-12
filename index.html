@@ -50,6 +50,9 @@
   }
 
   .hidden { display: none !important; }
+  /* Any class that sets `display` would otherwise out-specify the UA rule for
+     [hidden] and leave the element on screen. */
+  [hidden] { display: none !important; }
 
   a, button { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
@@ -443,6 +446,23 @@
     font-weight: 600;
   }
   .seat-claim-btn:disabled { opacity: 0.4; cursor: default; }
+  /* Not-yet-confirmed reads as an invitation, confirmed reads as done. */
+  .seat-claim-btn.pending { background: transparent; color: var(--ink-text); }
+
+  .seat-ready {
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--mat-edge);
+    opacity: 0.7;
+  }
+  .seat-ready.yes {
+    background: var(--p-areca);
+    border-color: var(--p-areca);
+    color: #f2f7f2;
+    opacity: 1;
+  }
 
   .lobby-back-btn {
     display:block;
@@ -661,7 +681,7 @@
       </div><!-- /local-options -->
 
       <div class="rules-preview">
-        <strong>4 shells</strong> are thrown each turn &mdash; 1/2/3 up moves that many spaces; <strong>4 up moves 4 and throws again</strong>; <strong>0 up moves 8 and throws again</strong>. Landing on an opponent sends it back and earns another throw. Marked squares are safe. You can't enter the inner rings until you've captured once, and you need the exact count to reach the center.
+        <strong>4 cowries</strong> are thrown each turn &mdash; 1/2/3 up moves that many spaces; <strong>4 up moves 4 and throws again</strong>; <strong>0 up moves 8 and throws again</strong>. Landing on an opponent sends it back and earns another throw. Marked squares are safe. You can't enter the inner rings until you've captured once, and you need the exact count to reach the center.
       </div>
 
       <button class="begin-btn" id="begin-btn">Begin</button>
@@ -710,7 +730,7 @@
           <div class="shell down"></div>
           <div class="shell down"></div>
         </div>
-        <button id="roll-btn">Throw shells</button>
+        <button id="roll-btn">Throw cowries</button>
 
         <!-- Banked throws waiting to be spent this turn. -->
         <div class="pool" id="pool" hidden>
@@ -724,7 +744,7 @@
           <summary>How to play</summary>
           <ul>
             <li>Each player enters at the middle of their own side &mdash; shown by the colored ring on the board.</li>
-            <li>1, 2, or 3 shells up &rarr; move that many spaces.</li>
+            <li>1, 2, or 3 cowries up &rarr; move that many spaces.</li>
             <li>4 up &rarr; move 4 spaces, then throw again.</li>
             <li>0 up &rarr; move 8 spaces, then throw again.</li>
             <li>Land exactly on an opponent to send it back to hand &mdash; and throw again.</li>
@@ -1113,7 +1133,7 @@
         !mine ? (player.isCPU ? "Computer playing\u2026" : "Waiting for " + player.name)
       : state.turnState === "AWAITING_MOVE" ? "Choose a piece"
       : state.pool.length ? "Throw again"
-      : "Throw shells";
+      : "Throw cowries";
 
     renderPool();
 
@@ -1939,6 +1959,17 @@
     };
   }
 
+  function refreshStartButton() {
+    if (online.mode !== "host" || !online.host) return;
+    var btn = el("start-online-btn");
+    var ready = online.host.allReady();
+    var seated = online.host.seatedCount();
+    btn.disabled = !ready;
+    btn.textContent = ready
+      ? (seated ? "Start game" : "Start game (empty seats go to the computer)")
+      : "Waiting for players to be ready\u2026";
+  }
+
   function renderSeatList(seats) {
     var list = el("seat-list");
     list.innerHTML = "";
@@ -1961,12 +1992,31 @@
       var who = document.createElement("span");
       who.className = "seat-who";
 
+      var isMine = online.mode === "guest" && online.mySeat === seat.id;
+
       if (seat.kind === "local") {
         who.textContent = online.mode === "host" ? "You (host)" : "Host";
         row.appendChild(who);
       } else if (seat.takenBy) {
-        who.textContent = seat.takenBy;
+        who.textContent = seat.takenBy + (isMine ? " (you)" : "");
         row.appendChild(who);
+
+        if (isMine) {
+          // Your own seat gets the toggle; everyone else's shows its state.
+          var ready = document.createElement("button");
+          ready.className = "seat-claim-btn" + (seat.ready ? "" : " pending");
+          ready.textContent = seat.ready ? "Ready ✓" : "I'm ready";
+          ready.addEventListener("click", function() {
+            online.myReady = !seat.ready;
+            online.guest.setReady(online.myReady);
+          });
+          row.appendChild(ready);
+        } else {
+          var tag = document.createElement("span");
+          tag.className = "seat-ready" + (seat.ready ? " yes" : "");
+          tag.textContent = seat.ready ? "ready" : "not ready";
+          row.appendChild(tag);
+        }
       } else if (online.mode === "host") {
         who.textContent = "Waiting…";
         row.appendChild(who);
@@ -1991,6 +2041,7 @@
         btn.textContent = "Sit here";
         btn.addEventListener("click", function() {
           online.mySeat = seat.id;
+          online.myReady = false;
           online.guest.claim(seat.id);
           setLobbyStatus("Seat taken. Waiting for the host to start.");
         });
@@ -1999,6 +2050,8 @@
 
       list.appendChild(row);
     });
+
+    refreshStartButton();
   }
 
   function startHosting() {
@@ -2033,6 +2086,7 @@
         el("code-display").hidden = false;
         el("room-code").textContent = code;
         el("start-online-btn").hidden = false;
+        refreshStartButton();
         setLobbyStatus("Room open. Share the code, then start when everyone is seated.");
         renderSeatList(online.host.seats());
       });
@@ -2052,7 +2106,7 @@
     showScreen("lobby-screen");
     setLobbyStatus("Connecting to " + code + "…");
     el("code-display").hidden = true;
-    el("start-online-btn").hidden = true;
+    el("start-online-btn").hidden = true;   // only the host starts the game
 
     loadPeerJS().then(function() {
       var peer = new Peer(undefined, { debug: 0 });
@@ -2066,7 +2120,19 @@
           transport: transport,
           name: "Guest",
           selfPeerId: id,
-          onSeats: function(seats) { renderSeatList(seats); updateNetBadge(); },
+          onSeats: function(seats) {
+            // Trust the host's view of who sits where, not our own click.
+            var mine = seats.filter(function(x) { return x.peerId === id; })[0];
+            online.mySeat = mine ? mine.id : null;
+            online.myReady = !!(mine && mine.ready);
+            renderSeatList(seats);
+            updateNetBadge();
+            if (mine) {
+              setLobbyStatus(mine.ready
+                ? "Ready. Waiting for the host to start."
+                : "Seat taken. Press \u201cI'm ready\u201d when you are.");
+            }
+          },
           onSnapshot: onGuestSnapshot,
           onNote: addLog,
           onReject: function(reason) { setLobbyStatus(reason, true); },

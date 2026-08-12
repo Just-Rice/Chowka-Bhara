@@ -262,6 +262,74 @@ pump();
 check('a guest with no seat cannot send intents', yRejects.length === 1,
       JSON.stringify(yRejects));
 
+/* ------------------------------------------------------- ready gating --- */
+
+var net4 = Net.createFakeNetwork({ schedule: schedule });
+var h4 = net4.endpoint('H4');
+var p1 = net4.endpoint('P1');
+var p2 = net4.endpoint('P2');
+var game4 = makeGame(['local', 'open', 'open']);
+var host4 = Net.createHost({ transport: h4, game: game4 });
+var p1Seats = null;
+Net.createGuest({ transport: p1, name: 'One', selfPeerId: 'P1',
+                  onSeats: function (s) { p1Seats = s; } });
+Net.createGuest({ transport: p2, name: 'Two', selfPeerId: 'P2' });
+net4.connect('H4', 'P1');
+net4.connect('H4', 'P2');
+pump();
+
+check('nobody seated means nothing to wait for', host4.allReady() === true);
+check('seated count starts at zero', host4.seatedCount() === 0,
+      String(host4.seatedCount()));
+
+p1.broadcast({ t: Net.M.CLAIM, seatId: 1 });
+pump();
+check('claiming a seat does not imply ready', host4.allReady() === false);
+check('a claimed seat is counted', host4.seatedCount() === 1,
+      String(host4.seatedCount()));
+
+p1.broadcast({ t: Net.M.READY, ready: true });
+pump();
+check('one seated player confirming is enough on its own',
+      host4.allReady() === true);
+check('the seat payload carries the ready flag',
+      p1Seats.filter(function (s) { return s.id === 1; })[0].ready === true,
+      JSON.stringify(p1Seats));
+
+/* A second player joining un-readies the table until they confirm too. */
+p2.broadcast({ t: Net.M.CLAIM, seatId: 2 });
+pump();
+check('a new arrival blocks the start again', host4.allReady() === false);
+
+p2.broadcast({ t: Net.M.READY, ready: true });
+pump();
+check('both confirmed unblocks it', host4.allReady() === true);
+
+/* Un-readying works too. */
+p2.broadcast({ t: Net.M.READY, ready: false });
+pump();
+check('a player can withdraw ready', host4.allReady() === false);
+p2.broadcast({ t: Net.M.READY, ready: true });
+pump();
+
+/* Moving to a different seat clears the confirmation for that player. */
+p1.broadcast({ t: Net.M.CLAIM, seatId: 1 });
+pump();
+check('re-claiming a seat clears ready', host4.allReady() === false,
+      JSON.stringify(p1Seats));
+
+/* An unseated spectator must never hold up the start. */
+var p3 = net4.endpoint('P3');
+Net.createGuest({ transport: p3, name: 'Three', selfPeerId: 'P3' });
+net4.connect('H4', 'P3');
+pump();
+p1.broadcast({ t: Net.M.READY, ready: true });
+pump();
+check('a connected spectator does not block the start',
+      host4.allReady() === true);
+check('spectators are not counted as seated', host4.seatedCount() === 2,
+      String(host4.seatedCount()));
+
 /* --------------------------------------------------------- room codes --- */
 
 var codes = {};

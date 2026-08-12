@@ -20,7 +20,7 @@ open index.html
 - Only the four starting squares are safe — and they are safe from **everyone**.
   No capture can happen on one, whoever owns it
 
-**Rolling** — 4 cowrie shells, counted mouth-up:
+**Rolling** — 4 cowries, counted mouth-up:
 
 | Shells up | Move | Throw again |
 | --- | --- | --- |
@@ -97,8 +97,9 @@ Easy plays a random legal move about two-thirds of the time.
 ## Online play
 
 Pick **Host online** and you get a five-character room code. Friends pick
-**Join online**, type the code, and take a seat. Any seat nobody claims is played
-by the computer.
+**Join online**, type the code, and take a seat. Each of them then confirms they
+are ready; the host cannot start until every seated player has. Any seat nobody
+claims is played by the computer.
 
 **How it works.** The host's browser owns the game. Guests send intents — *"spend
 the 4 on piece 2"* — and render the snapshot that comes back, so two boards can
@@ -134,7 +135,7 @@ The logic is verified headlessly. The tests read the real function source out of
 | `rules-test.js` | Path geometry, shell odds over 200,000 throws, entering, the inner-ring gate, overshoot, exact finish |
 | `cpu-test.js` | Takes free captures, avoids covered squares, takes winning moves, no double-counted threats, ~9,600-position fuzz |
 | `turn-test.js` | Banked throws stay independent, unplayable throws skip, a mid-turn capture unlocks the rest, selection handling, placement ordering |
-| `net-test.js` | Seat claiming, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
+| `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
 
 `net-test.js` runs the real sync layer over an in-memory transport, with two fake
 browsers talking to each other. **It does not and cannot test the peer connection

@@ -33,6 +33,7 @@
     HELLO: "hello",       // guest -> host, on connect
     WELCOME: "welcome",   // host -> guest, protocol + seat list
     CLAIM: "claim",       // guest -> host, "I'll take seat N"
+    READY: "ready",       // guest -> host, "I'm ready to start"
     SEATS: "seats",       // host -> all, seat list changed
     INTENT: "intent",     // guest -> host, "roll" / "move"
     SNAPSHOT: "snapshot", // host -> all, authoritative state
@@ -71,6 +72,7 @@
           name: seat.name,
           kind: seat.kind,                       // "local" | "open" | "cpu"
           takenBy: owner ? (peers[owner].name || "Guest") : null,
+          ready: owner ? !!peers[owner].ready : false,
           peerId: owner
         };
       });
@@ -138,6 +140,7 @@
           return transport.send(peerId, { t: M.REJECT, reason: "Someone just took that seat." });
         }
         peers[peerId].seatId = seatId;
+        peers[peerId].ready = false;   // a fresh seat has to be confirmed
 
         // If this fills the seat we were waiting on, play can carry on.
         if (paused && pausedFor === seatId) {
@@ -148,6 +151,12 @@
         }
         pushSeats();
         pushSnapshot();
+        return;
+      }
+
+      if (msg.t === M.READY) {
+        peers[peerId].ready = !!msg.ready;
+        pushSeats();
         return;
       }
 
@@ -179,6 +188,23 @@
       peerCount: function () { return Object.keys(peers).length; },
       isPaused: function () { return paused; },
       pausedSeat: function () { return pausedFor; },
+
+      // Every seated guest has confirmed. Seats nobody took do not count —
+      // they fall to the computer at kickoff, so they have nothing to confirm.
+      allReady: function () {
+        return Object.keys(peers).every(function (pid) {
+          var info = peers[pid];
+          if (info.seatId === null || info.seatId === undefined) return true;
+          return !!info.ready;
+        });
+      },
+
+      seatedCount: function () {
+        return Object.keys(peers).filter(function (pid) {
+          var s = peers[pid].seatId;
+          return s !== null && s !== undefined;
+        }).length;
+      },
 
       // Used when the remaining players decide to hand a dropped seat to the CPU.
       resumeWithCPU: function (seatId) {
@@ -245,6 +271,13 @@
       claim: function (seatId) {
         mySeat = seatId;
         transport.broadcast({ t: M.CLAIM, seatId: seatId });
+      },
+      setReady: function (ready) {
+        transport.broadcast({ t: M.READY, ready: !!ready });
+      },
+      seatOf: function (seats, selfId) {
+        var mine = (seats || []).filter(function (s) { return s.peerId === selfId; })[0];
+        return mine ? mine.id : null;
       },
       seat: function () { return mySeat; },
       setSeat: function (s) { mySeat = s; },
