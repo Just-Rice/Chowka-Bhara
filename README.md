@@ -94,6 +94,32 @@ also how a person plays it.
 
 Easy plays a random legal move about two-thirds of the time.
 
+## Online play
+
+Pick **Host online** and you get a five-character room code. Friends pick
+**Join online**, type the code, and take a seat. Any seat nobody claims is played
+by the computer.
+
+**How it works.** The host's browser owns the game. Guests send intents — *"spend
+the 4 on piece 2"* — and render the snapshot that comes back, so two boards can
+never drift apart. Game traffic goes directly browser-to-browser over WebRTC; the
+only thing the outside world does is introduce the two browsers to each other in
+the first place.
+
+**What this means in practice:**
+
+- The host can, in principle, cheat. This is for playing with friends, not
+  strangers.
+- If someone drops, the game pauses and waits. They can rejoin with the same code
+  and pick their seat back up, or the host can hand it to the computer.
+- Matchmaking runs on PeerJS's free public cloud. It occasionally has downtime,
+  and if it ever disappears online play breaks until the server address in
+  `js/net.js` is pointed somewhere else. Everything else keeps working.
+- The library is only fetched when you click into online play, so opening
+  `index.html` offline still gives you the full local and computer game.
+- Room codes skip vowels and lookalike characters, so they can be read aloud
+  without spelling anything rude or ambiguous.
+
 ## Tests
 
 The logic is verified headlessly. The tests read the real function source out of
@@ -108,6 +134,13 @@ The logic is verified headlessly. The tests read the real function source out of
 | `rules-test.js` | Path geometry, shell odds over 200,000 throws, entering, the inner-ring gate, overshoot, exact finish |
 | `cpu-test.js` | Takes free captures, avoids covered squares, takes winning moves, no double-counted threats, ~9,600-position fuzz |
 | `turn-test.js` | Banked throws stay independent, unplayable throws skip, a mid-turn capture unlocks the rest, selection handling, placement ordering |
+| `net-test.js` | Seat claiming, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
+
+`net-test.js` runs the real sync layer over an in-memory transport, with two fake
+browsers talking to each other. **It does not and cannot test the peer connection
+itself** — that needs two real devices. `js/net.js` is deliberately split so the
+part that can be tested is as large as possible and the WebRTC adapter is as thin
+as possible.
 
 ### Known failure
 

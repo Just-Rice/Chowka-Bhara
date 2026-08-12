@@ -9,7 +9,7 @@ JSC=/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc
 [ -x "$JSC" ] || { echo "JavaScriptCore shell not found at $JSC"; exit 1; }
 
 status=0
-for suite in rules cpu turn; do
+for suite in rules cpu turn net; do
   printf '\n=== %s ===\n' "$suite"
   out=$("$JSC" "test/$suite-test.js" 2>&1) || status=1
   printf '%s\n' "$out"

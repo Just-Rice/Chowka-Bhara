@@ -373,6 +373,120 @@
   }
   .win-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top: 16px; }
 
+  /* ============================= ONLINE ============================= */
+  .code-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--mat-edge);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.35);
+    color: var(--ink-text);
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    letter-spacing: 0.35em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .code-input::placeholder { opacity: 0.35; letter-spacing: 0.35em; }
+
+  #lobby-screen .mat-panel { max-width: 560px; margin: 0 auto; }
+  .lobby-status { margin: 0 0 18px; text-align:center; font-size: 0.95rem; }
+  .lobby-status.error { color: var(--danger); font-weight: 600; }
+
+  .room-code {
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 8vw, 3rem);
+    letter-spacing: 0.24em;
+    text-align:center;
+    padding: 14px 10px;
+    margin-bottom: 8px;
+    background: var(--ink-0);
+    color: var(--khaki-text);
+    border-radius: 8px;
+    /* The trailing letter-spacing would otherwise shove the code off-centre. */
+    text-indent: 0.24em;
+    user-select: all;
+  }
+  .code-hint { margin: 0 0 22px; font-size: 0.82rem; text-align:center; opacity: 0.75; }
+
+  .seat-row {
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--mat-edge);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.22);
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+  }
+  .seat-dot { width: 14px; height:14px; border-radius:50%; flex:0 0 auto; }
+  .seat-name { font-weight: 600; }
+  .seat-who { margin-left:auto; opacity: 0.75; font-size: 0.85rem; }
+  .seat-row select {
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--mat-edge);
+    background: rgba(255,255,255,0.5);
+    color: var(--ink-text);
+  }
+  .seat-row.mine { border-color: var(--ink-0); box-shadow: 0 0 0 2px rgba(51,65,90,0.3); }
+  .seat-claim-btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1.5px solid #8a6420;
+    background: var(--home-ring);
+    color: #2b1e0a;
+    font-weight: 600;
+  }
+  .seat-claim-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .lobby-back-btn {
+    display:block;
+    width:100%;
+    margin-top: 10px;
+    padding: 11px;
+    background: transparent;
+    border: 1.5px solid var(--mat-edge);
+    border-radius: 8px;
+    font-size: 0.92rem;
+  }
+
+  #pause-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(36,26,19,0.86);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 20px;
+    z-index: 60;
+  }
+
+  .net-badge {
+    display:inline-flex;
+    align-items:center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(51,65,90,0.14);
+    border: 1px solid var(--mat-edge);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .net-badge::before {
+    content:"";
+    width: 7px; height:7px;
+    border-radius:50%;
+    background: var(--p-areca);
+  }
+  .net-badge.off::before { background: var(--danger); }
+
   .roster { display:flex; flex-direction:column; gap:8px; }
   .roster-row {
     border: 1.5px solid var(--mat-edge);
@@ -480,6 +594,25 @@
     <div class="mat-panel">
 
       <div class="setup-section">
+        <span class="setup-label">Play</span>
+        <div class="segmented" id="mode-group">
+          <input type="radio" name="play-mode" id="mode-local" value="local" checked>
+          <label for="mode-local">On this device<span class="sub">local &amp; computer</span></label>
+          <input type="radio" name="play-mode" id="mode-host" value="host">
+          <label for="mode-host">Host online<span class="sub">get a room code</span></label>
+          <input type="radio" name="play-mode" id="mode-join" value="join">
+          <label for="mode-join">Join online<span class="sub">enter a code</span></label>
+        </div>
+      </div>
+
+      <div class="setup-section" id="join-section" hidden>
+        <span class="setup-label">Room code</span>
+        <input id="join-code" class="code-input" maxlength="9" placeholder="BCDFH"
+               autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </div>
+
+      <div id="local-options">
+      <div class="setup-section">
         <span class="setup-label">Board</span>
         <div class="segmented" id="board-size-group">
           <input type="radio" name="board-size" id="size-5" value="5" checked>
@@ -525,11 +658,34 @@
         </div>
       </div>
 
+      </div><!-- /local-options -->
+
       <div class="rules-preview">
         <strong>4 shells</strong> are thrown each turn &mdash; 1/2/3 up moves that many spaces; <strong>4 up moves 4 and throws again</strong>; <strong>0 up moves 8 and throws again</strong>. Landing on an opponent sends it back and earns another throw. Marked squares are safe. You can't enter the inner rings until you've captured once, and you need the exact count to reach the center.
       </div>
 
       <button class="begin-btn" id="begin-btn">Begin</button>
+    </div>
+  </div>
+
+  <!-- ============================= LOBBY (ONLINE) ============================= -->
+  <div id="lobby-screen" class="hidden">
+    <div class="mat-panel">
+      <p class="lobby-status" id="lobby-status">Connecting…</p>
+
+      <div id="code-display" hidden>
+        <span class="setup-label">Room code</span>
+        <div class="room-code" id="room-code"></div>
+        <p class="code-hint">Send this to your friends. They choose <strong>Join online</strong> and type it in.</p>
+      </div>
+
+      <div class="setup-section">
+        <span class="setup-label">Seats</span>
+        <div id="seat-list"></div>
+      </div>
+
+      <button class="begin-btn" id="start-online-btn" hidden>Start game</button>
+      <button class="lobby-back-btn" id="lobby-cancel-btn">Back</button>
     </div>
   </div>
 
@@ -545,6 +701,7 @@
 
       <div class="sidebar">
         <div class="turn-banner" id="turn-banner"></div>
+        <div style="text-align:center"><span class="net-badge" id="net-badge" hidden></span></div>
         <div class="status-line" id="status-line"></div>
 
         <div class="shell-tray" id="shell-tray">
@@ -590,6 +747,18 @@
 
 </div>
 
+<div id="pause-overlay" class="hidden">
+  <div class="win-card">
+    <p class="eyebrow">Connection lost</p>
+    <p class="win-name" id="pause-name"></p>
+    <p class="win-standings" id="pause-note"></p>
+    <div class="win-actions">
+      <button id="pause-cpu-btn" hidden>Let the computer take over</button>
+      <button id="pause-quit-btn">Leave game</button>
+    </div>
+  </div>
+</div>
+
 <div id="win-overlay" class="hidden">
   <div class="win-card">
     <p class="eyebrow" id="win-eyebrow">Reached the center</p>
@@ -602,9 +771,12 @@
   </div>
 </div>
 
+<script src="js/net.js"></script>
 <script>
 (function(){
   "use strict";
+
+  var ChowkaNet = window.ChowkaNet;
 
   /* ============================= CONFIG ============================= */
   var PLAYER_DEFS = [
@@ -862,9 +1034,9 @@
         token.id = "token-p" + p.id + "-" + piece.id;
         token.setAttribute("role", "button");
         token.tabIndex = 0;
-        token.addEventListener("click", function(e){ e.stopPropagation(); onTokenClick(p.id, piece.id); });
+        token.addEventListener("click", function(e){ e.stopPropagation(); requestMove(p.id, piece.id); });
         token.addEventListener("keydown", function(e){
-          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onTokenClick(p.id, piece.id); }
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestMove(p.id, piece.id); }
         });
         document.getElementById("hand-" + p.id).appendChild(token);
       });
@@ -904,9 +1076,12 @@
     banner.textContent = player.name + "'s turn" + (player.isCPU ? " \u00b7 computer" : "");
     banner.style.color = "var(--" + player.colorVar + ")";
 
+    var mine = controlsSeat(player.id);
     var rollBtn = document.getElementById("roll-btn");
-    rollBtn.disabled = state.busy || cpuTurn || state.turnState !== "AWAITING_ROLL";
-    rollBtn.textContent = cpuTurn ? "Computer playing\u2026"
+    rollBtn.disabled = state.busy || !mine || online.pausedSeat !== null ||
+                       state.turnState !== "AWAITING_ROLL";
+    rollBtn.textContent =
+        !mine ? (player.isCPU ? "Computer playing\u2026" : "Waiting for " + player.name)
       : state.turnState === "AWAITING_MOVE" ? "Choose a piece"
       : state.pool.length ? "Throw again"
       : "Throw shells";
@@ -930,6 +1105,7 @@
       statusLine.textContent = "";
     }
 
+    if (online.mode === "host" && online.host) online.host.pushSnapshot();
     maybeRunCPU();
   }
 
@@ -1129,6 +1305,8 @@
     if (state.cpuTimer) { clearTimeout(state.cpuTimer); state.cpuTimer = null; }
     if (state.busy) return;
     if (state.turnState === "GAME_OVER" || state.turnState === "PAUSED_WIN") return;
+    if (online.mode === "guest") return;      // the host drives every CPU seat
+    if (online.pausedSeat !== null) return;   // nobody moves while disconnected
 
     var player = currentPlayer();
     if (!player.isCPU) return;
@@ -1230,7 +1408,8 @@
       var btn = document.createElement("button");
       btn.className = "pool-chip" +
         (chip.id === state.selectedChipId ? " selected" : "");
-      btn.disabled = !playableIds[chip.id] || state.busy || currentPlayer().isCPU;
+      btn.disabled = !playableIds[chip.id] || state.busy ||
+        !controlsSeat(state.currentPlayerIndex) || online.pausedSeat !== null;
       btn.innerHTML = chip.value +
         (playableIds[chip.id] ? "" : '<span class="chip-sub">no move</span>');
       btn.addEventListener("click", function() {
@@ -1520,13 +1699,489 @@
     overlay.classList.remove("hidden");
   }
 
+  /* ============================= ONLINE PLAY =============================
+   * Host-authoritative. The host's browser owns `state`; guests send intents
+   * and render whatever snapshot comes back, so the two boards cannot drift.
+   * All the protocol logic lives in js/net.js and is tested headlessly; this
+   * file only maps it onto the game and the DOM.
+   */
+  var online = {
+    mode: "local",        // "local" | "host" | "guest"
+    config: null,         // { N, numPlayers, cpuSkill, seatKinds[] }
+    peer: null, transport: null, host: null, guest: null,
+    myId: null, mySeat: null, roomCode: null,
+    pausedSeat: null,
+    _loading: null
+  };
+
+  function el(id) { return document.getElementById(id); }
+
+  // The library is only fetched when someone actually plays online, so opening
+  // this file offline still gives the full local and computer game.
+  function loadPeerJS() {
+    if (window.Peer) return Promise.resolve();
+    if (online._loading) return online._loading;
+    online._loading = new Promise(function(resolve, reject) {
+      var s = document.createElement("script");
+      s.src = "vendor/peerjs.min.js";
+      s.onload = function() { resolve(); };
+      s.onerror = function() {
+        reject(new Error("Couldn't load the online library. Are you opening this over http(s)?"));
+      };
+      document.head.appendChild(s);
+    });
+    return online._loading;
+  }
+
+  function peerErrorMessage(err) {
+    var type = err && err.type;
+    if (type === "peer-unavailable") return "No room with that code. Check it and try again.";
+    if (type === "network" || type === "server-error" || type === "socket-error") {
+      return "Can't reach the matchmaking server. It's a free service — try again in a minute.";
+    }
+    if (type === "browser-incompatible") return "This browser can't do peer-to-peer play.";
+    if (type === "unavailable-id") return "That room code is taken.";
+    return "Connection problem" + (type ? " (" + type + ")" : "") + ".";
+  }
+
+  /* ------------------------------------------------------- serialisation */
+  // Paths are rebuilt from the board size and seat, so only the moving parts
+  // travel: piece positions, whose turn it is, and the banked throws.
+  function serializeState() {
+    return {
+      N: state.N,
+      numPlayers: state.players.length,
+      players: state.players.map(function(p) {
+        return {
+          id: p.id, slot: p.slot, hasCaptured: p.hasCaptured, isCPU: p.isCPU,
+          pieces: p.pieces.map(function(pc) {
+            return { id: pc.id, status: pc.status, pathIndex: pc.pathIndex };
+          })
+        };
+      }),
+      currentPlayerIndex: state.currentPlayerIndex,
+      turnState: state.turnState,
+      pool: state.pool.map(function(c) { return { id: c.id, value: c.value }; }),
+      selectedChipId: state.selectedChipId,
+      placements: state.placements.slice(),
+      playOn: state.playOn,
+      lastRoll: state.lastRoll
+    };
+  }
+
+  // Put every token in the container its state says it belongs to. Guests do
+  // not animate hops — they are shown the result, which cannot desync.
+  function syncTokensToState() {
+    state.players.forEach(function(p) {
+      p.pieces.forEach(function(pc) {
+        var token = el("token-p" + p.id + "-" + pc.id);
+        if (!token) return;
+        var target;
+        if (pc.status === "home") target = el("hand-" + p.id);
+        else if (pc.status === "finished") target = el("finished-" + p.id);
+        else {
+          var rc = p.path[pc.pathIndex];
+          target = rc ? el("pieces-" + rc[0] + "-" + rc[1]) : null;
+        }
+        if (target && token.parentNode !== target) target.appendChild(token);
+      });
+    });
+  }
+
+  function applySnapshot(snap) {
+    if (!snap) return;
+    if (!state || state.N !== snap.N || state.players.length !== snap.numPlayers) {
+      initGame(snap.N, snap.numPlayers, 0, "sharp");
+    }
+    snap.players.forEach(function(sp, i) {
+      var p = state.players[i];
+      p.hasCaptured = sp.hasCaptured;
+      p.isCPU = sp.isCPU;
+      sp.pieces.forEach(function(spc, j) {
+        p.pieces[j].status = spc.status;
+        p.pieces[j].pathIndex = spc.pathIndex;
+      });
+    });
+    state.currentPlayerIndex = snap.currentPlayerIndex;
+    state.turnState = snap.turnState;
+    state.pool = snap.pool.slice();
+    state.selectedChipId = snap.selectedChipId;
+    state.placements = snap.placements.slice();
+    state.playOn = snap.playOn;
+    state.lastRoll = snap.lastRoll;
+    state.busy = false;
+
+    syncTokensToState();
+    updateCellDensity();
+    refreshMoveOptions();
+    updateUI();
+
+    if (state.turnState === "GAME_OVER") {
+      showWinOverlay(state.players[state.placements[0]], false);
+    }
+  }
+
+  /* --------------------------------------------------------- seat rights */
+  function controlsSeat(playerId) {
+    if (!state) return false;
+    if (online.mode === "guest") return online.mySeat === playerId;
+    if (online.mode === "host") return online.config.seatKinds[playerId] === "local";
+    return !state.players[playerId].isCPU;
+  }
+
+  // Everything the player does goes through these two, so a guest's click
+  // becomes a message instead of a local mutation.
+  function requestRoll() {
+    if (!state || state.busy || online.pausedSeat !== null) return;
+    if (!controlsSeat(state.currentPlayerIndex)) return;
+    if (online.mode === "guest") return online.guest.sendIntent({ kind: "roll" });
+    onRollClick();
+  }
+
+  function requestMove(playerId, pieceId) {
+    if (!state || state.busy || online.pausedSeat !== null) return;
+    if (playerId !== state.currentPlayerIndex) return;
+    if (!controlsSeat(playerId)) return;
+    if (online.mode === "guest") {
+      return online.guest.sendIntent({
+        kind: "move", chipId: state.selectedChipId, pieceId: pieceId
+      });
+    }
+    onTokenClick(playerId, pieceId, true);
+  }
+
+  // Host side: validate a guest's intent against the real game before it runs.
+  function applyRemoteIntent(seatId, intent) {
+    if (!state || state.busy) return false;
+    if (state.turnState === "GAME_OVER" || state.turnState === "PAUSED_WIN") return false;
+    if (seatId !== state.currentPlayerIndex) return false;
+    if (!intent) return false;
+
+    if (intent.kind === "roll") {
+      if (state.turnState !== "AWAITING_ROLL") return false;
+      onRollClick();
+      return true;
+    }
+    if (intent.kind === "move") {
+      if (state.turnState !== "AWAITING_MOVE") return false;
+      var has = state.pool.some(function(c) { return c.id === intent.chipId; });
+      if (!has) return false;
+      state.selectedChipId = intent.chipId;
+      refreshMoveOptions();
+      var ok = state.legalMoves.some(function(m) { return m.pieceId === intent.pieceId; });
+      if (!ok) return false;
+      onTokenClick(seatId, intent.pieceId, true);
+      return true;
+    }
+    return false;
+  }
+
+  function hostGameAdapter() {
+    return {
+      getSeats: function() {
+        return online.config.seatKinds.map(function(kind, i) {
+          return { id: i, name: PLAYER_DEFS[i].name, kind: kind };
+        });
+      },
+      getSnapshot: function() { return state ? serializeState() : null; },
+      applyIntent: applyRemoteIntent
+    };
+  }
+
+  /* -------------------------------------------------------------- lobby */
+  function showScreen(which) {
+    ["setup-screen", "lobby-screen", "game-screen"].forEach(function(id) {
+      el(id).classList.toggle("hidden", id !== which);
+    });
+  }
+
+  function setLobbyStatus(text, isError) {
+    var node = el("lobby-status");
+    node.textContent = text;
+    node.classList.toggle("error", !!isError);
+  }
+
+  function readSetup() {
+    return {
+      N: parseInt(document.querySelector('input[name="board-size"]:checked').value, 10),
+      numPlayers: parseInt(document.querySelector('input[name="num-players"]:checked').value, 10),
+      numCPU: parseInt(document.querySelector('input[name="num-cpu"]:checked').value, 10),
+      cpuSkill: document.querySelector('input[name="cpu-skill"]:checked').value
+    };
+  }
+
+  function renderSeatList(seats) {
+    var list = el("seat-list");
+    list.innerHTML = "";
+    (seats || []).forEach(function(seat) {
+      var row = document.createElement("div");
+      row.className = "seat-row" +
+        (online.mode === "guest" && online.mySeat === seat.id ? " mine" : "") +
+        (online.mode === "host" && seat.kind === "local" ? " mine" : "");
+
+      var dot = document.createElement("span");
+      dot.className = "seat-dot";
+      dot.style.background = "var(--" + PLAYER_DEFS[seat.id].colorVar + ")";
+      row.appendChild(dot);
+
+      var name = document.createElement("span");
+      name.className = "seat-name";
+      name.textContent = seat.name;
+      row.appendChild(name);
+
+      var who = document.createElement("span");
+      who.className = "seat-who";
+
+      if (seat.kind === "local") {
+        who.textContent = online.mode === "host" ? "You (host)" : "Host";
+        row.appendChild(who);
+      } else if (seat.takenBy) {
+        who.textContent = seat.takenBy;
+        row.appendChild(who);
+      } else if (online.mode === "host") {
+        who.textContent = "Waiting…";
+        row.appendChild(who);
+        var sel = document.createElement("select");
+        [["open", "Open to a friend"], ["cpu", "Computer"]].forEach(function(opt) {
+          var o = document.createElement("option");
+          o.value = opt[0];
+          o.textContent = opt[1];
+          if (online.config.seatKinds[seat.id] === opt[0]) o.selected = true;
+          sel.appendChild(o);
+        });
+        sel.addEventListener("change", function() {
+          online.config.seatKinds[seat.id] = sel.value;
+          online.host.pushSeats();
+        });
+        row.appendChild(sel);
+      } else {
+        who.textContent = "Open";
+        row.appendChild(who);
+        var btn = document.createElement("button");
+        btn.className = "seat-claim-btn";
+        btn.textContent = "Sit here";
+        btn.addEventListener("click", function() {
+          online.mySeat = seat.id;
+          online.guest.claim(seat.id);
+          setLobbyStatus("Seat taken. Waiting for the host to start.");
+        });
+        row.appendChild(btn);
+      }
+
+      list.appendChild(row);
+    });
+  }
+
+  function startHosting() {
+    var cfg = readSetup();
+    online.mode = "host";
+    online.config = {
+      N: cfg.N, numPlayers: cfg.numPlayers, cpuSkill: cfg.cpuSkill, seatKinds: []
+    };
+    for (var i = 0; i < cfg.numPlayers; i++) {
+      online.config.seatKinds.push(i === 0 ? "local" : "open");
+    }
+
+    showScreen("lobby-screen");
+    setLobbyStatus("Opening a room…");
+
+    loadPeerJS().then(function() {
+      var code = ChowkaNet.makeRoomCode(5);
+      var peer = new Peer(ChowkaNet.ROOM_PREFIX + code, { debug: 0 });
+      online.peer = peer;
+      online.roomCode = code;
+
+      peer.on("open", function() {
+        online.transport = ChowkaNet.createPeerTransport({ peer: peer });
+        online.host = ChowkaNet.createHost({
+          transport: online.transport,
+          game: hostGameAdapter(),
+          onSeats: function(seats) { renderSeatList(seats); updateNetBadge(); },
+          onPeerChange: updateNetBadge,
+          onPaused: onSeatDropped,
+          onResumed: onSeatReturned
+        });
+        el("code-display").hidden = false;
+        el("room-code").textContent = code;
+        el("start-online-btn").hidden = false;
+        setLobbyStatus("Room open. Share the code, then start when everyone is seated.");
+        renderSeatList(online.host.seats());
+      });
+
+      peer.on("error", function(err) {
+        if (err && err.type === "unavailable-id") {
+          try { peer.destroy(); } catch (e) {}
+          return startHosting();   // 17 million codes; a clash just means retry
+        }
+        setLobbyStatus(peerErrorMessage(err), true);
+      });
+    }).catch(function(e) { setLobbyStatus(e.message, true); });
+  }
+
+  function startJoining(code) {
+    online.mode = "guest";
+    showScreen("lobby-screen");
+    setLobbyStatus("Connecting to " + code + "…");
+    el("code-display").hidden = true;
+    el("start-online-btn").hidden = true;
+
+    loadPeerJS().then(function() {
+      var peer = new Peer(undefined, { debug: 0 });
+      online.peer = peer;
+
+      peer.on("open", function(id) {
+        online.myId = id;
+        var transport = ChowkaNet.createPeerTransport({ peer: peer });
+        online.transport = transport;
+        online.guest = ChowkaNet.createGuest({
+          transport: transport,
+          name: "Guest",
+          selfPeerId: id,
+          onSeats: function(seats) { renderSeatList(seats); updateNetBadge(); },
+          onSnapshot: onGuestSnapshot,
+          onNote: addLog,
+          onReject: function(reason) { setLobbyStatus(reason, true); },
+          onPaused: onSeatDropped,
+          onResumed: onSeatReturned
+        });
+        transport.connectTo(ChowkaNet.ROOM_PREFIX + code);
+      });
+
+      peer.on("error", function(err) { setLobbyStatus(peerErrorMessage(err), true); });
+    }).catch(function(e) { setLobbyStatus(e.message, true); });
+  }
+
+  function onGuestSnapshot(snap) {
+    if (!snap) return;                       // host hasn't started the game yet
+    if (!el("game-screen").classList.contains("hidden")) {
+      applySnapshot(snap);
+      return;
+    }
+    showScreen("game-screen");
+    applySnapshot(snap);
+    updateNetBadge();
+  }
+
+  /* ---------------------------------------------------- drops and pauses */
+  function onSeatDropped(seatId, name) {
+    online.pausedSeat = seatId;
+    // Reopen the seat so the same player can walk back into it.
+    if (online.mode === "host") online.config.seatKinds[seatId] = "open";
+
+    el("pause-name").textContent = (name || PLAYER_DEFS[seatId].name) + " dropped out";
+    el("pause-note").textContent = online.mode === "host"
+      ? "They can rejoin with the same room code, or the computer can take over."
+      : "Waiting for them to rejoin. The host can hand the seat to the computer.";
+    el("pause-cpu-btn").hidden = online.mode !== "host";
+    el("pause-overlay").classList.remove("hidden");
+    updateNetBadge();
+    if (state) updateUI();
+  }
+
+  function onSeatReturned(seatId) {
+    online.pausedSeat = null;
+    if (online.mode === "host" && seatId !== undefined && seatId !== null) {
+      online.config.seatKinds[seatId] = "remote";
+    }
+    el("pause-overlay").classList.add("hidden");
+    updateNetBadge();
+    if (state) updateUI();
+  }
+
+  function updateNetBadge() {
+    var badge = el("net-badge");
+    if (online.mode === "local") { badge.hidden = true; return; }
+    badge.hidden = false;
+    var connected = online.host ? online.host.peerCount() : (online.guest ? 1 : 0);
+    var down = online.pausedSeat !== null;
+    badge.classList.toggle("off", down);
+    badge.textContent = down ? "reconnecting"
+      : online.mode === "host" ? ("hosting · " + connected + " joined")
+      : ("online · " + (online.roomCode || "connected"));
+  }
+
   /* ============================= WIRE UP ============================= */
+  function currentMode() {
+    return document.querySelector('input[name="play-mode"]:checked').value;
+  }
+
+  // Joining takes all its settings from the host, so the local options are
+  // hidden rather than shown and ignored.
+  function syncModeUI() {
+    var mode = currentMode();
+    el("join-section").hidden = mode !== "join";
+    el("local-options").hidden = mode === "join";
+    el("begin-btn").textContent =
+      mode === "host" ? "Open a room" : mode === "join" ? "Join room" : "Begin";
+  }
+  Array.prototype.forEach.call(
+    document.querySelectorAll('input[name="play-mode"]'),
+    function(elm) { elm.addEventListener("change", syncModeUI); }
+  );
+  syncModeUI();
+
+  el("join-code").addEventListener("input", function() {
+    var input = el("join-code");
+    input.value = ChowkaNet.normaliseRoomCode(input.value);
+  });
+
   document.getElementById("begin-btn").addEventListener("click", function(){
-    var N = parseInt(document.querySelector('input[name="board-size"]:checked').value, 10);
-    var numPlayers = parseInt(document.querySelector('input[name="num-players"]:checked').value, 10);
-    var numCPU = parseInt(document.querySelector('input[name="num-cpu"]:checked').value, 10);
-    var cpuSkill = document.querySelector('input[name="cpu-skill"]:checked').value;
-    initGame(N, numPlayers, numCPU, cpuSkill);
+    var mode = currentMode();
+
+    if (mode === "host") return startHosting();
+    if (mode === "join") {
+      var code = ChowkaNet.normaliseRoomCode(el("join-code").value);
+      if (code.length < 4) {
+        el("join-code").focus();
+        return;
+      }
+      return startJoining(code);
+    }
+
+    var cfg = readSetup();
+    initGame(cfg.N, cfg.numPlayers, cfg.numCPU, cfg.cpuSkill);
+  });
+
+  el("start-online-btn").addEventListener("click", function() {
+    var cfg = online.config;
+    var seats = online.host.seats();
+
+    // Seats nobody claimed fall to the computer rather than standing empty.
+    cfg.seatKinds = cfg.seatKinds.map(function(kind, i) {
+      if (kind === "local") return "local";
+      return seats[i] && seats[i].takenBy ? "remote" : "cpu";
+    });
+
+    initGame(cfg.N, cfg.numPlayers, 0, cfg.cpuSkill);
+    state.players.forEach(function(p, i) { p.isCPU = cfg.seatKinds[i] === "cpu"; });
+
+    showScreen("game-screen");
+    updateNetBadge();
+    online.host.pushSeats();
+    updateUI();                       // also broadcasts the opening snapshot
+  });
+
+  el("lobby-cancel-btn").addEventListener("click", function() {
+    if (online.peer) { try { online.peer.destroy(); } catch (e) {} }
+    location.reload();
+  });
+
+  el("pause-cpu-btn").addEventListener("click", function() {
+    var seatId = online.pausedSeat;
+    if (seatId === null || !online.host) return;
+    online.config.seatKinds[seatId] = "cpu";
+    if (state) state.players[seatId].isCPU = true;
+    online.host.resumeWithCPU(seatId);
+    online.pausedSeat = null;
+    el("pause-overlay").classList.add("hidden");
+    addLog(PLAYER_DEFS[seatId].name + " is now played by the computer.");
+    updateNetBadge();
+    if (state) updateUI();
+  });
+
+  el("pause-quit-btn").addEventListener("click", function() {
+    if (online.peer) { try { online.peer.destroy(); } catch (e) {} }
+    location.reload();
   });
 
   // Asking for more computers than there are seats is meaningless, so the
@@ -1547,7 +2202,7 @@
   );
   syncCPUOptions();
 
-  document.getElementById("roll-btn").addEventListener("click", onRollClick);
+  document.getElementById("roll-btn").addEventListener("click", requestRoll);
   document.getElementById("new-game-btn").addEventListener("click", function(){ location.reload(); });
 
   document.getElementById("play-on-btn").addEventListener("click", function(){
