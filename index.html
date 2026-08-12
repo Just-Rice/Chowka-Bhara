@@ -27,6 +27,8 @@
     --khaki-text-dim: #cbb98f;
     --accent: #ad7f2c;
     --accent-hover: #c4953c;
+    --chip: #8a6420;              /* banked throw, waiting to be spent */
+    --chip-on: #e9c25c;           /* banked throw, currently selected */
     --danger: #a8432f;
     --p-madder: #c1543c;
     --p-indigo: #4a72a8;
@@ -206,14 +208,15 @@
     background: radial-gradient(circle, var(--home-glow), var(--home-ring) 130%);
     box-shadow: 0 0 0 2px var(--home-ring), 0 0 18px 2px rgba(201,147,47,0.55);
   }
-  .cell.center-cell .center-label {
-    transform: rotate(calc(-1 * var(--board-rot, 0deg)));
-    font-family: var(--font-display);
-    color: #4a3312;
-    font-size: clamp(9px, 2.4vw, 15px);
-    letter-spacing: 0.08em;
-    font-weight: 600;
+  /* The goal reads as a filled version of the safe-square diamond, rather
+     than a word that would need translating and rotating. */
+  .cell.center-cell::before {
+    content:"";
     position:absolute;
+    width: 40%; height:40%;
+    background: #3a2a06;
+    border: none;
+    transform: rotate(45deg);
     pointer-events:none;
   }
 
@@ -371,19 +374,19 @@
     min-width: 40px;
     padding: 7px 10px;
     border-radius: 8px;
-    border: 1.5px solid var(--ink-0);
-    background: var(--ink-2);
-    color: inherit;
+    border: 1.5px solid #6f4f18;
+    background: var(--chip);
+    color: var(--khaki-text);
     font-size: 1.05rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     transition: transform .08s ease, border-color .12s ease, background .12s ease;
   }
-  .pool-chip:hover:not(:disabled) { border-color: var(--accent-hover); }
+  .pool-chip:hover:not(:disabled) { background: var(--accent); border-color: var(--accent-hover); }
   .pool-chip.selected {
-    background: var(--home-ring);
-    border-color: #8a6420;
-    color: #2b1e0a;
+    background: var(--chip-on);
+    border-color: var(--home-glow);
+    color: #3a2a03;
   }
   .pool-chip:disabled { opacity: 0.32; cursor: default; }
   .pool-chip .chip-sub {
@@ -553,6 +556,58 @@
   .tray.hand .token, .tray.finished .token { width:18px; height:18px; }
   .tray.finished .token { opacity:0.85; }
 
+  /* How to play slides in over the board instead of expanding inline and
+     pushing everything down a long scroll. */
+  .howto-btn {
+    display:block;
+    width:100%;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px dashed var(--mat-edge);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--ink-text);
+  }
+  .howto-btn:hover { background: rgba(255,255,255,0.25); }
+
+  #howto-drawer { position: fixed; inset: 0; z-index: 70; }
+  .howto-backdrop { position:absolute; inset:0; background: rgba(36,26,19,0.6); }
+  .howto-panel {
+    position:absolute;
+    top:0; right:0; bottom:0;
+    width: min(420px, 88vw);
+    background: var(--mat);
+    color: var(--ink-text);
+    border-left: 1px solid var(--mat-edge);
+    box-shadow: -14px 0 40px -18px rgba(0,0,0,0.8);
+    padding: 22px 24px 32px;
+    overflow-y: auto;
+    animation: howto-in .22s ease-out;
+  }
+  @keyframes howto-in { from { transform: translateX(100%); } to { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .howto-panel { animation: none; } }
+
+  .howto-head { display:flex; align-items:center; gap:12px; margin-bottom: 14px; }
+  .howto-head h2 {
+    margin:0;
+    font-family: var(--font-display);
+    font-weight:400;
+    font-size:1.4rem;
+    letter-spacing:0.03em;
+  }
+  .howto-close {
+    margin-left:auto;
+    background:transparent;
+    border:1.5px solid var(--mat-edge);
+    border-radius:8px;
+    width:34px; height:34px;
+    font-size:1.3rem;
+    line-height:1;
+  }
+  #howto-list { font-size:0.92rem; line-height:1.6; }
+  #howto-list li { position:relative; padding-left:16px; margin-bottom:9px; }
+  #howto-list li::before { content:"\2013"; position:absolute; left:0; }
+
   details.rules-toggle {
     border: 1px dashed var(--mat-edge);
     border-radius: 8px;
@@ -634,7 +689,7 @@
 
   <div class="title-block">
     <h1>Chowka-Bhara</h1>
-    <p>A cowrie-shell race to the center &middot; house rules edition</p>
+    <p data-i18n="app.tagline"></p>
   </div>
 
   <!-- ============================= SETUP SCREEN ============================= -->
@@ -642,36 +697,41 @@
     <div class="mat-panel">
 
       <div class="setup-section">
-        <span class="setup-label">Play</span>
+        <span class="setup-label" data-i18n="setup.play"></span>
         <div class="segmented" id="mode-group">
           <input type="radio" name="play-mode" id="mode-local" value="local" checked>
-          <label for="mode-local">On this device<span class="sub">local &amp; computer</span></label>
+          <label for="mode-local"><span data-i18n="setup.local"></span><span class="sub" data-i18n="setup.localSub"></span></label>
           <input type="radio" name="play-mode" id="mode-host" value="host">
-          <label for="mode-host">Host online<span class="sub">get a room code</span></label>
+          <label for="mode-host"><span data-i18n="setup.host"></span><span class="sub" data-i18n="setup.hostSub"></span></label>
           <input type="radio" name="play-mode" id="mode-join" value="join">
-          <label for="mode-join">Join online<span class="sub">enter a code</span></label>
+          <label for="mode-join"><span data-i18n="setup.join"></span><span class="sub" data-i18n="setup.joinSub"></span></label>
         </div>
       </div>
 
+      <div class="setup-section">
+        <span class="setup-label" data-i18n="setup.language"></span>
+        <div class="segmented" id="lang-group"></div>
+      </div>
+
       <div class="setup-section" id="join-section" hidden>
-        <span class="setup-label">Room code</span>
+        <span class="setup-label" data-i18n="setup.roomCode"></span>
         <input id="join-code" class="code-input" maxlength="9" placeholder="BCDFH"
                autocomplete="off" autocapitalize="characters" spellcheck="false">
       </div>
 
       <div id="local-options">
       <div class="setup-section">
-        <span class="setup-label">Board</span>
+        <span class="setup-label" data-i18n="setup.board"></span>
         <div class="segmented" id="board-size-group">
           <input type="radio" name="board-size" id="size-5" value="5" checked>
-          <label for="size-5">5 &times; 5<span class="sub">25 spaces</span></label>
+          <label for="size-5">5 &times; 5<span class="sub" data-spaces="25"></span></label>
           <input type="radio" name="board-size" id="size-7" value="7">
-          <label for="size-7">7 &times; 7<span class="sub">49 spaces</span></label>
+          <label for="size-7">7 &times; 7<span class="sub" data-spaces="49"></span></label>
         </div>
       </div>
 
       <div class="setup-section">
-        <span class="setup-label">Players</span>
+        <span class="setup-label" data-i18n="setup.players"></span>
         <div class="segmented" id="num-players-group">
           <input type="radio" name="num-players" id="np-2" value="2" checked>
           <label for="np-2">2</label>
@@ -683,10 +743,10 @@
       </div>
 
       <div class="setup-section">
-        <span class="setup-label">Computer players</span>
+        <span class="setup-label" data-i18n="setup.cpuPlayers"></span>
         <div class="segmented" id="num-cpu-group">
           <input type="radio" name="num-cpu" id="cpu-0" value="0" checked>
-          <label for="cpu-0">None<span class="sub">all human</span></label>
+          <label for="cpu-0"><span data-i18n="setup.none"></span><span class="sub" data-i18n="setup.allHuman"></span></label>
           <input type="radio" name="num-cpu" id="cpu-1" value="1">
           <label for="cpu-1">1</label>
           <input type="radio" name="num-cpu" id="cpu-2" value="2">
@@ -697,22 +757,20 @@
       </div>
 
       <div class="setup-section" id="cpu-skill-section">
-        <span class="setup-label">Computer skill</span>
+        <span class="setup-label" data-i18n="setup.cpuSkill"></span>
         <div class="segmented" id="cpu-skill-group">
           <input type="radio" name="cpu-skill" id="skill-easy" value="easy">
-          <label for="skill-easy">Easy<span class="sub">plays loose</span></label>
+          <label for="skill-easy"><span data-i18n="setup.easy"></span><span class="sub" data-i18n="setup.easySub"></span></label>
           <input type="radio" name="cpu-skill" id="skill-sharp" value="sharp" checked>
-          <label for="skill-sharp">Sharp<span class="sub">hunts captures</span></label>
+          <label for="skill-sharp"><span data-i18n="setup.sharp"></span><span class="sub" data-i18n="setup.sharpSub"></span></label>
         </div>
       </div>
 
       </div><!-- /local-options -->
 
-      <div class="rules-preview">
-        <strong>4 cowries</strong> are thrown each turn &mdash; 1/2/3 up moves that many spaces; <strong>4 up moves 4 and throws again</strong>; <strong>0 up moves 8 and throws again</strong>. Landing on an opponent sends it back and earns another throw. Marked squares are safe. You can't enter the inner rings until you've captured once, and you need the exact count to reach the center.
-      </div>
+      <div class="rules-preview" data-i18n-html="setup.rules"></div>
 
-      <button class="begin-btn" id="begin-btn">Begin</button>
+      <button class="begin-btn" id="begin-btn" data-i18n="setup.begin"></button>
     </div>
   </div>
 
@@ -724,16 +782,16 @@
       <div id="code-display" hidden>
         <span class="setup-label">Room code</span>
         <div class="room-code" id="room-code"></div>
-        <p class="code-hint">Send this to your friends. They choose <strong>Join online</strong> and type it in.</p>
+        <p class="code-hint" data-i18n-html="lobby.codeHint"></p>
       </div>
 
       <div class="setup-section">
-        <span class="setup-label">Seats</span>
+        <span class="setup-label" data-i18n="lobby.seats"></span>
         <div id="seat-list"></div>
       </div>
 
-      <button class="begin-btn" id="start-online-btn" hidden>Start game</button>
-      <button class="lobby-back-btn" id="lobby-cancel-btn">Back</button>
+      <button class="begin-btn" id="start-online-btn" hidden data-i18n="lobby.start"></button>
+      <button class="lobby-back-btn" id="lobby-cancel-btn" data-i18n="lobby.back"></button>
     </div>
   </div>
 
@@ -758,36 +816,20 @@
           <div class="shell down"></div>
           <div class="shell down"></div>
         </div>
-        <button id="roll-btn">Throw cowries</button>
+        <button id="roll-btn"></button>
 
         <!-- Banked throws waiting to be spent this turn. -->
         <div class="pool" id="pool" hidden>
-          <span class="pool-label">Moves to spend</span>
+          <span class="pool-label" data-i18n="pool.label"></span>
           <div class="pool-chips" id="pool-chips"></div>
         </div>
 
         <div class="roster" id="roster"></div>
 
-        <details class="rules-toggle">
-          <summary>How to play</summary>
-          <ul>
-            <li>Each player enters at the middle of their own side &mdash; shown by the colored ring on the board.</li>
-            <li>1, 2, or 3 cowries up &rarr; move that many spaces.</li>
-            <li>4 up &rarr; move 4 spaces, then throw again.</li>
-            <li>0 up &rarr; move 8 spaces, then throw again.</li>
-            <li>Land exactly on an opponent to send it back to hand &mdash; and throw again.</li>
-            <li>Keep throwing while you roll 4s and 0s. Banked throws are spent one at a time, on <em>any</em> of your pieces, in <em>any</em> order.</li>
-            <li>You must use every banked throw that has a legal move; ones that don't are skipped.</li>
-            <li>The four starting squares (diamond-marked) are safe from capture &mdash; for everyone.</li>
-            <li>Once <em>any</em> of your pieces captures, <em>all</em> of your pieces are permanently free to enter the inner rings.</li>
-            <li>Your pieces never block each other &mdash; they share squares and move independently.</li>
-            <li>You need the exact number remaining to land on the center. Overshoot and that piece can't move.</li>
-            <li>When the first player gets home you choose whether to play on for the remaining places.</li>
-          </ul>
-        </details>
+        <button class="howto-btn" id="howto-btn" data-i18n="howto.title"></button>
 
         <div id="log"></div>
-        <button class="new-game-btn" id="new-game-btn">New game</button>
+        <button class="new-game-btn" id="new-game-btn" data-i18n="btn.newGame"></button>
       </div>
 
     </div>
@@ -795,14 +837,25 @@
 
 </div>
 
+<div id="howto-drawer" class="hidden">
+  <div class="howto-backdrop" id="howto-backdrop"></div>
+  <aside class="howto-panel" role="dialog" aria-modal="true" aria-labelledby="howto-heading">
+    <div class="howto-head">
+      <h2 id="howto-heading" data-i18n="howto.title"></h2>
+      <button class="howto-close" id="howto-close" aria-label="Close">&times;</button>
+    </div>
+    <ul id="howto-list"></ul>
+  </aside>
+</div>
+
 <div id="pause-overlay" class="hidden">
   <div class="win-card">
-    <p class="eyebrow">Connection lost</p>
+    <p class="eyebrow" data-i18n="pause.title"></p>
     <p class="win-name" id="pause-name"></p>
     <p class="win-standings" id="pause-note"></p>
     <div class="win-actions">
-      <button id="pause-cpu-btn" hidden>Let the computer take over</button>
-      <button id="pause-quit-btn">Leave game</button>
+      <button id="pause-cpu-btn" hidden data-i18n="pause.cpuTakeover"></button>
+      <button id="pause-quit-btn" data-i18n="pause.leave"></button>
     </div>
   </div>
 </div>
@@ -813,12 +866,13 @@
     <p class="win-name"></p>
     <p class="win-standings" id="win-standings"></p>
     <div class="win-actions">
-      <button id="play-on-btn" hidden>Play on</button>
-      <button id="play-again-btn">Play again</button>
+      <button id="play-on-btn" hidden data-i18n="win.playOn"></button>
+      <button id="play-again-btn" data-i18n="win.playAgain"></button>
     </div>
   </div>
 </div>
 
+<script src="js/i18n.js"></script>
 <script src="js/net.js"></script>
 <script>
 (function(){
@@ -828,11 +882,14 @@
 
   /* ============================= CONFIG ============================= */
   var PLAYER_DEFS = [
-    { name: "Madder",   colorVar: "p-madder"   },
-    { name: "Indigo",   colorVar: "p-indigo"   },
-    { name: "Turmeric", colorVar: "p-turmeric" },
-    { name: "Areca",    colorVar: "p-areca"    }
+    { key: "players.madder",   colorVar: "p-madder"   },
+    { key: "players.indigo",   colorVar: "p-indigo"   },
+    { key: "players.turmeric", colorVar: "p-turmeric" },
+    { key: "players.areca",    colorVar: "p-areca"    }
   ];
+
+  var t = function (k, p) { return I18N.t(k, p); };
+  function playerName(id) { return t(PLAYER_DEFS[id].key); }
   var PIECES_PER_PLAYER = 4;
 
   // Every roll a player can make, with its probability out of the 16 equally
@@ -990,7 +1047,7 @@
       for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: "active", pathIndex: 0 });
       players.push({
         id: i,
-        name: PLAYER_DEFS[i].name,
+        nameKey: PLAYER_DEFS[i].key,
         colorVar: PLAYER_DEFS[i].colorVar,
         slot: slots[i],
         path: allSlotPaths[slots[i]],
@@ -1035,7 +1092,7 @@
     renderBoardStructure();
     renderSidebar();
     updateCellDensity();
-    addLog("New game: " + N + "\u00d7" + N + " board, " + numPlayers + " players.");
+    addLog("log.newGame", { n: N, players: numPlayers });
     updateUI();
   }
 
@@ -1081,13 +1138,6 @@
         if (state.safeCellSet[r + "," + c]) cell.classList.add("safe-cell");
         if (isCenter) cell.classList.add("center-cell");
 
-        if (isCenter) {
-          var centerLabel = document.createElement("span");
-          centerLabel.className = "center-label";
-          centerLabel.textContent = "HOME";
-          cell.appendChild(centerLabel);
-        }
-
         var piecesEl = document.createElement("div");
         piecesEl.className = "pieces";
         piecesEl.id = "pieces-" + r + "-" + c;
@@ -1119,7 +1169,7 @@
       row.innerHTML =
         '<div class="roster-head">' +
           '<span class="dot" style="background:var(--' + p.colorVar + ')"></span>' +
-          '<span class="roster-name">' + p.name + '</span>' +
+          '<span class="roster-name">' + playerName(p.id) + '</span>' +
           '<span class="roster-counts">' +
             '<span class="count-badge" id="hand-count-' + p.id + '"></span>' +
             '<span class="count-badge" id="finished-count-' + p.id + '"></span>' +
@@ -1154,8 +1204,10 @@
     state.players.forEach(function(p) {
       var onBoard = p.pieces.filter(function(pc){ return pc.status === "active"; }).length;
       var finCount  = p.pieces.filter(function(pc){ return pc.status === "finished"; }).length;
-      document.getElementById("hand-count-" + p.id).textContent = onBoard + " on board";
-      document.getElementById("finished-count-" + p.id).textContent = finCount + "/" + PIECES_PER_PLAYER + " home";
+      document.getElementById("hand-count-" + p.id).textContent =
+        t("roster.onBoard", { n: onBoard });
+      document.getElementById("finished-count-" + p.id).textContent =
+        t("roster.home", { n: finCount, total: PIECES_PER_PLAYER });
       var row = document.getElementById("roster-" + p.id);
       row.classList.toggle("active-player", p.id === state.currentPlayerIndex && state.turnState !== "GAME_OVER");
     });
@@ -1188,7 +1240,8 @@
     var cpuTurn = player.isCPU && !over;
 
     var banner = document.getElementById("turn-banner");
-    banner.textContent = player.name + "'s turn" + (player.isCPU ? " \u00b7 computer" : "");
+    banner.textContent = t("game.turn", { name: playerName(player.id) }) +
+      (player.isCPU ? t("game.computerSuffix") : "");
     banner.style.color = "var(--" + player.colorVar + ")";
 
     var mine = controlsSeat(player.id);
@@ -1196,10 +1249,11 @@
     rollBtn.disabled = state.busy || !mine || online.pausedSeat !== null ||
                        state.turnState !== "AWAITING_ROLL";
     rollBtn.textContent =
-        !mine ? (player.isCPU ? "Computer playing\u2026" : "Waiting for " + player.name)
-      : state.turnState === "AWAITING_MOVE" ? "Choose a piece"
-      : state.pool.length ? "Throw again"
-      : "Throw cowries";
+        !mine ? (player.isCPU ? t("btn.computerPlaying")
+                              : t("btn.waitingFor", { name: playerName(player.id) }))
+      : state.turnState === "AWAITING_MOVE" ? t("btn.choosePiece")
+      : state.pool.length ? t("btn.throwAgain")
+      : t("btn.throw");
 
     renderPool();
 
@@ -1210,12 +1264,12 @@
       var entry = selectedEntry();
       var banked = state.pool.length;
       statusLine.textContent =
-        (entry ? "Spending " + entry.chip.value : "") +
-        (banked > 1 ? " \u00b7 " + banked + " throws banked" : "") +
-        (cpuTurn ? " \u00b7 thinking\u2026" : entry ? " \u2014 tap a glowing piece" : "");
+        (entry ? t("status.spending", { n: entry.chip.value }) : "") +
+        (banked > 1 ? t("status.banked", { n: banked }) : "") +
+        (cpuTurn ? t("status.thinking") : entry ? t("status.tapPiece") : "");
     } else if (state.pool.length) {
-      statusLine.textContent = state.pool.length +
-        (state.pool.length > 1 ? " throws banked" : " throw banked") + " \u2014 throw again";
+      statusLine.textContent = t(state.pool.length > 1
+        ? "status.bankedThrows" : "status.bankedThrow", { n: state.pool.length });
     } else {
       statusLine.textContent = "";
     }
@@ -1224,12 +1278,41 @@
     maybeRunCPU();
   }
 
-  function addLog(msg) {
+  // Log lines are stored as a key plus values and rendered on the spot, so a
+  // guest reading Kannada sees Kannada even though the host generated the
+  // event in Spanish.
+  var logEntries = [];
+
+  function addLog(key, params) {
+    logEntries.push({ key: key, params: params || {} });
+    if (logEntries.length > 200) logEntries.shift();
+    renderLog();
+    // The host is the only one that generates events, so it relays them.
+    if (online.mode === "host" && online.host) online.host.note(key, params || {});
+  }
+
+  function addRemoteLog(key, params) {
+    logEntries.push({ key: key, params: params || {} });
+    if (logEntries.length > 200) logEntries.shift();
+    renderLog();
+  }
+
+  function renderLog() {
     var log = document.getElementById("log");
-    var line = document.createElement("div");
-    line.className = "log-line";
-    line.textContent = msg;
-    log.appendChild(line);
+    if (!log) return;
+    log.innerHTML = "";
+    logEntries.forEach(function(entry) {
+      var line = document.createElement("div");
+      line.className = "log-line";
+      // Player names are stored as keys too, so they translate with everything.
+      var vals = {};
+      Object.keys(entry.params).forEach(function(k) {
+        var v = entry.params[k];
+        vals[k] = (typeof v === "string" && v.indexOf("players.") === 0) ? t(v) : v;
+      });
+      line.textContent = t(entry.key, vals);
+      log.appendChild(line);
+    });
     log.scrollTop = log.scrollHeight;
   }
 
@@ -1516,7 +1599,7 @@
       btn.disabled = !playableIds[chip.id] || state.busy ||
         !controlsSeat(state.currentPlayerIndex) || online.pausedSeat !== null;
       btn.innerHTML = chip.value +
-        (playableIds[chip.id] ? "" : '<span class="chip-sub">no move</span>');
+        (playableIds[chip.id] ? "" : '<span class="chip-sub">' + t("pool.noMove") + '</span>');
       btn.addEventListener("click", function() {
         state.selectedChipId = chip.id;
         refreshMoveOptions();
@@ -1547,8 +1630,8 @@
     animateShells(result).then(function(){
       var player = currentPlayer();
       state.pool.push({ id: ++state.poolSeq, value: result.moveValue });
-      addLog(player.name + " threw " + result.upCount + " up \u2014 move " +
-             result.moveValue + (result.bonus ? " \u00b7 throws again" : "") + ".");
+      addLog(result.bonus ? "log.threwAgain" : "log.threw",
+             { name: player.nameKey, up: result.upCount, move: result.moveValue });
 
       state.busy = false;
 
@@ -1568,8 +1651,7 @@
     var playable = playableChips();
     if (!playable.length) {
       if (state.pool.length) {
-        addLog("Nothing can use " +
-               (state.pool.length > 1 ? "those throws" : "that throw") + " \u2014 skipped.");
+        addLog(state.pool.length > 1 ? "log.skippedMany" : "log.skippedOne");
       }
       state.pool = [];
       state.selectedChipId = null;
@@ -1625,7 +1707,7 @@
                 document.getElementById("pieces-" + backRC[0] + "-" + backRC[1])
                   .appendChild(opToken);
                 captured = true;
-                addLog(player.name + " sent " + p.name + "'s piece back to the start!");
+                addLog("log.sentBack", { name: player.nameKey, victim: p.nameKey });
               }
             });
           });
@@ -1650,7 +1732,7 @@
       // A capture earns another throw, which joins the pool alongside anything
       // still unspent.
       if (captured) {
-        addLog(player.name + " throws again for the capture.");
+        addLog("log.captureAgain", { name: player.nameKey });
         state.turnState = "AWAITING_ROLL";
         updateUI();
         return;
@@ -1677,7 +1759,7 @@
         piece.status = "finished";
         piece.pathIndex = -2;
         document.getElementById("finished-" + player.id).appendChild(token);
-        addLog(player.name + "'s piece reached home!");
+        addLog("log.reachedHome", { name: player.nameKey });
         afterPlacement();
       });
     } else {
@@ -1709,7 +1791,7 @@
     var active = state.players.filter(playerActive);
     if (!active.length) return endGame();
     if (state.deadTurns >= active.length * 2) {
-      return endGame("Nobody can move — the game is deadlocked.");
+      return endGame("log.deadlock");
     }
 
     var n = state.players.length;
@@ -1724,7 +1806,10 @@
   }
 
   /* ============================= PLACINGS ============================= */
-  function ordinal(n) { return ["1st", "2nd", "3rd", "4th"][n - 1] || (n + "th"); }
+  function ordinal(n) {
+    var s = t("ord." + n);
+    return s === ("ord." + n) ? String(n) : s;
+  }
 
   // How far a player has got overall — used only to rank whoever is still on
   // the board when the game ends early.
@@ -1740,13 +1825,13 @@
 
   function standingsText() {
     return state.placements.map(function(pid, i) {
-      return ordinal(i + 1) + "   " + state.players[pid].name;
+      return ordinal(i + 1) + "   " + playerName(pid);
     }).join("\n");
   }
 
   function recordFinish(player) {
     if (state.placements.indexOf(player.id) < 0) state.placements.push(player.id);
-    addLog(player.name + " is home — " + ordinal(state.placements.length) + " place!");
+    addLog("log.isHome", { name: player.nameKey, place: ordinal(state.placements.length) });
 
     var remaining = state.players.filter(playerActive);
 
@@ -1784,7 +1869,7 @@
     unplaced.forEach(function(p) { state.placements.push(p.id); });
 
     if (reason) addLog(reason);
-    addLog("Final placings: " + standingsText().replace(/\n/g, " · "));
+    addLog("log.final", { list: standingsText().replace(/\n/g, " \u00b7 ") });
     showWinOverlay(state.players[state.placements[0]], false);
     updateUI();
   }
@@ -1833,7 +1918,7 @@
       s.src = "vendor/peerjs.min.js";
       s.onload = function() { resolve(); };
       s.onerror = function() {
-        reject(new Error("Couldn't load the online library. Are you opening this over http(s)?"));
+        reject(new Error(t("err.lib")));
       };
       document.head.appendChild(s);
     });
@@ -1842,13 +1927,13 @@
 
   function peerErrorMessage(err) {
     var type = err && err.type;
-    if (type === "peer-unavailable") return "No room with that code. Check it and try again.";
+    if (type === "peer-unavailable") return t("err.noRoom");
     if (type === "network" || type === "server-error" || type === "socket-error") {
-      return "Can't reach the matchmaking server. It's a free service — try again in a minute.";
+      return t("err.network");
     }
-    if (type === "browser-incompatible") return "This browser can't do peer-to-peer play.";
-    if (type === "unavailable-id") return "That room code is taken.";
-    return "Connection problem" + (type ? " (" + type + ")" : "") + ".";
+    if (type === "browser-incompatible") return t("err.browser");
+    if (type === "unavailable-id") return t("err.codeTaken");
+    return t("err.generic", { type: type ? " (" + type + ")" : "" });
   }
 
   /* ------------------------------------------------------- serialisation */
@@ -2063,7 +2148,7 @@
           // Your own seat gets the toggle; everyone else's shows its state.
           var ready = document.createElement("button");
           ready.className = "seat-claim-btn" + (seat.ready ? "" : " pending");
-          ready.textContent = seat.ready ? "Ready ✓" : "I'm ready";
+          ready.textContent = seat.ready ? t("lobby.readyTick") : t("lobby.imReady");
           ready.addEventListener("click", function() {
             online.myReady = !seat.ready;
             online.guest.setReady(online.myReady);
@@ -2076,7 +2161,7 @@
           row.appendChild(tag);
         }
       } else if (online.mode === "host") {
-        who.textContent = "Waiting…";
+        who.textContent = t("lobby.waiting");
         row.appendChild(who);
         var sel = document.createElement("select");
         [["open", "Open to a friend"], ["cpu", "Computer"]].forEach(function(opt) {
@@ -2101,7 +2186,7 @@
           online.mySeat = seat.id;
           online.myReady = false;
           online.guest.claim(seat.id);
-          setLobbyStatus("Seat taken. Waiting for the host to start.");
+          setLobbyStatus(t("lobby.seatTaken"));
         });
         row.appendChild(btn);
       }
@@ -2123,7 +2208,7 @@
     }
 
     showScreen("lobby-screen");
-    setLobbyStatus("Opening a room…");
+    setLobbyStatus(t("lobby.opening"));
 
     loadPeerJS().then(function() {
       var code = ChowkaNet.makeRoomCode(5);
@@ -2204,7 +2289,7 @@
           onHostBack: function() {
             onSeatReturned(null);
           },
-          onNote: addLog,
+          onNote: addRemoteLog,
           onReject: function(reason) { setLobbyStatus(reason, true); },
           onPaused: onSeatDropped,
           onResumed: onSeatReturned
@@ -2271,12 +2356,89 @@
     var connected = online.host ? online.host.peerCount() : (online.guest ? 1 : 0);
     var down = online.pausedSeat !== null;
     badge.classList.toggle("off", down);
-    badge.textContent = down ? "reconnecting"
-      : online.mode === "host" ? ("hosting · " + connected + " joined")
-      : ("online · " + (online.roomCode || "connected"));
+    badge.textContent = down ? t("net.reconnecting")
+      : online.mode === "host" ? t("net.hosting", { n: connected })
+      : t("net.online", { code: online.roomCode || "" });
+  }
+
+  /* ============================= LANGUAGE ============================= */
+  function buildLangPicker() {
+    var group = el("lang-group");
+    group.innerHTML = "";
+    I18N.langs.forEach(function(lang) {
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = "lang";
+      input.id = "lang-" + lang.code;
+      input.value = lang.code;
+      if (lang.code === I18N.current) input.checked = true;
+      input.addEventListener("change", function() { setLanguage(lang.code); });
+
+      var label = document.createElement("label");
+      label.setAttribute("for", input.id);
+      label.textContent = lang.label;    // always in its own script
+
+      group.appendChild(input);
+      group.appendChild(label);
+    });
+  }
+
+  // Everything on screen is redrawn from the table, so switching language mid
+  // game keeps the position and only changes the words.
+  function setLanguage(code) {
+    if (!I18N.set(code)) return;
+    I18N.apply();
+    buildHowTo();
+    renderSpaceLabels();
+    renderLog();
+    if (state) {
+      renderSidebar();
+      syncTokensToState();
+      updateCellDensity();
+      updateUI();
+    }
+    if (online.host) renderSeatList(online.host.seats());
+    syncModeUI();
+  }
+
+  // The board-size labels count squares, which differs per board.
+  function renderSpaceLabels() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-spaces]"), function(elm) {
+      elm.textContent = t("setup.spaces", { n: elm.getAttribute("data-spaces") });
+    });
+  }
+
+  function buildHowTo() {
+    var list = el("howto-list");
+    if (!list) return;
+    list.innerHTML = "";
+    for (var i = 1; i <= 13; i++) {
+      var key = "howto." + i;
+      var text = t(key);
+      if (text === key) continue;
+      var li = document.createElement("li");
+      li.textContent = text;
+      list.appendChild(li);
+    }
   }
 
   /* ============================= WIRE UP ============================= */
+  I18N.load();
+  I18N.apply();
+  buildLangPicker();
+  buildHowTo();
+  renderSpaceLabels();
+
+  el("howto-btn").addEventListener("click", function() {
+    el("howto-drawer").classList.remove("hidden");
+  });
+  function closeHowTo() { el("howto-drawer").classList.add("hidden"); }
+  el("howto-close").addEventListener("click", closeHowTo);
+  el("howto-backdrop").addEventListener("click", closeHowTo);
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") closeHowTo();
+  });
+
   function currentMode() {
     return document.querySelector('input[name="play-mode"]:checked').value;
   }
@@ -2288,7 +2450,7 @@
     el("join-section").hidden = mode !== "join";
     el("local-options").hidden = mode === "join";
     el("begin-btn").textContent =
-      mode === "host" ? "Open a room" : mode === "join" ? "Join room" : "Begin";
+      t(mode === "host" ? "setup.openRoom" : mode === "join" ? "setup.joinRoom" : "setup.begin");
   }
   Array.prototype.forEach.call(
     document.querySelectorAll('input[name="play-mode"]'),
@@ -2350,7 +2512,7 @@
     online.host.resumeWithCPU(seatId);
     online.pausedSeat = null;
     el("pause-overlay").classList.add("hidden");
-    addLog(PLAYER_DEFS[seatId].name + " is now played by the computer.");
+    addLog("log.cpuTakeover", { name: PLAYER_DEFS[seatId].key });
     updateNetBadge();
     if (state) updateUI();
   });
@@ -2387,7 +2549,7 @@
   document.getElementById("play-on-btn").addEventListener("click", function(){
     state.playOn = true;
     document.getElementById("win-overlay").classList.add("hidden");
-    addLog("Playing on for the remaining places.");
+    addLog("log.playingOn");
     state.movedThisTurn = true;
     advanceTurn();
   });

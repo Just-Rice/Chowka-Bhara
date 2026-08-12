@@ -3,6 +3,14 @@
  * deadlock ranking. Functions are extracted from index.html, so this tests the
  * shipping code. */
 
+/* ordinal() and standingsText() read the translation table, so load it and
+   supply the two helpers they expect from the game file. */
+load('js/i18n.js');
+var I18N = this.I18N;
+var t = function (k, params) { return I18N.t(k, params); };
+var PLAYER_NAMES = ['Madder', 'Indigo', 'Turmeric', 'Areca'];
+function playerName(id) { return PLAYER_NAMES[id]; }
+
 var SRC = read('index.html');
 
 function grab(name) {

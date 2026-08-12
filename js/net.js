@@ -78,7 +78,7 @@
         var owner = seatOwner(seat.id);
         return {
           id: seat.id,
-          name: seat.name,
+          nameKey: seat.nameKey,
           kind: seat.kind,                       // "local" | "open" | "cpu"
           takenBy: owner ? (peers[owner].name || "Guest") : null,
           ready: owner ? !!peers[owner].ready : false,
@@ -98,8 +98,8 @@
       transport.broadcast({ t: M.SNAPSHOT, snap: game.getSnapshot() });
     }
 
-    function note(line) {
-      transport.broadcast({ t: M.NOTE, line: line });
+    function note(key, params) {
+      transport.broadcast({ t: M.NOTE, key: key, params: params || {} });
     }
 
     transport.onPeerJoin(function (peerId) {
@@ -294,7 +294,7 @@
           if (opts.onSnapshot) opts.onSnapshot(msg.snap);
           break;
         case M.NOTE:
-          if (opts.onNote) opts.onNote(msg.line);
+          if (opts.onNote) opts.onNote(msg.key, msg.params || {});
           break;
         case M.PAUSED:
           if (opts.onPaused) opts.onPaused(msg.seatId, msg.name);

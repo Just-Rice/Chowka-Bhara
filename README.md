@@ -124,6 +124,21 @@ the first place.
 - Room codes skip vowels and lookalike characters, so they can be read aloud
   without spelling anything rude or ambiguous.
 
+## Languages
+
+English, ಕನ್ನಡ, हिन्दी and Español, chosen in the setup screen and remembered per
+browser. It defaults to your browser's language when that is one of the four.
+
+The choice is **entirely client-side**, so two people in the same online game can
+read it in different languages. Anything that crosses the network — log lines
+especially — travels as a key plus values and is rendered locally, never as
+finished English. Player names are keys too, so Turmeric reads as ಅರಿಶಿನ or
+हल्दी depending on who is looking.
+
+The non-English translations were written by Claude and have not been checked by
+a native speaker. Corrections welcome — they all live in `js/i18n.js`, one table
+per language, same keys throughout.
+
 ## Tests
 
 The logic is verified headlessly. The tests read the real function source out of
@@ -138,6 +153,7 @@ The logic is verified headlessly. The tests read the real function source out of
 | `rules-test.js` | Path geometry, shell odds over 200,000 throws, entering, the inner-ring gate, overshoot, exact finish |
 | `cpu-test.js` | Takes free captures, avoids covered squares, takes winning moves, no double-counted threats, ~9,600-position fuzz |
 | `turn-test.js` | Banked throws stay independent, unplayable throws skip, a mid-turn capture unlocks the rest, selection handling, placement ordering |
+| `i18n-test.js` | Every language covers every key, placeholders line up, nothing copies English, no key the game asks for is missing |
 | `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
 
 `net-test.js` runs the real sync layer over an in-memory transport, with two fake

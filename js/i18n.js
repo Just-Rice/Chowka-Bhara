@@ -1,0 +1,642 @@
+/* Chowka-Bhara translations.
+ *
+ * Entirely client-side and stored per browser, so two people in the same
+ * online game can read it in different languages. Anything that travels over
+ * the network — log lines especially — is sent as a key plus values and
+ * rendered locally, never as finished English text.
+ *
+ * Placeholders look like {name} and are filled from the params object.
+ */
+(function (root) {
+  "use strict";
+
+  var LANGS = [
+    { code: "en", label: "English" },
+    { code: "kn", label: "ಕನ್ನಡ" },
+    { code: "hi", label: "हिन्दी" },
+    { code: "es", label: "Español" }
+  ];
+
+  var STRINGS = {
+
+    /* ============================== ENGLISH ============================== */
+    en: {
+      "app.tagline": "A cowrie race to the centre · house rules edition",
+
+      "setup.play": "Play",
+      "setup.local": "On this device",
+      "setup.localSub": "local & computer",
+      "setup.host": "Host online",
+      "setup.hostSub": "get a room code",
+      "setup.join": "Join online",
+      "setup.joinSub": "enter a code",
+      "setup.roomCode": "Room code",
+      "setup.board": "Board",
+      "setup.spaces": "{n} spaces",
+      "setup.players": "Players",
+      "setup.cpuPlayers": "Computer players",
+      "setup.none": "None",
+      "setup.allHuman": "all human",
+      "setup.cpuSkill": "Computer skill",
+      "setup.easy": "Easy",
+      "setup.easySub": "plays loose",
+      "setup.sharp": "Sharp",
+      "setup.sharpSub": "hunts captures",
+      "setup.language": "Language",
+      "setup.rules": "<strong>4 cowries</strong> are thrown each turn — 1, 2 or 3 mouth-up moves that many; <strong>4 up moves 4 and throws again</strong>; <strong>0 up moves 8 and throws again</strong>. Landing on an opponent sends it back to their start and earns another throw. Marked squares are safe. You can't enter the inner rings until you've captured once, and you need the exact count to reach the centre.",
+      "setup.begin": "Begin",
+      "setup.openRoom": "Open a room",
+      "setup.joinRoom": "Join room",
+
+      "lobby.opening": "Opening a room…",
+      "lobby.connecting": "Connecting to {code}…",
+      "lobby.roomOpen": "Room open. Share the code, then start when everyone is seated.",
+      "lobby.connected": "Connected to {code}. Pick a seat.",
+      "lobby.seatTaken": "Seat taken. Press “I'm ready” when you are.",
+      "lobby.ready": "Ready. Waiting for the host to start.",
+      "lobby.codeHint": "Send this to your friends. They choose <strong>Join online</strong> and type it in.",
+      "lobby.seats": "Seats",
+      "lobby.youHost": "You (host)",
+      "lobby.hostSeat": "Host",
+      "lobby.waiting": "Waiting…",
+      "lobby.open": "Open",
+      "lobby.sitHere": "Sit here",
+      "lobby.imReady": "I'm ready",
+      "lobby.readyTick": "Ready ✓",
+      "lobby.readyTag": "ready",
+      "lobby.notReady": "not ready",
+      "lobby.openToFriend": "Open to a friend",
+      "lobby.computer": "Computer",
+      "lobby.start": "Start game",
+      "lobby.startEmpty": "Start game (empty seats go to the computer)",
+      "lobby.waitingReady": "Waiting for players to be ready…",
+      "lobby.back": "Back",
+      "lobby.you": " (you)",
+
+      "err.noRoom": "No room with that code. Check it and try again.",
+      "err.network": "Can't reach the matchmaking server. It's a free service — try again in a minute.",
+      "err.browser": "This browser can't do peer-to-peer play.",
+      "err.codeTaken": "That room code is taken.",
+      "err.generic": "Connection problem{type}.",
+      "err.lib": "Couldn't load the online library. Are you opening this over http(s)?",
+      "err.seatClosed": "That seat isn't open.",
+      "err.seatGone": "Someone just took that seat.",
+      "err.paused": "The game is paused.",
+      "err.needSeat": "Take a seat first.",
+      "err.notYourMove": "Not your move.",
+
+      "game.turn": "{name}'s turn",
+      "game.computerSuffix": " · computer",
+      "btn.throw": "Throw cowries",
+      "btn.throwAgain": "Throw again",
+      "btn.choosePiece": "Choose a piece",
+      "btn.computerPlaying": "Computer playing…",
+      "btn.waitingFor": "Waiting for {name}",
+      "btn.newGame": "New game",
+      "status.spending": "Spending {n}",
+      "status.banked": " · {n} throws banked",
+      "status.tapPiece": " — tap a glowing piece",
+      "status.thinking": " · thinking…",
+      "status.bankedThrow": "{n} throw banked — throw again",
+      "status.bankedThrows": "{n} throws banked — throw again",
+      "pool.label": "Moves to spend",
+      "pool.noMove": "no move",
+      "roster.onBoard": "{n} on board",
+      "roster.home": "{n}/{total} home",
+
+      "howto.title": "How to play",
+      "howto.1": "All four of your pieces start on your own square — the one ringed in your colour.",
+      "howto.2": "1, 2 or 3 cowries mouth-up moves that many squares.",
+      "howto.3": "4 up moves 4 squares, then you throw again.",
+      "howto.4": "0 up moves 8 squares, then you throw again.",
+      "howto.5": "Keep throwing while you roll 4s and 0s. Banked throws are spent one at a time, on any of your pieces, in any order.",
+      "howto.6": "You must use every banked throw that has a legal move; ones that don't are skipped.",
+      "howto.7": "Land exactly on an opponent to send it back to its own start — and throw again.",
+      "howto.8": "The four diamond-marked squares are safe from capture, for everyone.",
+      "howto.9": "Once any of your pieces captures, all of them are permanently free to enter the inner rings.",
+      "howto.10": "Your own pieces never block each other. They share squares and move independently.",
+      "howto.11": "You need the exact count to land on the centre. Overshoot and that piece can't move.",
+      "howto.12": "The board turns so your own square is always nearest you.",
+      "howto.13": "When the first player gets all four home, you choose whether to play on for the remaining places.",
+
+      "win.firstHome": "First one home",
+      "win.finalPlacings": "Final placings",
+      "win.playOnQ": "Do you want to play on for the remaining places?",
+      "win.playOn": "Play on",
+      "win.endHere": "End here",
+      "win.playAgain": "Play again",
+
+      "pause.title": "Connection lost",
+      "pause.dropped": "{name} dropped out",
+      "pause.hostNote": "They can rejoin with the same room code, or the computer can take over.",
+      "pause.guestNote": "Waiting for them to rejoin. The host can hand the seat to the computer.",
+      "pause.cpuTakeover": "Let the computer take over",
+      "pause.leave": "Leave game",
+      "pause.host": "The host",
+
+      "ord.1": "1st", "ord.2": "2nd", "ord.3": "3rd", "ord.4": "4th",
+
+      "net.hosting": "hosting · {n} joined",
+      "net.online": "online · {code}",
+      "net.reconnecting": "reconnecting",
+
+      "log.newGame": "New game: {n}×{n} board, {players} players.",
+      "log.threw": "{name} threw {up} up — move {move}.",
+      "log.threwAgain": "{name} threw {up} up — move {move} · throws again.",
+      "log.skippedOne": "Nothing can use that throw — skipped.",
+      "log.skippedMany": "Nothing can use those throws — skipped.",
+      "log.sentBack": "{name} sent {victim}'s piece back to the start!",
+      "log.captureAgain": "{name} throws again for the capture.",
+      "log.reachedHome": "{name}'s piece reached the centre!",
+      "log.isHome": "{name} is home — {place} place!",
+      "log.playingOn": "Playing on for the remaining places.",
+      "log.deadlock": "Nobody can move — the game is deadlocked.",
+      "log.final": "Final placings: {list}",
+      "log.cpuTakeover": "{name} is now played by the computer.",
+
+      "players.madder": "Madder",
+      "players.indigo": "Indigo",
+      "players.turmeric": "Turmeric",
+      "players.areca": "Areca"
+    },
+
+    /* ============================== ಕನ್ನಡ ================================ */
+    kn: {
+      "app.tagline": "ಮಧ್ಯಭಾಗದತ್ತ ಕವಡೆಗಳ ಓಟ · ಮನೆ ನಿಯಮಗಳ ಆವೃತ್ತಿ",
+
+      "setup.play": "ಆಟ",
+      "setup.local": "ಈ ಸಾಧನದಲ್ಲಿ",
+      "setup.localSub": "ಸ್ಥಳೀಯ ಮತ್ತು ಗಣಕ",
+      "setup.host": "ಆನ್‌ಲೈನ್ ಆತಿಥ್ಯ",
+      "setup.hostSub": "ಕೊಠಡಿ ಸಂಕೇತ ಪಡೆಯಿರಿ",
+      "setup.join": "ಆನ್‌ಲೈನ್ ಸೇರಿ",
+      "setup.joinSub": "ಸಂಕೇತ ನಮೂದಿಸಿ",
+      "setup.roomCode": "ಕೊಠಡಿ ಸಂಕೇತ",
+      "setup.board": "ಹಲಗೆ",
+      "setup.spaces": "{n} ಮನೆಗಳು",
+      "setup.players": "ಆಟಗಾರರು",
+      "setup.cpuPlayers": "ಗಣಕ ಆಟಗಾರರು",
+      "setup.none": "ಯಾರೂ ಇಲ್ಲ",
+      "setup.allHuman": "ಎಲ್ಲರೂ ಮನುಷ್ಯರು",
+      "setup.cpuSkill": "ಗಣಕದ ಕೌಶಲ್ಯ",
+      "setup.easy": "ಸುಲಭ",
+      "setup.easySub": "ಸಡಿಲವಾಗಿ ಆಡುತ್ತದೆ",
+      "setup.sharp": "ಚುರುಕು",
+      "setup.sharpSub": "ಹೊಡೆತಗಳನ್ನು ಹುಡುಕುತ್ತದೆ",
+      "setup.language": "ಭಾಷೆ",
+      "setup.rules": "ಪ್ರತಿ ಸರದಿಗೆ <strong>4 ಕವಡೆ</strong> ಎಸೆಯಲಾಗುತ್ತದೆ — 1, 2 ಅಥವಾ 3 ಬಾಯಿ ಮೇಲಾದರೆ ಅಷ್ಟು ಮನೆ ನಡೆಯಿರಿ; <strong>4 ಮೇಲಾದರೆ 4 ಮನೆ ಮತ್ತು ಮತ್ತೊಮ್ಮೆ ಎಸೆತ</strong>; <strong>0 ಮೇಲಾದರೆ 8 ಮನೆ ಮತ್ತು ಮತ್ತೊಮ್ಮೆ ಎಸೆತ</strong>. ಎದುರಾಳಿಯ ಮೇಲೆ ನಿಖರವಾಗಿ ಇಳಿದರೆ ಆ ಕಾಯಿ ಅದರ ಆರಂಭಕ್ಕೆ ಹಿಂದಿರುಗುತ್ತದೆ ಮತ್ತು ನಿಮಗೆ ಮತ್ತೊಂದು ಎಸೆತ ಸಿಗುತ್ತದೆ. ಗುರುತಿಸಿದ ಮನೆಗಳು ಸುರಕ್ಷಿತ. ಒಮ್ಮೆ ಹೊಡೆಯುವವರೆಗೆ ಒಳಗಿನ ಸುತ್ತುಗಳಿಗೆ ಪ್ರವೇಶವಿಲ್ಲ, ಮತ್ತು ಮಧ್ಯಭಾಗ ತಲುಪಲು ನಿಖರ ಸಂಖ್ಯೆ ಬೇಕು.",
+      "setup.begin": "ಪ್ರಾರಂಭಿಸಿ",
+      "setup.openRoom": "ಕೊಠಡಿ ತೆರೆಯಿರಿ",
+      "setup.joinRoom": "ಕೊಠಡಿ ಸೇರಿ",
+
+      "lobby.opening": "ಕೊಠಡಿ ತೆರೆಯುತ್ತಿದೆ…",
+      "lobby.connecting": "{code} ಗೆ ಸಂಪರ್ಕಿಸುತ್ತಿದೆ…",
+      "lobby.roomOpen": "ಕೊಠಡಿ ತೆರೆದಿದೆ. ಸಂಕೇತವನ್ನು ಹಂಚಿ, ಎಲ್ಲರೂ ಕುಳಿತ ಮೇಲೆ ಪ್ರಾರಂಭಿಸಿ.",
+      "lobby.connected": "{code} ಗೆ ಸಂಪರ್ಕಗೊಂಡಿದೆ. ಸ್ಥಾನ ಆರಿಸಿ.",
+      "lobby.seatTaken": "ಸ್ಥಾನ ಪಡೆದಿದೆ. ಸಿದ್ಧವಾದಾಗ “ನಾನು ಸಿದ್ಧ” ಒತ್ತಿರಿ.",
+      "lobby.ready": "ಸಿದ್ಧ. ಆತಿಥೇಯರು ಪ್ರಾರಂಭಿಸಲು ಕಾಯುತ್ತಿದೆ.",
+      "lobby.codeHint": "ಇದನ್ನು ನಿಮ್ಮ ಸ್ನೇಹಿತರಿಗೆ ಕಳುಹಿಸಿ. ಅವರು <strong>ಆನ್‌ಲೈನ್ ಸೇರಿ</strong> ಆರಿಸಿ ಇದನ್ನು ನಮೂದಿಸುತ್ತಾರೆ.",
+      "lobby.seats": "ಸ್ಥಾನಗಳು",
+      "lobby.youHost": "ನೀವು (ಆತಿಥೇಯ)",
+      "lobby.hostSeat": "ಆತಿಥೇಯ",
+      "lobby.waiting": "ಕಾಯುತ್ತಿದೆ…",
+      "lobby.open": "ಖಾಲಿ",
+      "lobby.sitHere": "ಇಲ್ಲಿ ಕುಳಿತುಕೊಳ್ಳಿ",
+      "lobby.imReady": "ನಾನು ಸಿದ್ಧ",
+      "lobby.readyTick": "ಸಿದ್ಧ ✓",
+      "lobby.readyTag": "ಸಿದ್ಧ",
+      "lobby.notReady": "ಸಿದ್ಧವಿಲ್ಲ",
+      "lobby.openToFriend": "ಸ್ನೇಹಿತರಿಗೆ ಖಾಲಿ",
+      "lobby.computer": "ಗಣಕ",
+      "lobby.start": "ಆಟ ಪ್ರಾರಂಭಿಸಿ",
+      "lobby.startEmpty": "ಆಟ ಪ್ರಾರಂಭಿಸಿ (ಖಾಲಿ ಸ್ಥಾನಗಳು ಗಣಕಕ್ಕೆ)",
+      "lobby.waitingReady": "ಆಟಗಾರರು ಸಿದ್ಧವಾಗಲು ಕಾಯುತ್ತಿದೆ…",
+      "lobby.back": "ಹಿಂದೆ",
+      "lobby.you": " (ನೀವು)",
+
+      "err.noRoom": "ಆ ಸಂಕೇತದ ಕೊಠಡಿ ಇಲ್ಲ. ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      "err.network": "ಸಂಪರ್ಕ ಸರ್ವರ್ ತಲುಪಲಾಗಲಿಲ್ಲ. ಇದು ಉಚಿತ ಸೇವೆ — ಒಂದು ನಿಮಿಷದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ.",
+      "err.browser": "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ನೇರ ಸಂಪರ್ಕದ ಆಟ ಸಾಧ್ಯವಿಲ್ಲ.",
+      "err.codeTaken": "ಆ ಕೊಠಡಿ ಸಂಕೇತ ಈಗಾಗಲೇ ಬಳಕೆಯಲ್ಲಿದೆ.",
+      "err.generic": "ಸಂಪರ್ಕ ಸಮಸ್ಯೆ{type}.",
+      "err.lib": "ಆನ್‌ಲೈನ್ ಗ್ರಂಥಾಲಯ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ಇದನ್ನು http(s) ಮೂಲಕ ತೆರೆಯುತ್ತಿದ್ದೀರಾ?",
+      "err.seatClosed": "ಆ ಸ್ಥಾನ ಖಾಲಿ ಇಲ್ಲ.",
+      "err.seatGone": "ಆ ಸ್ಥಾನವನ್ನು ಈಗಷ್ಟೇ ಬೇರೊಬ್ಬರು ಪಡೆದರು.",
+      "err.paused": "ಆಟ ವಿರಾಮದಲ್ಲಿದೆ.",
+      "err.needSeat": "ಮೊದಲು ಸ್ಥಾನ ಪಡೆಯಿರಿ.",
+      "err.notYourMove": "ಇದು ನಿಮ್ಮ ಸರದಿ ಅಲ್ಲ.",
+
+      "game.turn": "{name} ಅವರ ಸರದಿ",
+      "game.computerSuffix": " · ಗಣಕ",
+      "btn.throw": "ಕವಡೆ ಎಸೆಯಿರಿ",
+      "btn.throwAgain": "ಮತ್ತೊಮ್ಮೆ ಎಸೆಯಿರಿ",
+      "btn.choosePiece": "ಕಾಯಿ ಆರಿಸಿ",
+      "btn.computerPlaying": "ಗಣಕ ಆಡುತ್ತಿದೆ…",
+      "btn.waitingFor": "{name} ಅವರಿಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
+      "btn.newGame": "ಹೊಸ ಆಟ",
+      "status.spending": "{n} ಬಳಸಲಾಗುತ್ತಿದೆ",
+      "status.banked": " · {n} ಎಸೆತಗಳು ಉಳಿದಿವೆ",
+      "status.tapPiece": " — ಹೊಳೆಯುವ ಕಾಯಿ ಒತ್ತಿರಿ",
+      "status.thinking": " · ಯೋಚಿಸುತ್ತಿದೆ…",
+      "status.bankedThrow": "{n} ಎಸೆತ ಉಳಿದಿದೆ — ಮತ್ತೊಮ್ಮೆ ಎಸೆಯಿರಿ",
+      "status.bankedThrows": "{n} ಎಸೆತಗಳು ಉಳಿದಿವೆ — ಮತ್ತೊಮ್ಮೆ ಎಸೆಯಿರಿ",
+      "pool.label": "ಬಳಸಬೇಕಾದ ನಡೆಗಳು",
+      "pool.noMove": "ನಡೆ ಇಲ್ಲ",
+      "roster.onBoard": "ಹಲಗೆಯಲ್ಲಿ {n}",
+      "roster.home": "{n}/{total} ಮನೆ ಸೇರಿವೆ",
+
+      "howto.title": "ಹೇಗೆ ಆಡುವುದು",
+      "howto.1": "ನಿಮ್ಮ ನಾಲ್ಕೂ ಕಾಯಿಗಳು ನಿಮ್ಮ ಬಣ್ಣದ ಗುರುತಿರುವ ನಿಮ್ಮದೇ ಮನೆಯಿಂದ ಆರಂಭವಾಗುತ್ತವೆ.",
+      "howto.2": "1, 2 ಅಥವಾ 3 ಕವಡೆ ಬಾಯಿ ಮೇಲಾದರೆ ಅಷ್ಟು ಮನೆ ನಡೆಯಿರಿ.",
+      "howto.3": "4 ಮೇಲಾದರೆ 4 ಮನೆ, ನಂತರ ಮತ್ತೊಮ್ಮೆ ಎಸೆಯಿರಿ.",
+      "howto.4": "0 ಮೇಲಾದರೆ 8 ಮನೆ, ನಂತರ ಮತ್ತೊಮ್ಮೆ ಎಸೆಯಿರಿ.",
+      "howto.5": "4 ಮತ್ತು 0 ಬರುವವರೆಗೆ ಎಸೆಯುತ್ತಲೇ ಇರಿ. ಉಳಿಸಿದ ಎಸೆತಗಳನ್ನು ಒಂದೊಂದಾಗಿ, ಯಾವುದೇ ಕಾಯಿಗೆ, ಯಾವುದೇ ಕ್ರಮದಲ್ಲಿ ಬಳಸಬಹುದು.",
+      "howto.6": "ನಡೆ ಸಾಧ್ಯವಿರುವ ಪ್ರತಿ ಎಸೆತವನ್ನೂ ಬಳಸಲೇಬೇಕು; ಸಾಧ್ಯವಿಲ್ಲದವು ಬಿಟ್ಟುಹೋಗುತ್ತವೆ.",
+      "howto.7": "ಎದುರಾಳಿಯ ಮೇಲೆ ನಿಖರವಾಗಿ ಇಳಿದರೆ ಆ ಕಾಯಿ ಅದರ ಆರಂಭಕ್ಕೆ ಹಿಂದಿರುಗುತ್ತದೆ — ಮತ್ತು ನಿಮಗೆ ಮತ್ತೊಂದು ಎಸೆತ.",
+      "howto.8": "ವಜ್ರಾಕೃತಿ ಗುರುತಿರುವ ನಾಲ್ಕು ಮನೆಗಳು ಎಲ್ಲರಿಗೂ ಸುರಕ್ಷಿತ.",
+      "howto.9": "ನಿಮ್ಮ ಯಾವುದೇ ಕಾಯಿ ಒಮ್ಮೆ ಹೊಡೆದರೆ, ನಿಮ್ಮ ಎಲ್ಲಾ ಕಾಯಿಗಳಿಗೂ ಒಳಗಿನ ಸುತ್ತುಗಳಿಗೆ ಶಾಶ್ವತ ಪ್ರವೇಶ.",
+      "howto.10": "ನಿಮ್ಮದೇ ಕಾಯಿಗಳು ಪರಸ್ಪರ ತಡೆಯುವುದಿಲ್ಲ. ಒಂದೇ ಮನೆಯನ್ನು ಹಂಚಿಕೊಂಡು ಸ್ವತಂತ್ರವಾಗಿ ನಡೆಯುತ್ತವೆ.",
+      "howto.11": "ಮಧ್ಯಭಾಗಕ್ಕೆ ನಿಖರ ಸಂಖ್ಯೆ ಬೇಕು. ಹೆಚ್ಚಾದರೆ ಆ ಕಾಯಿ ನಡೆಯುವಂತಿಲ್ಲ.",
+      "howto.12": "ನಿಮ್ಮದೇ ಮನೆ ಯಾವಾಗಲೂ ನಿಮಗೆ ಹತ್ತಿರವಿರುವಂತೆ ಹಲಗೆ ತಿರುಗುತ್ತದೆ.",
+      "howto.13": "ಮೊದಲ ಆಟಗಾರ ನಾಲ್ಕೂ ಕಾಯಿಗಳನ್ನು ಮನೆ ಸೇರಿಸಿದಾಗ, ಉಳಿದ ಸ್ಥಾನಗಳಿಗಾಗಿ ಮುಂದುವರಿಸಬೇಕೇ ಎಂದು ನೀವು ಆರಿಸುತ್ತೀರಿ.",
+
+      "win.firstHome": "ಮೊದಲು ಮನೆ ಸೇರಿದವರು",
+      "win.finalPlacings": "ಅಂತಿಮ ಸ್ಥಾನಗಳು",
+      "win.playOnQ": "ಉಳಿದ ಸ್ಥಾನಗಳಿಗಾಗಿ ಆಟ ಮುಂದುವರಿಸಬೇಕೆ?",
+      "win.playOn": "ಮುಂದುವರಿಸಿ",
+      "win.endHere": "ಇಲ್ಲಿಗೆ ಮುಗಿಸಿ",
+      "win.playAgain": "ಮತ್ತೆ ಆಡಿ",
+
+      "pause.title": "ಸಂಪರ್ಕ ಕಡಿದಿದೆ",
+      "pause.dropped": "{name} ಹೊರಗುಳಿದರು",
+      "pause.hostNote": "ಅವರು ಅದೇ ಸಂಕೇತದಿಂದ ಮರಳಿ ಸೇರಬಹುದು, ಅಥವಾ ಗಣಕ ವಹಿಸಿಕೊಳ್ಳಬಹುದು.",
+      "pause.guestNote": "ಅವರು ಮರಳಿ ಸೇರಲು ಕಾಯುತ್ತಿದೆ. ಆತಿಥೇಯರು ಸ್ಥಾನವನ್ನು ಗಣಕಕ್ಕೆ ನೀಡಬಹುದು.",
+      "pause.cpuTakeover": "ಗಣಕ ವಹಿಸಿಕೊಳ್ಳಲಿ",
+      "pause.leave": "ಆಟದಿಂದ ಹೊರಡಿ",
+      "pause.host": "ಆತಿಥೇಯರು",
+
+      "ord.1": "1ನೇ", "ord.2": "2ನೇ", "ord.3": "3ನೇ", "ord.4": "4ನೇ",
+
+      "net.hosting": "ಆತಿಥ್ಯ · {n} ಸೇರಿದ್ದಾರೆ",
+      "net.online": "ಆನ್‌ಲೈನ್ · {code}",
+      "net.reconnecting": "ಮರುಸಂಪರ್ಕ",
+
+      "log.newGame": "ಹೊಸ ಆಟ: {n}×{n} ಹಲಗೆ, {players} ಆಟಗಾರರು.",
+      "log.threw": "{name} {up} ಮೇಲೆ ಎಸೆದರು — {move} ನಡೆ.",
+      "log.threwAgain": "{name} {up} ಮೇಲೆ ಎಸೆದರು — {move} ನಡೆ · ಮತ್ತೊಮ್ಮೆ ಎಸೆತ.",
+      "log.skippedOne": "ಆ ಎಸೆತವನ್ನು ಯಾವುದೂ ಬಳಸಲಾಗದು — ಬಿಟ್ಟುಹೋಯಿತು.",
+      "log.skippedMany": "ಆ ಎಸೆತಗಳನ್ನು ಯಾವುದೂ ಬಳಸಲಾಗದು — ಬಿಟ್ಟುಹೋದವು.",
+      "log.sentBack": "{name} ಅವರು {victim} ಅವರ ಕಾಯಿಯನ್ನು ಆರಂಭಕ್ಕೆ ಕಳುಹಿಸಿದರು!",
+      "log.captureAgain": "ಹೊಡೆತಕ್ಕಾಗಿ {name} ಮತ್ತೊಮ್ಮೆ ಎಸೆಯುತ್ತಾರೆ.",
+      "log.reachedHome": "{name} ಅವರ ಕಾಯಿ ಮಧ್ಯಭಾಗ ತಲುಪಿತು!",
+      "log.isHome": "{name} ಮನೆ ಸೇರಿದರು — {place} ಸ್ಥಾನ!",
+      "log.playingOn": "ಉಳಿದ ಸ್ಥಾನಗಳಿಗಾಗಿ ಆಟ ಮುಂದುವರಿಯುತ್ತಿದೆ.",
+      "log.deadlock": "ಯಾರೂ ನಡೆಯಲಾಗುತ್ತಿಲ್ಲ — ಆಟ ಸ್ತಬ್ಧವಾಗಿದೆ.",
+      "log.final": "ಅಂತಿಮ ಸ್ಥಾನಗಳು: {list}",
+      "log.cpuTakeover": "{name} ಅವರನ್ನು ಈಗ ಗಣಕ ಆಡಿಸುತ್ತದೆ.",
+
+      "players.madder": "ಮಂಜಿಷ್ಠ",
+      "players.indigo": "ನೀಲಿ",
+      "players.turmeric": "ಅರಿಶಿನ",
+      "players.areca": "ಅಡಿಕೆ"
+    },
+
+    /* ============================== हिन्दी =============================== */
+    hi: {
+      "app.tagline": "केंद्र तक कौड़ियों की दौड़ · घरेलू नियम संस्करण",
+
+      "setup.play": "खेल",
+      "setup.local": "इसी डिवाइस पर",
+      "setup.localSub": "स्थानीय और कंप्यूटर",
+      "setup.host": "ऑनलाइन मेज़बानी",
+      "setup.hostSub": "कक्ष कोड पाएँ",
+      "setup.join": "ऑनलाइन जुड़ें",
+      "setup.joinSub": "कोड डालें",
+      "setup.roomCode": "कक्ष कोड",
+      "setup.board": "पट",
+      "setup.spaces": "{n} घर",
+      "setup.players": "खिलाड़ी",
+      "setup.cpuPlayers": "कंप्यूटर खिलाड़ी",
+      "setup.none": "कोई नहीं",
+      "setup.allHuman": "सभी मनुष्य",
+      "setup.cpuSkill": "कंप्यूटर की कुशलता",
+      "setup.easy": "आसान",
+      "setup.easySub": "ढीला खेलता है",
+      "setup.sharp": "तेज़",
+      "setup.sharpSub": "मारने की ताक में",
+      "setup.language": "भाषा",
+      "setup.rules": "हर बारी में <strong>4 कौड़ियाँ</strong> फेंकी जाती हैं — 1, 2 या 3 मुँह ऊपर हों तो उतने घर चलें; <strong>4 ऊपर हों तो 4 घर और फिर से फेंकें</strong>; <strong>0 ऊपर हों तो 8 घर और फिर से फेंकें</strong>. विरोधी पर ठीक उतरने से उसकी गोटी उसके आरंभ पर लौट जाती है और आपको एक और फेंक मिलती है. चिह्नित घर सुरक्षित हैं. एक बार मारे बिना भीतरी घेरों में प्रवेश नहीं, और केंद्र तक पहुँचने के लिए ठीक उतनी ही संख्या चाहिए.",
+      "setup.begin": "आरंभ करें",
+      "setup.openRoom": "कक्ष खोलें",
+      "setup.joinRoom": "कक्ष में जुड़ें",
+
+      "lobby.opening": "कक्ष खुल रहा है…",
+      "lobby.connecting": "{code} से जुड़ रहे हैं…",
+      "lobby.roomOpen": "कक्ष खुला है. कोड साझा करें, फिर सब बैठ जाने पर आरंभ करें.",
+      "lobby.connected": "{code} से जुड़ गए. एक स्थान चुनें.",
+      "lobby.seatTaken": "स्थान ले लिया. तैयार हों तो “मैं तैयार हूँ” दबाएँ.",
+      "lobby.ready": "तैयार. मेज़बान के आरंभ करने की प्रतीक्षा है.",
+      "lobby.codeHint": "यह अपने मित्रों को भेजें. वे <strong>ऑनलाइन जुड़ें</strong> चुनकर इसे डालेंगे.",
+      "lobby.seats": "स्थान",
+      "lobby.youHost": "आप (मेज़बान)",
+      "lobby.hostSeat": "मेज़बान",
+      "lobby.waiting": "प्रतीक्षा…",
+      "lobby.open": "खाली",
+      "lobby.sitHere": "यहाँ बैठें",
+      "lobby.imReady": "मैं तैयार हूँ",
+      "lobby.readyTick": "तैयार ✓",
+      "lobby.readyTag": "तैयार",
+      "lobby.notReady": "तैयार नहीं",
+      "lobby.openToFriend": "मित्र के लिए खाली",
+      "lobby.computer": "कंप्यूटर",
+      "lobby.start": "खेल आरंभ करें",
+      "lobby.startEmpty": "खेल आरंभ करें (खाली स्थान कंप्यूटर को)",
+      "lobby.waitingReady": "खिलाड़ियों के तैयार होने की प्रतीक्षा…",
+      "lobby.back": "वापस",
+      "lobby.you": " (आप)",
+
+      "err.noRoom": "इस कोड का कोई कक्ष नहीं. जाँचकर फिर प्रयास करें.",
+      "err.network": "मिलान सर्वर तक नहीं पहुँच सके. यह निःशुल्क सेवा है — एक मिनट बाद प्रयास करें.",
+      "err.browser": "यह ब्राउज़र सीधे संपर्क वाला खेल नहीं कर सकता.",
+      "err.codeTaken": "यह कक्ष कोड पहले से लिया जा चुका है.",
+      "err.generic": "संपर्क में समस्या{type}.",
+      "err.lib": "ऑनलाइन लाइब्रेरी लोड नहीं हुई. क्या आप इसे http(s) से खोल रहे हैं?",
+      "err.seatClosed": "वह स्थान खाली नहीं है.",
+      "err.seatGone": "वह स्थान अभी किसी और ने ले लिया.",
+      "err.paused": "खेल रुका हुआ है.",
+      "err.needSeat": "पहले एक स्थान लें.",
+      "err.notYourMove": "यह आपकी बारी नहीं है.",
+
+      "game.turn": "{name} की बारी",
+      "game.computerSuffix": " · कंप्यूटर",
+      "btn.throw": "कौड़ियाँ फेंकें",
+      "btn.throwAgain": "फिर से फेंकें",
+      "btn.choosePiece": "गोटी चुनें",
+      "btn.computerPlaying": "कंप्यूटर खेल रहा है…",
+      "btn.waitingFor": "{name} की प्रतीक्षा",
+      "btn.newGame": "नया खेल",
+      "status.spending": "{n} लगाया जा रहा है",
+      "status.banked": " · {n} फेंक बची हैं",
+      "status.tapPiece": " — चमकती गोटी दबाएँ",
+      "status.thinking": " · सोच रहा है…",
+      "status.bankedThrow": "{n} फेंक बची — फिर से फेंकें",
+      "status.bankedThrows": "{n} फेंक बची हैं — फिर से फेंकें",
+      "pool.label": "लगाने योग्य चालें",
+      "pool.noMove": "कोई चाल नहीं",
+      "roster.onBoard": "पट पर {n}",
+      "roster.home": "{n}/{total} घर पहुँचीं",
+
+      "howto.title": "कैसे खेलें",
+      "howto.1": "आपकी चारों गोटियाँ आपके अपने घर से शुरू होती हैं — वही जिस पर आपके रंग का चिह्न है.",
+      "howto.2": "1, 2 या 3 कौड़ियाँ मुँह ऊपर हों तो उतने घर चलें.",
+      "howto.3": "4 ऊपर हों तो 4 घर, फिर आप दोबारा फेंकते हैं.",
+      "howto.4": "0 ऊपर हों तो 8 घर, फिर आप दोबारा फेंकते हैं.",
+      "howto.5": "जब तक 4 और 0 आते रहें, फेंकते रहें. बची हुई फेंक एक-एक करके, अपनी किसी भी गोटी पर, किसी भी क्रम में लगाई जाती हैं.",
+      "howto.6": "जिस भी बची फेंक की कोई वैध चाल है उसे लगाना अनिवार्य है; जिनकी नहीं, वे छूट जाती हैं.",
+      "howto.7": "विरोधी पर ठीक उतरें तो वह गोटी अपने आरंभ पर लौट जाती है — और आपको एक और फेंक मिलती है.",
+      "howto.8": "हीरे के चिह्न वाले चार घर सबके लिए सुरक्षित हैं.",
+      "howto.9": "आपकी कोई भी गोटी एक बार मार दे, तो आपकी सभी गोटियाँ हमेशा के लिए भीतरी घेरों में जा सकती हैं.",
+      "howto.10": "आपकी अपनी गोटियाँ एक-दूसरे को नहीं रोकतीं. वे घर साझा करती हैं और अलग-अलग चलती हैं.",
+      "howto.11": "केंद्र पर उतरने के लिए ठीक उतनी ही संख्या चाहिए. अधिक हो तो वह गोटी नहीं चल सकती.",
+      "howto.12": "पट इस तरह घूमता है कि आपका अपना घर हमेशा आपके सबसे पास रहे.",
+      "howto.13": "जब पहला खिलाड़ी चारों गोटियाँ घर पहुँचा दे, तो आप चुनते हैं कि बाकी स्थानों के लिए खेल जारी रखना है या नहीं.",
+
+      "win.firstHome": "सबसे पहले घर",
+      "win.finalPlacings": "अंतिम स्थान",
+      "win.playOnQ": "क्या बाकी स्थानों के लिए खेल जारी रखना है?",
+      "win.playOn": "जारी रखें",
+      "win.endHere": "यहीं समाप्त करें",
+      "win.playAgain": "फिर से खेलें",
+
+      "pause.title": "संपर्क टूट गया",
+      "pause.dropped": "{name} बाहर हो गए",
+      "pause.hostNote": "वे उसी कक्ष कोड से लौट सकते हैं, या कंप्यूटर उनकी जगह ले सकता है.",
+      "pause.guestNote": "उनके लौटने की प्रतीक्षा है. मेज़बान यह स्थान कंप्यूटर को दे सकते हैं.",
+      "pause.cpuTakeover": "कंप्यूटर को सँभालने दें",
+      "pause.leave": "खेल छोड़ें",
+      "pause.host": "मेज़बान",
+
+      "ord.1": "पहला", "ord.2": "दूसरा", "ord.3": "तीसरा", "ord.4": "चौथा",
+
+      "net.hosting": "मेज़बानी · {n} जुड़े",
+      "net.online": "ऑनलाइन · {code}",
+      "net.reconnecting": "पुनः जुड़ रहे हैं",
+
+      "log.newGame": "नया खेल: {n}×{n} पट, {players} खिलाड़ी.",
+      "log.threw": "{name} ने {up} ऊपर फेंके — {move} चाल.",
+      "log.threwAgain": "{name} ने {up} ऊपर फेंके — {move} चाल · फिर से फेंक.",
+      "log.skippedOne": "उस फेंक को कोई नहीं लगा सकता — छोड़ दी गई.",
+      "log.skippedMany": "उन फेंकों को कोई नहीं लगा सकता — छोड़ दी गईं.",
+      "log.sentBack": "{name} ने {victim} की गोटी आरंभ पर भेज दी!",
+      "log.captureAgain": "मारने के कारण {name} फिर से फेंकते हैं.",
+      "log.reachedHome": "{name} की गोटी केंद्र पहुँच गई!",
+      "log.isHome": "{name} घर पहुँच गए — {place} स्थान!",
+      "log.playingOn": "बाकी स्थानों के लिए खेल जारी है.",
+      "log.deadlock": "कोई नहीं चल सकता — खेल अटक गया है.",
+      "log.final": "अंतिम स्थान: {list}",
+      "log.cpuTakeover": "{name} को अब कंप्यूटर खेल रहा है.",
+
+      "players.madder": "मजीठ",
+      "players.indigo": "नील",
+      "players.turmeric": "हल्दी",
+      "players.areca": "सुपारी"
+    },
+
+    /* ============================== ESPAÑOL ============================== */
+    es: {
+      "app.tagline": "Una carrera de cauris hacia el centro · edición con reglas de la casa",
+
+      "setup.play": "Jugar",
+      "setup.local": "En este dispositivo",
+      "setup.localSub": "local y ordenador",
+      "setup.host": "Crear partida online",
+      "setup.hostSub": "obtén un código",
+      "setup.join": "Unirse online",
+      "setup.joinSub": "introduce un código",
+      "setup.roomCode": "Código de sala",
+      "setup.board": "Tablero",
+      "setup.spaces": "{n} casillas",
+      "setup.players": "Jugadores",
+      "setup.cpuPlayers": "Jugadores de ordenador",
+      "setup.none": "Ninguno",
+      "setup.allHuman": "todos humanos",
+      "setup.cpuSkill": "Nivel del ordenador",
+      "setup.easy": "Fácil",
+      "setup.easySub": "juega suelto",
+      "setup.sharp": "Agudo",
+      "setup.sharpSub": "busca capturas",
+      "setup.language": "Idioma",
+      "setup.rules": "Se lanzan <strong>4 cauris</strong> por turno: 1, 2 o 3 con la boca hacia arriba avanzan esa cantidad; <strong>4 arriba avanza 4 y vuelves a lanzar</strong>; <strong>0 arriba avanza 8 y vuelves a lanzar</strong>. Caer justo sobre un rival lo devuelve a su casilla de salida y te da otro lanzamiento. Las casillas marcadas son seguras. No puedes entrar en los anillos interiores hasta capturar una vez, y necesitas el número exacto para llegar al centro.",
+      "setup.begin": "Empezar",
+      "setup.openRoom": "Abrir sala",
+      "setup.joinRoom": "Entrar en la sala",
+
+      "lobby.opening": "Abriendo una sala…",
+      "lobby.connecting": "Conectando a {code}…",
+      "lobby.roomOpen": "Sala abierta. Comparte el código y empieza cuando todos estén sentados.",
+      "lobby.connected": "Conectado a {code}. Elige un asiento.",
+      "lobby.seatTaken": "Asiento ocupado. Pulsa «Estoy listo» cuando lo estés.",
+      "lobby.ready": "Listo. Esperando a que el anfitrión empiece.",
+      "lobby.codeHint": "Envía esto a tus amigos. Ellos eligen <strong>Unirse online</strong> y lo escriben.",
+      "lobby.seats": "Asientos",
+      "lobby.youHost": "Tú (anfitrión)",
+      "lobby.hostSeat": "Anfitrión",
+      "lobby.waiting": "Esperando…",
+      "lobby.open": "Libre",
+      "lobby.sitHere": "Sentarse aquí",
+      "lobby.imReady": "Estoy listo",
+      "lobby.readyTick": "Listo ✓",
+      "lobby.readyTag": "listo",
+      "lobby.notReady": "no listo",
+      "lobby.openToFriend": "Libre para un amigo",
+      "lobby.computer": "Ordenador",
+      "lobby.start": "Empezar partida",
+      "lobby.startEmpty": "Empezar (los asientos libres los juega el ordenador)",
+      "lobby.waitingReady": "Esperando a que los jugadores estén listos…",
+      "lobby.back": "Volver",
+      "lobby.you": " (tú)",
+
+      "err.noRoom": "No hay ninguna sala con ese código. Compruébalo e inténtalo de nuevo.",
+      "err.network": "No se puede contactar con el servidor de conexión. Es un servicio gratuito: inténtalo en un minuto.",
+      "err.browser": "Este navegador no admite el juego entre pares.",
+      "err.codeTaken": "Ese código de sala ya está en uso.",
+      "err.generic": "Problema de conexión{type}.",
+      "err.lib": "No se pudo cargar la biblioteca online. ¿Lo estás abriendo por http(s)?",
+      "err.seatClosed": "Ese asiento no está libre.",
+      "err.seatGone": "Alguien acaba de ocupar ese asiento.",
+      "err.paused": "La partida está en pausa.",
+      "err.needSeat": "Primero ocupa un asiento.",
+      "err.notYourMove": "No es tu turno.",
+
+      "game.turn": "Turno de {name}",
+      "game.computerSuffix": " · ordenador",
+      "btn.throw": "Lanzar cauris",
+      "btn.throwAgain": "Lanzar otra vez",
+      "btn.choosePiece": "Elige una ficha",
+      "btn.computerPlaying": "El ordenador juega…",
+      "btn.waitingFor": "Esperando a {name}",
+      "btn.newGame": "Nueva partida",
+      "status.spending": "Usando {n}",
+      "status.banked": " · {n} lanzamientos guardados",
+      "status.tapPiece": " — toca una ficha iluminada",
+      "status.thinking": " · pensando…",
+      "status.bankedThrow": "{n} lanzamiento guardado — lanza otra vez",
+      "status.bankedThrows": "{n} lanzamientos guardados — lanza otra vez",
+      "pool.label": "Movimientos por usar",
+      "pool.noMove": "sin jugada",
+      "roster.onBoard": "{n} en el tablero",
+      "roster.home": "{n}/{total} en casa",
+
+      "howto.title": "Cómo se juega",
+      "howto.1": "Tus cuatro fichas empiezan en tu propia casilla, la marcada con tu color.",
+      "howto.2": "1, 2 o 3 cauris boca arriba avanzan esa cantidad de casillas.",
+      "howto.3": "4 arriba avanza 4 casillas y vuelves a lanzar.",
+      "howto.4": "0 arriba avanza 8 casillas y vuelves a lanzar.",
+      "howto.5": "Sigue lanzando mientras saques 4 y 0. Los lanzamientos guardados se usan de uno en uno, en cualquier ficha y en cualquier orden.",
+      "howto.6": "Debes usar todo lanzamiento guardado que tenga jugada legal; los que no la tienen se descartan.",
+      "howto.7": "Cae justo sobre un rival para devolverlo a su salida, y vuelve a lanzar.",
+      "howto.8": "Las cuatro casillas con rombo son seguras para todos.",
+      "howto.9": "En cuanto cualquiera de tus fichas captura, todas quedan libres para entrar en los anillos interiores.",
+      "howto.10": "Tus propias fichas nunca se bloquean. Comparten casilla y se mueven por separado.",
+      "howto.11": "Necesitas el número exacto para caer en el centro. Si te pasas, esa ficha no puede moverse.",
+      "howto.12": "El tablero gira para que tu casilla quede siempre más cerca de ti.",
+      "howto.13": "Cuando el primer jugador lleva las cuatro a casa, decides si seguir jugando por los demás puestos.",
+
+      "win.firstHome": "Primero en llegar",
+      "win.finalPlacings": "Clasificación final",
+      "win.playOnQ": "¿Queréis seguir jugando por los puestos restantes?",
+      "win.playOn": "Seguir jugando",
+      "win.endHere": "Terminar aquí",
+      "win.playAgain": "Jugar otra vez",
+
+      "pause.title": "Conexión perdida",
+      "pause.dropped": "{name} se ha desconectado",
+      "pause.hostNote": "Puede volver con el mismo código, o el ordenador puede tomar su lugar.",
+      "pause.guestNote": "Esperando a que vuelva. El anfitrión puede dar el asiento al ordenador.",
+      "pause.cpuTakeover": "Que juegue el ordenador",
+      "pause.leave": "Salir de la partida",
+      "pause.host": "El anfitrión",
+
+      "ord.1": "1.º", "ord.2": "2.º", "ord.3": "3.º", "ord.4": "4.º",
+
+      "net.hosting": "anfitrión · {n} conectados",
+      "net.online": "online · {code}",
+      "net.reconnecting": "reconectando",
+
+      "log.newGame": "Nueva partida: tablero {n}×{n}, {players} jugadores.",
+      "log.threw": "{name} sacó {up} arriba — mueve {move}.",
+      "log.threwAgain": "{name} sacó {up} arriba — mueve {move} · lanza otra vez.",
+      "log.skippedOne": "Nada puede usar ese lanzamiento — descartado.",
+      "log.skippedMany": "Nada puede usar esos lanzamientos — descartados.",
+      "log.sentBack": "¡{name} devolvió la ficha de {victim} a su salida!",
+      "log.captureAgain": "{name} lanza otra vez por la captura.",
+      "log.reachedHome": "¡Una ficha de {name} llegó al centro!",
+      "log.isHome": "¡{name} está en casa — {place} puesto!",
+      "log.playingOn": "Se sigue jugando por los puestos restantes.",
+      "log.deadlock": "Nadie puede moverse — la partida está bloqueada.",
+      "log.final": "Clasificación final: {list}",
+      "log.cpuTakeover": "Ahora el ordenador juega por {name}.",
+
+      "players.madder": "Rubia",
+      "players.indigo": "Índigo",
+      "players.turmeric": "Cúrcuma",
+      "players.areca": "Areca"
+    }
+  };
+
+  var current = "en";
+
+  function t(key, params) {
+    var table = STRINGS[current] || STRINGS.en;
+    var s = table[key];
+    if (s === undefined) s = STRINGS.en[key];   // fall back rather than blank
+    if (s === undefined) return key;
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        s = s.split("{" + k + "}").join(params[k]);
+      });
+    }
+    return s;
+  }
+
+  /* Fill every element tagged in the markup. data-i18n sets text, data-i18n-html
+   * sets markup (for the few strings carrying <strong>). */
+  function apply(root2) {
+    var scope = root2 || document;
+    Array.prototype.forEach.call(scope.querySelectorAll("[data-i18n]"), function (el) {
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    Array.prototype.forEach.call(scope.querySelectorAll("[data-i18n-html]"), function (el) {
+      el.innerHTML = t(el.getAttribute("data-i18n-html"));
+    });
+    document.documentElement.lang = current;
+  }
+
+  function set(code) {
+    if (!STRINGS[code]) return false;
+    current = code;
+    try { localStorage.setItem("chowka:lang", code); } catch (e) {}
+    return true;
+  }
+
+  function load() {
+    var saved = null;
+    try { saved = localStorage.getItem("chowka:lang"); } catch (e) {}
+    if (saved && STRINGS[saved]) { current = saved; return current; }
+    // Fall back to the browser's language when we have it.
+    var nav = (navigator.language || "en").slice(0, 2).toLowerCase();
+    if (STRINGS[nav]) current = nav;
+    return current;
+  }
+
+  root.I18N = {
+    t: t,
+    apply: apply,
+    set: set,
+    load: load,
+    langs: LANGS,
+    get current() { return current; },
+    /* Exposed so the tests can check every language has every key. */
+    _strings: STRINGS
+  };
+})(typeof window !== "undefined" ? window : this);
