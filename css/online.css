@@ -275,3 +275,11 @@
     .token.pop-in { animation:none; }
     #win-overlay, .win-card { animation:none; }
   }
+
+/* What the connection is doing, so a failed join is not silent. */
+.lobby-diag {
+  margin-top: 14px;
+  font: 400 0.72rem/1.6 var(--font-mono);
+  color: #6d5b3c;
+  word-break: break-word;
+}

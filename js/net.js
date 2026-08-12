@@ -452,15 +452,28 @@
     var peer = opts.peer;                 // a live PeerJS Peer
     var conns = {};                       // peerId -> DataConnection
     var handlers = { message: [], join: [], leave: [] };
+    // Connecting is the part that fails silently in the wild, so it reports
+    // what it is doing rather than leaving a blank screen.
+    var diag = opts.onDiag || function () {};
 
     function wire(conn) {
       conns[conn.peer] = conn;
+      diag("negotiating with " + conn.peer.slice(-6));
+
       conn.on("data", function (data) {
         handlers.message.forEach(function (fn) { fn(conn.peer, data); });
       });
       conn.on("open", function () {
+        diag("connected");
         handlers.join.forEach(function (fn) { fn(conn.peer); });
       });
+      conn.on("iceStateChanged", function (st) {
+        diag("network path: " + st);
+        // "failed" means no route exists between the two networks; without a
+        // relay there is nothing further to try.
+        if (st === "failed" && opts.onIceFailed) opts.onIceFailed();
+      });
+
       var gone = false;
       function leave() {
         if (gone) return;
@@ -468,17 +481,41 @@
         delete conns[conn.peer];
         handlers.leave.forEach(function (fn) { fn(conn.peer); });
       }
-      conn.on("close", leave);
-      conn.on("error", leave);
+      conn.on("close", function () { diag("connection closed"); leave(); });
+      conn.on("error", function (e) {
+        diag("connection error: " + ((e && e.type) || e));
+        leave();
+      });
     }
 
-    peer.on("connection", wire);
+    peer.on("connection", function (conn) {
+      diag("someone is connecting");
+      wire(conn);
+    });
+
+    // The signalling server drops idle peers; without this a host that has had
+    // the page open a while stops being findable.
+    peer.on("disconnected", function () {
+      diag("signalling dropped — reconnecting");
+      try { peer.reconnect(); } catch (e) {}
+    });
 
     return {
       _wire: wire,
       connectTo: function (id) {
         var conn = peer.connect(id, { reliable: true });
         wire(conn);
+
+        // PeerJS occasionally produces a connection that never opens. One
+        // retry costs little and fixes the common case.
+        setTimeout(function () {
+          if (conn.open) return;
+          diag("no answer — trying once more");
+          try { conn.close(); } catch (e) {}
+          var again = peer.connect(id, { reliable: true });
+          wire(again);
+        }, 9000);
+
         return conn;
       },
       send: function (peerId, msg) {
@@ -519,7 +556,24 @@
       .replace(/O/g, "0").replace(/I/g, "1").replace(/L/g, "1");
   }
 
+  /* PeerJS ships STUN plus its own free TURN relays. STUN alone fails whenever
+   * both players are behind a NAT that will not hole-punch — mobile carriers
+   * especially — so extra public relays are listed here as fallbacks. A relay
+   * costs latency but is the difference between playing and not. */
+  var ICE = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "turn:eu-0.turn.peerjs.com:3478", username: "peerjs", credential: "peerjsp" },
+      { urls: "turn:us-0.turn.peerjs.com:3478", username: "peerjs", credential: "peerjsp" },
+      { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
+      { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
+      { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
+    ]
+  };
+
   root.ChowkaNet = {
+    ICE: ICE,
     PROTOCOL: PROTOCOL,
     M: M,
     createHost: createHost,

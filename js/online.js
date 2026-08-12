@@ -197,6 +197,16 @@ function showScreen(which) {
   });
 }
 
+/* A running account of what the connection is doing, so a failed join says
+   something more useful than nothing at all. */
+var diagLines = [];
+function netDiag(line) {
+  diagLines.push(line);
+  if (diagLines.length > 6) diagLines.shift();
+  var n = el("lobby-diag");
+  if (n) n.textContent = diagLines.join("  \u00b7  ");
+}
+
 function setLobbyStatus(text, isError) {
   var node = el("lobby-status");
   node.textContent = text;
@@ -322,12 +332,12 @@ function startHosting() {
 
   loadPeerJS().then(function() {
     var code = ChowkaNet.makeRoomCode(5);
-    var peer = new Peer(ChowkaNet.ROOM_PREFIX + code, { debug: 0 });
+    var peer = new Peer(ChowkaNet.ROOM_PREFIX + code, { debug: 0, config: ChowkaNet.ICE });
     online.peer = peer;
     online.roomCode = code;
 
     peer.on("open", function() {
-      online.transport = ChowkaNet.createPeerTransport({ peer: peer });
+      online.transport = ChowkaNet.createPeerTransport({ peer: peer, onDiag: netDiag });
       online.host = ChowkaNet.createHost({
         transport: online.transport,
         game: hostGameAdapter(),
@@ -363,12 +373,12 @@ function startJoining(code) {
   el("start-online-btn").hidden = true;   // only the host starts the game
 
   loadPeerJS().then(function() {
-    var peer = new Peer(undefined, { debug: 0 });
+    var peer = new Peer(undefined, { debug: 0, config: ChowkaNet.ICE });
     online.peer = peer;
 
     peer.on("open", function(id) {
       online.myId = id;
-      var transport = ChowkaNet.createPeerTransport({ peer: peer });
+      var transport = ChowkaNet.createPeerTransport({ peer: peer, onDiag: netDiag });
       online.transport = transport;
       online.guest = ChowkaNet.createGuest({
         transport: transport,
