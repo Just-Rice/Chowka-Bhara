@@ -218,13 +218,34 @@
   }
 
   .pieces {
+    position: relative;
     display:flex;
     flex-wrap:wrap;
     align-items:center;
+    align-content:center;
     justify-content:center;
-    gap: 2px;
+    gap: 0;                 /* pieces on a square sit touching, not spaced */
     width: 92%;
     height: 92%;
+  }
+
+  /* Three pieces wrap to two-then-one, which reads as two separate clumps.
+     Placed explicitly instead, the odd one nests into the notch between the
+     pair and they form a proper triangle. The 0.866 is sin(60 degrees) — the
+     vertical spacing of touching circles — and 1.866 is the cluster's total
+     height in piece-widths, halved to centre it. */
+  .pieces.tri .token { position: absolute; }
+  .pieces.tri .token:nth-child(1) {
+    left: calc(50% - var(--tok));
+    top:  calc(50% - var(--tok) * 0.933);
+  }
+  .pieces.tri .token:nth-child(2) {
+    left: 50%;
+    top:  calc(50% - var(--tok) * 0.933);
+  }
+  .pieces.tri .token:nth-child(3) {
+    left: calc(50% - var(--tok) * 0.5);
+    top:  calc(50% - var(--tok) * 0.067);
   }
   .token {
     /* Sized by updateCellDensity so every piece on a square stays visible
@@ -1155,6 +1176,7 @@
       // it does not swell to fill the whole square.
       var size = Math.min(64, (96 - 6 * (cols - 1)) / cols);
       el.style.setProperty("--tok", size.toFixed(1) + "%");
+      el.classList.toggle("tri", n === 3);
     });
   }
 
