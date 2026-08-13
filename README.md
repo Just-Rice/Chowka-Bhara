@@ -154,8 +154,14 @@ the first place.
   `us-0.turn.peerjs.com` no longer resolve in DNS, and `openrelay.metered.ca`
   answers on no port. They were removed rather than left in, because a dead
   relay is worse than none — the browser waits on it during gathering and gets
-  nothing back. Add one to `TURN` in `js/net.js` and cross-network play becomes
-  reliable.
+  nothing back.
+- The game is **wired for Metered**. Fill in `RELAY` at the top of `js/net.js`
+  with the app subdomain and API key from the dashboard and cross-network play
+  becomes reliable; leave it blank and the game behaves as it does now.
+  Credentials are fetched at connect time rather than written down, because
+  Metered issues short-lived ones, and every way that fetch can fail — no key,
+  refused, an HTTP error, an empty answer, no answer within four seconds — falls
+  back to STUN rather than stopping a game from starting.
 - The lobby's connection log says which kinds of route were found. `host` and
   `srflx` mean the two are trying to reach each other directly; `relay` means a
   TURN server answered. A log that reaches `network path: disconnected` without
