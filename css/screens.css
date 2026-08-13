@@ -38,6 +38,18 @@
   .segmented input:focus-visible + label { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
   .segmented label:hover { transform: translateY(-1px); }
 
+  /* An option can be ruled out by another one — three computers need at least
+     three seats. Without this it looked exactly like every other choice and
+     simply did nothing when pressed, which reads as a broken button rather
+     than an unavailable one. */
+  .segmented input:disabled + label {
+    opacity: 0.38;
+    cursor: not-allowed;
+    background: transparent;
+    border-style: dashed;
+  }
+  .segmented input:disabled + label:hover { transform: none; }
+
   .rules-preview {
     font-size: 0.88rem;
     line-height:1.55;

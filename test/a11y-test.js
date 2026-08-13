@@ -112,6 +112,15 @@ check('the shared settings start inside a panel, not loose above them',
 check('and inside that panel\'s slot',
       page.slice(atPanel, atSettings).indexOf('class="panel-slot"') >= 0);
 
+/* syncCPUOptions rules out computer counts that have no seat for them. An
+   option that is switched off but styled like every other one is worse than no
+   option at all — it looks pressable and does nothing. */
+var screens = read('css/screens.css');
+check('an unavailable option looks unavailable',
+      /input:disabled\s*\+\s*label/.test(screens));
+check('and stays legible in high contrast',
+      /input:disabled\s*\+\s*label/.test(read('css/contrast.css')));
+
 var depth = 0, selectsAtLoad = false;
 main.split('\n').forEach(function (line) {
   if (depth === 0 && /^\s*selectTab\(/.test(line)) selectsAtLoad = true;

@@ -99,6 +99,10 @@
 
 /* --------------------------------------------------------------- controls */
 .hc .segmented label { border-width: 2px; font-weight: 600; }
+
+/* Dimming is how an unavailable option reads, but 0.38 is below what this mode
+   exists to guarantee. Here it leans on the dashed border and a lighter fade. */
+.hc .segmented input:disabled + label { opacity: 0.62; border-style: dashed; }
 .hc .setup-tabs { border-width: 2px; }
 .hc .setup-tab { color: #3d3018; font-weight: 700; }
 .hc .setup-tab.on { background: #14100b; color: #ffffff; }

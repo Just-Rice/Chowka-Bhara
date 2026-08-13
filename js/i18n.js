@@ -21,7 +21,7 @@
 
     /* ============================== ENGLISH ============================== */
     en: {
-      "app.tagline": "A cowrie race to the centre · house rules edition",
+      "app.tagline": "A cowrie race to the centre",
 
       "setup.play": "Play",
       "setup.local": "On this device",
@@ -186,7 +186,7 @@
 
     /* ============================== ಕನ್ನಡ ================================ */
     kn: {
-      "app.tagline": "ಮಧ್ಯಭಾಗದತ್ತ ಕವಡೆಗಳ ಓಟ · ಮನೆ ನಿಯಮಗಳ ಆವೃತ್ತಿ",
+      "app.tagline": "ಮಧ್ಯಭಾಗದತ್ತ ಕವಡೆಗಳ ಓಟ",
 
       "setup.play": "ಆಟ",
       "setup.local": "ಈ ಸಾಧನದಲ್ಲಿ",
@@ -351,7 +351,7 @@
 
     /* ============================== हिन्दी =============================== */
     hi: {
-      "app.tagline": "केंद्र तक कौड़ियों की दौड़ · घरेलू नियम संस्करण",
+      "app.tagline": "केंद्र तक कौड़ियों की दौड़",
 
       "setup.play": "खेल",
       "setup.local": "इसी डिवाइस पर",
@@ -516,7 +516,7 @@
 
     /* ============================== ESPAÑOL ============================== */
     es: {
-      "app.tagline": "Una carrera de cauris hacia el centro · edición con reglas de la casa",
+      "app.tagline": "Una carrera de cauris hacia el centro",
 
       "setup.play": "Jugar",
       "setup.local": "En este dispositivo",
