@@ -81,3 +81,24 @@
 .a11y-size-large   { font-size: 1.04rem; }
 .a11y-size-largest { font-size: 1.19rem; }
 .a11y-options:has(.a11y-size-normal) { align-items: center; }
+
+/* Four languages in four equal cells. Left to flex each button sized itself to
+   its own word, so "Español" came out noticeably wider than "ಕನ್ನಡ". Scripts
+   also differ in height, so the cells are given a common minimum rather than
+   letting the tallest glyph set the row. */
+#lang-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+#lang-group label {
+  flex: none;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  text-align: center;
+  line-height: 1.25;
+}

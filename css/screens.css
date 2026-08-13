@@ -2,6 +2,8 @@
 
   /* ============================= SETUP SCREEN ============================= */
   #setup-screen .mat-panel { max-width: 640px; margin: 0 auto; }
+  /* Outside the tab panels — the lobby, mostly — sections still space
+     themselves. Inside them the panel does it, see below. */
   .setup-section { margin-bottom: 24px; }
   .setup-section:last-of-type { margin-bottom: 0; }
   .setup-label {
@@ -97,7 +99,25 @@
   box-shadow: 0 2px 8px -2px rgba(51,65,90,0.5);
 }
 
+/* The panel owns the spacing, so every block is the same distance from the
+   next no matter how it is nested. Leaving it to margins meant :last-of-type
+   zeroed whichever block happened to be last inside each wrapper, which is why
+   some gaps closed up and others did not. */
+.setup-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
 .setup-panel[hidden] { display: none; }
+
+/* The shared settings are moved between panels, so they must not introduce a
+   box of their own — their sections need to be direct children of the panel
+   for one gap to govern all of them. */
+.panel-slot,
+#game-settings { display: contents; }
+
+.setup-panel .setup-section,
+.setup-panel .setup-note { margin-bottom: 0; }
 
 .setup-note {
   font-size: 0.86rem;
@@ -107,6 +127,10 @@
   padding-left: 12px;
   border-left: 2px solid var(--mat-edge);
 }
+
+/* A hidden panel must stay hidden even though its wrappers are display:contents. */
+.setup-panel[hidden] .panel-slot,
+.setup-panel[hidden] #game-settings { display: none; }
 
 /* The accessibility button sits apart from the game settings, since it is not
    one of them. */
