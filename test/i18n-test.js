@@ -108,13 +108,15 @@ check('language labels are in their own script',
 
 /* Keys appear as t("...") in the modules and as data-i18n in the markup. */
 var SRC = read('index.html') + '\n' +
-  ['config','path','rules','ai','render','game','online','main','seats','a11y']
+  ['config','path','rules','ai','render','game','online','main','seats','a11y','net']
   .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
 var used = {};
 /* Modules reach the table either through the t() shorthand or through I18N.t,
    and a key asked for by only one of those still has to exist. */
-var re = /\b(?:I18N\.)?t\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"/g, m;
-while ((m = re.exec(SRC))) used[m[1]] = true;
+/* net.js hands its keys to a callback called diag(), since that file has no
+   business knowing what language anyone reads in. */
+var re = /\b(?:I18N\.)?t\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"|\bdiag\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"/g, m;
+while ((m = re.exec(SRC))) used[m[1] || m[2]] = true;
 /* data-i18n attributes count too. */
 var re2 = /data-i18n(?:-html)?="([^"]+)"/g;
 while ((m = re2.exec(SRC))) used[m[1]] = true;

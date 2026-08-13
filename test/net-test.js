@@ -601,6 +601,17 @@ check('no English stand-in name is sent between players',
 check('and each side renders that fallback itself',
       /t\("lobby\.guest"\)/.test(onlineSrc));
 
+/* The connection log used to be built as English sentences inside the transport,
+   so it stayed English whatever language the rest of the lobby was in. */
+var netSrc = read('js/net.js');
+var sentences = netSrc.match(/diag\(\s*"[^"]*\s[^"]*"/g) || [];
+check('the transport reports keys, not sentences',
+      sentences.length === 0, sentences.slice(0, 3).join(' | '));
+check('and the lobby renders them through the translations',
+      /t\(line\.key, line\.params\)/.test(onlineSrc));
+check('switching language redraws the log too',
+      /renderDiag\(\)/.test(onlineSrc.slice(onlineSrc.indexOf('function refreshLobbyText'))));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

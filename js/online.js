@@ -221,11 +221,18 @@ function showScreen(which) {
 /* A running account of what the connection is doing, so a failed join says
    something more useful than nothing at all. */
 var diagLines = [];
-function netDiag(line) {
-  diagLines.push(line);
+function netDiag(key, params) {
+  diagLines.push({ key: key, params: params || null });
   if (diagLines.length > 6) diagLines.shift();
+  renderDiag();
+}
+
+function renderDiag() {
   var n = el("lobby-diag");
-  if (n) n.textContent = diagLines.join("  \u00b7  ");
+  if (!n) return;
+  n.textContent = diagLines.map(function(line) {
+    return t(line.key, line.params);
+  }).join("  \u00b7  ");
 }
 
 /* The lobby line is set as a key rather than as finished text, so that
@@ -250,6 +257,7 @@ function setLobbyError(text) {
 
 function refreshLobbyText() {
   if (online.statusKey) setLobbyStatus(online.statusKey, online.statusParams);
+  renderDiag();
 }
 
 function readSetup() {
@@ -424,7 +432,7 @@ function startHosting() {
           try { peer.destroy(); } catch (e) {}
           return startHosting();
         }
-        netDiag("signalling still holds the old session — retrying");
+        netDiag("diag.staleSession");
         return;
       }
       setLobbyError(peerErrorMessage(err));

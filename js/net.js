@@ -454,6 +454,9 @@
    * The only part that touches the network, and the only part the headless
    * tests cannot reach. Kept as thin as possible for exactly that reason.
    */
+  /* Diagnostics leave here as a key and whatever values go with it, never as a
+     sentence. This file has no idea what language anyone is reading in — and
+     the lobby has to be able to re-render the whole list when that changes. */
   function createPeerTransport(opts) {
     var peer = opts.peer;                 // a live PeerJS Peer
     var conns = {};                       // peerId -> DataConnection
@@ -464,17 +467,17 @@
 
     function wire(conn) {
       conns[conn.peer] = conn;
-      diag("negotiating with " + conn.peer.slice(-6));
+      diag("diag.negotiating", { peer: conn.peer.slice(-6) });
 
       conn.on("data", function (data) {
         handlers.message.forEach(function (fn) { fn(conn.peer, data); });
       });
       conn.on("open", function () {
-        diag("connected");
+        diag("diag.connected");
         handlers.join.forEach(function (fn) { fn(conn.peer); });
       });
       conn.on("iceStateChanged", function (st) {
-        diag("network path: " + st);
+        diag("diag.path", { state: st });
         // "failed" means no route exists between the two networks; without a
         // relay there is nothing further to try.
         if (st === "failed" && opts.onIceFailed) opts.onIceFailed();
@@ -487,22 +490,22 @@
         delete conns[conn.peer];
         handlers.leave.forEach(function (fn) { fn(conn.peer); });
       }
-      conn.on("close", function () { diag("connection closed"); leave(); });
+      conn.on("close", function () { diag("diag.closed"); leave(); });
       conn.on("error", function (e) {
-        diag("connection error: " + ((e && e.type) || e));
+        diag("diag.error", { type: (e && e.type) || e });
         leave();
       });
     }
 
     peer.on("connection", function (conn) {
-      diag("someone is connecting");
+      diag("diag.incoming");
       wire(conn);
     });
 
     // The signalling server drops idle peers; without this a host that has had
     // the page open a while stops being findable.
     peer.on("disconnected", function () {
-      diag("signalling dropped — reconnecting");
+      diag("diag.signallingDropped");
       try { peer.reconnect(); } catch (e) {}
     });
 
@@ -516,7 +519,7 @@
         // retry costs little and fixes the common case.
         setTimeout(function () {
           if (conn.open) return;
-          diag("no answer — trying once more");
+          diag("diag.retry");
           try { conn.close(); } catch (e) {}
           var again = peer.connect(id, { reliable: true });
           wire(again);
