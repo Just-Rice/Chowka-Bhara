@@ -302,6 +302,16 @@ check('pieces are redrawn in the new colour',
 check('and no piece is left in the old one',
       tokens().length === 2 * piecesPerPlayer(5), String(tokens().length));
 
+/* Called before load(), these must still answer rather than throw — they run
+   from the lobby and from the join handler, where an exception would take the
+   connection down with no message. */
+SEATS.list = null;
+var survived = true;
+try {
+  SEATS.colourOf(0); SEATS.nameOf(0); SEATS.myName(); SEATS.visibleCount();
+} catch (e) { survived = false; }
+check('the seat readers load themselves rather than throwing', survived);
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

@@ -57,12 +57,24 @@ var SEATS = {
     try { localStorage.setItem("chowka:seats", JSON.stringify(SEATS.list)); } catch (e) {}
   },
 
-  colourOf: function (id) { return SEATS.list[id].colour; },
+  /* Every reader loads on demand. These are called from the lobby and from the
+     join handler, and if load() had not run — a script from another release
+     meeting this one, say — the reader would throw where it stands. That is a
+     silent, connection-killing failure for the sake of one missing call. */
+  ready: function () {
+    if (!SEATS.list) SEATS.load();
+    return SEATS.list;
+  },
+
+  colourOf: function (id) {
+    var row = SEATS.ready()[id];
+    return row ? row.colour : SEATS.COLOURS[id % 4];
+  },
 
   /* The name shown for a seat: what the player chose, or the name of the colour
      they are playing, in whatever language this browser is set to. */
   nameOf: function (id) {
-    var row = SEATS.list[id];
+    var row = SEATS.ready()[id];
     if (!row) return "";
     if (row.name) return row.name;
     return I18N.t(SEATS.KEYS[row.colour]);
@@ -70,16 +82,17 @@ var SEATS = {
 
   /* The name this device answers to online. A guest has no seat until it claims
      one, so the first row doubles as "you". */
-  myName: function () { return SEATS.list[0].name || null; },
+  myName: function () { return SEATS.ready()[0].name || null; },
 
   setName: function (id, value) {
-    SEATS.list[id].name = String(value || "").slice(0, SEATS.MAX_NAME);
+    SEATS.ready()[id].name = String(value || "").slice(0, SEATS.MAX_NAME);
     SEATS.save();
     SEATS.applyToGame();
   },
 
   setColour: function (id, colour) {
     if (SEATS.COLOURS.indexOf(colour) < 0) return;
+    SEATS.ready();
     var mine = SEATS.list[id].colour;
     if (mine === colour) return;
     // Trade with whoever holds it, so the four never collide.
@@ -129,6 +142,7 @@ var SEATS = {
     hint.textContent = I18N.t("seats.hint");
     wrap.appendChild(hint);
 
+    SEATS.ready();
     var n = SEATS.visibleCount();
     for (var i = 0; i < n; i++) wrap.appendChild(SEATS.row(i));
 
