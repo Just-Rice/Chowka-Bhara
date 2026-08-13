@@ -141,6 +141,11 @@ function selectTab(which) {
   on("tab-" + name, "click", function() { selectTab(name); });
 });
 
+// Select the opening tab through the same path as a click, so the tab state
+// and the position of the shared settings are decided in one place rather than
+// half by the markup and half by the first thing the player presses.
+selectTab(setupTab);
+
 on("join-code", "input", function() {
   var input = el("join-code");
   input.value = ChowkaNet.normaliseRoomCode(input.value);

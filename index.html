@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Chowka-Bhara</title>
-<link rel="stylesheet" href="css/tokens.css?v=1.6.2">
-<link rel="stylesheet" href="css/layout.css?v=1.6.2">
-<link rel="stylesheet" href="css/screens.css?v=1.6.2">
-<link rel="stylesheet" href="css/board.css?v=1.6.2">
-<link rel="stylesheet" href="css/sidebar.css?v=1.6.2">
-<link rel="stylesheet" href="css/online.css?v=1.6.2">
-<link rel="stylesheet" href="css/contrast.css?v=1.6.2">
-<link rel="stylesheet" href="css/a11y.css?v=1.6.2">
+<link rel="stylesheet" href="css/tokens.css?v=1.6.3">
+<link rel="stylesheet" href="css/layout.css?v=1.6.3">
+<link rel="stylesheet" href="css/screens.css?v=1.6.3">
+<link rel="stylesheet" href="css/board.css?v=1.6.3">
+<link rel="stylesheet" href="css/sidebar.css?v=1.6.3">
+<link rel="stylesheet" href="css/online.css?v=1.6.3">
+<link rel="stylesheet" href="css/contrast.css?v=1.6.3">
+<link rel="stylesheet" href="css/a11y.css?v=1.6.3">
 </head>
 <body>
 <div id="app">
@@ -34,36 +34,38 @@
                 data-i18n="tab.join"></button>
       </div>
 
-      <!-- Board and player count belong to both playing tabs. Rather than two
-           copies that can disagree, the one block is moved into whichever tab
-           is showing, which keeps its state for free. -->
-      <div id="game-settings">
-        <div class="setup-section">
-          <span class="setup-label" data-i18n="setup.board"></span>
-          <div class="segmented" id="board-size-group">
-            <input type="radio" name="board-size" id="size-5" value="5" checked>
-            <label for="size-5">5 &times; 5<span class="sub" data-spaces="25"></span></label>
-            <input type="radio" name="board-size" id="size-7" value="7">
-            <label for="size-7">7 &times; 7<span class="sub" data-spaces="49"></span></label>
-          </div>
-        </div>
-
-        <div class="setup-section">
-          <span class="setup-label" data-i18n="setup.players"></span>
-          <div class="segmented" id="num-players-group">
-            <input type="radio" name="num-players" id="np-2" value="2" checked>
-            <label for="np-2">2</label>
-            <input type="radio" name="num-players" id="np-3" value="3">
-            <label for="np-3">3</label>
-            <input type="radio" name="num-players" id="np-4" value="4">
-            <label for="np-4">4</label>
-          </div>
-        </div>
-      </div>
-
       <!-- ---------------------------------------------------- on this device -->
       <div class="setup-panel" id="panel-local" role="tabpanel">
-        <div class="panel-slot"></div>
+        <!-- Board and player count belong to both playing tabs. Rather than two
+             copies that can disagree, the one block is moved into whichever tab
+             is showing, which keeps its state for free. It is written here, in
+             the tab that opens first, so the page as served already looks the
+             way it will once the script has run. -->
+        <div class="panel-slot">
+          <div id="game-settings">
+            <div class="setup-section">
+              <span class="setup-label" data-i18n="setup.board"></span>
+              <div class="segmented" id="board-size-group">
+                <input type="radio" name="board-size" id="size-5" value="5" checked>
+                <label for="size-5">5 &times; 5<span class="sub" data-spaces="25"></span></label>
+                <input type="radio" name="board-size" id="size-7" value="7">
+                <label for="size-7">7 &times; 7<span class="sub" data-spaces="49"></span></label>
+              </div>
+            </div>
+
+            <div class="setup-section">
+              <span class="setup-label" data-i18n="setup.players"></span>
+              <div class="segmented" id="num-players-group">
+                <input type="radio" name="num-players" id="np-2" value="2" checked>
+                <label for="np-2">2</label>
+                <input type="radio" name="num-players" id="np-3" value="3">
+                <label for="np-3">3</label>
+                <input type="radio" name="num-players" id="np-4" value="4">
+                <label for="np-4">4</label>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="setup-section">
           <span class="setup-label" data-i18n="setup.cpuPlayers"></span>
@@ -249,16 +251,16 @@
   </div>
 </div>
 
-<script src="js/i18n.js?v=1.6.2"></script>
-<script src="js/a11y.js?v=1.6.2"></script>
-<script src="js/net.js?v=1.6.2"></script>
-<script src="js/config.js?v=1.6.2"></script>
-<script src="js/path.js?v=1.6.2"></script>
-<script src="js/rules.js?v=1.6.2"></script>
-<script src="js/ai.js?v=1.6.2"></script>
-<script src="js/render.js?v=1.6.2"></script>
-<script src="js/game.js?v=1.6.2"></script>
-<script src="js/online.js?v=1.6.2"></script>
-<script src="js/main.js?v=1.6.2"></script>
+<script src="js/i18n.js?v=1.6.3"></script>
+<script src="js/a11y.js?v=1.6.3"></script>
+<script src="js/net.js?v=1.6.3"></script>
+<script src="js/config.js?v=1.6.3"></script>
+<script src="js/path.js?v=1.6.3"></script>
+<script src="js/rules.js?v=1.6.3"></script>
+<script src="js/ai.js?v=1.6.3"></script>
+<script src="js/render.js?v=1.6.3"></script>
+<script src="js/game.js?v=1.6.3"></script>
+<script src="js/online.js?v=1.6.3"></script>
+<script src="js/main.js?v=1.6.3"></script>
 </body>
 </html>

@@ -95,6 +95,33 @@ check('no listener is attached without checking the element exists',
       'found an unguarded addEventListener');
 
 var page = read('index.html');
+
+/* The setup screen's spacing comes from the panel, so the shared settings block
+   only sits at the right distance from everything else once it has been moved
+   into a panel. That used to happen on the first tab click, which meant the
+   page as first served was spaced differently from the page after you had
+   pressed anything — the gaps closed up until you switched tabs and came back.
+   Two things keep it honest, and both are checked here: the markup already has
+   the block in the tab that opens first, and the script settles the tab at load
+   rather than waiting for a click. */
+var atPanel = page.indexOf('id="panel-local"');
+var atSettings = page.indexOf('id="game-settings"');
+check('the shared settings start inside a panel, not loose above them',
+      atPanel >= 0 && atSettings > atPanel,
+      'panel at ' + atPanel + ', settings at ' + atSettings);
+check('and inside that panel\'s slot',
+      page.slice(atPanel, atSettings).indexOf('class="panel-slot"') >= 0);
+
+var depth = 0, selectsAtLoad = false;
+main.split('\n').forEach(function (line) {
+  if (depth === 0 && /^\s*selectTab\(/.test(line)) selectsAtLoad = true;
+  for (var i = 0; i < line.length; i++) {
+    if (line[i] === '{') depth++;
+    else if (line[i] === '}') depth--;
+  }
+});
+check('the opening tab is chosen at load, not on the first click', selectsAtLoad);
+
 var assets = page.match(/(?:src|href)="(?:js|css)\/[^"]+"/g) || [];
 var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });
 check('every asset is version-stamped, so markup and scripts cannot mismatch',
