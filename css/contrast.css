@@ -44,7 +44,7 @@
 .hc .cell.safe-cell::before { z-index: 1; }
 /* Already the brightest thing on the board; here it goes thicker and fully
    opaque, since this mode exists for people who need the edge to be plain. */
-.hc .safe-ring { border-width: 4px; border-color: #ffffff; }
+.hc .safe-ring { border-width: 2px; border-color: #ffffff; }
 .hc .pieces { position: relative; z-index: 2; }
 
 /* Squares need visible edges of their own, not just a change of shade. */

@@ -66,13 +66,18 @@
 
   /* Drawn above the pieces, so a crowded square still says it is safe. Thin
      dark edges either side of the white keep it visible against both the dark
-     outer ring and the pale centre, rather than only against one of them. */
+     outer ring and the pale centre, rather than only against one of them.
+
+     1px, to match the diamond it stands in for: that marker's outline measures
+     8px of a 256px image, which lands between 1.2 and 1.6px on screen at the
+     sizes the board is drawn at. The dark edges are half that again, so the
+     whole thing reads as one thin line rather than a band. */
   .safe-ring {
     position: absolute;
     inset: 0;
-    border: 3px solid rgba(255,255,255,0.92);
+    border: 1px solid rgba(255,255,255,0.95);
     border-radius: 3px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(0,0,0,0.4);
+    box-shadow: 0 0 0 0.5px rgba(0,0,0,0.45), inset 0 0 0 0.5px rgba(0,0,0,0.45);
     z-index: 3;
     pointer-events: none;
   }
