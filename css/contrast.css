@@ -112,6 +112,12 @@
 
 .hc .seat-row { border-width: 2px; }
 .hc .lobby-status { color: #3d3018; font-weight: 600; }
+.hc .lobby-hint {
+  border-width: 2px;
+  background: rgba(255,255,255,0.75);
+  color: #3d3018;
+  font-weight: 600;
+}
 .hc .code-hint, .hc .lobby-diag { color: #4a3c22; }
 
 /* The cowries sit on the light panel, so they need a dark edge rather than a

@@ -519,6 +519,53 @@ check('typed codes are normalised',
 check('lookalike characters are folded',
       Net.normaliseRoomCode('OIL') === '011', Net.normaliseRoomCode('OIL'));
 
+/* ------------------------------------------- the "seats still open" notice -- */
+
+/* The caveat about empty seats used to be spliced into the Start button's
+   label, so the button changed name and size as people sat down. It is now a
+   notice that appears only while seats are open. These check it counts the
+   right seats and that the label stayed out of it. */
+var onlineSrc = read('js/online.js');
+var start = onlineSrc.indexOf('function openSeatsLeft(');
+var body = (function () {
+  var i = onlineSrc.indexOf('{', start), depth = 0, j = i;
+  for (; j < onlineSrc.length; j++) {
+    if (onlineSrc[j] === '{') depth++;
+    else if (onlineSrc[j] === '}') { depth--; if (depth === 0) break; }
+  }
+  return onlineSrc.slice(start, j + 1);
+})();
+check('the seat count is written as its own function', start >= 0);
+
+var online = { host: null };
+eval(body);
+
+check('with no room open, nothing is counted', openSeatsLeft() === 0);
+
+online.host = { seats: function () { return [
+  { id: 0, kind: 'local', takenBy: null },        // the host's own seat
+  { id: 1, kind: 'open',  takenBy: 'Ravi' },      // a friend sat down
+  { id: 2, kind: 'open',  takenBy: null },        // still waiting
+  { id: 3, kind: 'cpu',   takenBy: null }         // deliberately a computer
+]; } };
+check('only seats left open and unclaimed count', openSeatsLeft() === 1,
+      'got ' + openSeatsLeft());
+
+online.host = { seats: function () { return [
+  { id: 0, kind: 'local', takenBy: null },
+  { id: 1, kind: 'open',  takenBy: 'Ravi' }
+]; } };
+check('a full room shows nothing', openSeatsLeft() === 0);
+
+check('the Start button no longer carries the caveat in its label',
+      onlineSrc.indexOf('empty seats go to the computer') < 0);
+check('and takes its two labels from the translations',
+      /t\("lobby\.start"\)/.test(onlineSrc) && /t\("lobby\.waitingReady"\)/.test(onlineSrc));
+check('the notice has somewhere to appear',
+      read('index.html').indexOf('id="lobby-hint"') >= 0);
+check('and starts hidden, so an empty room is not announced before it exists',
+      /id="lobby-hint"[^>]*hidden/.test(read('index.html')));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

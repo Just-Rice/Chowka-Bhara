@@ -242,15 +242,30 @@ function readSetup() {
   };
 }
 
+/* Seats the host left open that nobody has taken. A seat set to "Computer" on
+   purpose is not one of these \u2014 the host already knows about those. */
+function openSeatsLeft() {
+  if (!online.host) return 0;
+  return online.host.seats().filter(function(seat) {
+    return seat.kind === "open" && !seat.takenBy;
+  }).length;
+}
+
 function refreshStartButton() {
   if (online.mode !== "host" || !online.host) return;
   var btn = el("start-online-btn");
   var ready = online.host.allReady();
-  var seated = online.host.seatedCount();
   btn.disabled = !ready;
-  btn.textContent = ready
-    ? (seated ? "Start game" : "Start game (empty seats go to the computer)")
-    : "Waiting for players to be ready\u2026";
+  btn.textContent = ready ? t("lobby.start") : t("lobby.waitingReady");
+
+  // The caveat lives beside the button, not inside its label, so the button
+  // keeps one size and one name whatever the room is doing.
+  var hint = el("lobby-hint");
+  if (hint) {
+    var empty = openSeatsLeft();
+    hint.textContent = t("lobby.emptySeats");
+    hint.hidden = online.mode !== "host" || empty === 0;
+  }
 }
 
 function renderSeatList(seats) {

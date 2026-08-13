@@ -285,6 +285,53 @@
     #win-overlay, .win-card { animation:none; }
   }
 
+/* A small notice that stands with the Start button while seats are still open,
+   and goes away once they are all taken. It used to be spliced into the
+   button's own label, which made the button grow a sentence long and then
+   change size under the cursor as people sat down. A pill beside it says the
+   same thing without the button moving. */
+.lobby-hint {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 12px;
+  padding: 8px 14px 8px 32px;
+  position: relative;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--mat-edge);
+  box-shadow: 0 2px 8px -3px rgba(51,65,90,0.45);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #5c4a2e;
+  text-align: center;
+  animation: hint-in 0.22s ease-out;
+}
+.lobby-hint[hidden] { display: none; }
+
+/* The dot marks it as a notice rather than a label, without spending a word. */
+.lobby-hint::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--p-turmeric);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25);
+}
+
+@keyframes hint-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby-hint { animation: none; }
+}
+html.no-motion .lobby-hint { animation: none; }
+
 /* What the connection is doing, so a failed join is not silent. */
 .lobby-diag {
   margin-top: 14px;
