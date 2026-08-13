@@ -652,13 +652,9 @@ var urls = JSON.stringify(Net.ICE.iceServers);
 check('several STUN servers are offered', (urls.match(/stun:/g) || []).length >= 3,
       String((urls.match(/stun:/g) || []).length));
 check('the relay slot is still there to be filled in',
-      /var RELAY = \{ app: "[^"]*", key: "[^"]*" \}/.test(netSource),
-      'RELAY is not an obvious slot any more');
-/* Without a key the fetch is skipped entirely, so a half-filled RELAY behaves
-   exactly like an empty one rather than firing a request that cannot work. */
-var relayLine = /var RELAY = \{ app: "([^"]*)", key: "([^"]*)" \}/.exec(netSource);
-check('and a filled subdomain with no key still runs on STUN alone',
-      !relayLine || relayLine[2] !== '' || true);
+      /var RELAY = \{/.test(netSource) && /key:\s*"/.test(netSource) &&
+      /servers:\s*\[/.test(netSource),
+      'RELAY no longer offers both a key and a server list');
 
 /* Credentials are fetched, because Metered issues short-lived ones. What
    matters is that no way of failing can stop a game starting: every path below
