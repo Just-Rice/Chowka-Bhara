@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="css/board.css">
 <link rel="stylesheet" href="css/sidebar.css">
 <link rel="stylesheet" href="css/online.css">
+<link rel="stylesheet" href="css/contrast.css">
 </head>
 <body>
 <div id="app">
@@ -32,6 +33,16 @@
           <label for="mode-host"><span data-i18n="setup.host"></span><span class="sub" data-i18n="setup.hostSub"></span></label>
           <input type="radio" name="play-mode" id="mode-join" value="join">
           <label for="mode-join"><span data-i18n="setup.join"></span><span class="sub" data-i18n="setup.joinSub"></span></label>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <span class="setup-label" data-i18n="setup.display"></span>
+        <div class="segmented" id="contrast-group">
+          <input type="radio" name="contrast" id="contrast-off" value="off" checked>
+          <label for="contrast-off"><span data-i18n="setup.standard"></span></label>
+          <input type="radio" name="contrast" id="contrast-on" value="on">
+          <label for="contrast-on"><span data-i18n="setup.highContrast"></span><span class="sub" data-i18n="setup.highContrastSub"></span></label>
         </div>
       </div>
 
@@ -159,6 +170,7 @@
 
         <div id="log"></div>
         <div class="sidebar-foot">
+          <button class="tie-btn" id="contrast-btn" aria-pressed="false" title="High contrast">◐</button>
           <button class="tie-btn" id="tie-btn" hidden data-i18n="btn.callTie"></button>
           <button class="new-game-btn" id="new-game-btn" data-i18n="btn.newGame"></button>
         </div>

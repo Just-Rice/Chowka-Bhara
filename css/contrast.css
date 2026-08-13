@@ -1,0 +1,134 @@
+/* Chowka-Bhara — high contrast.
+ *
+ * Loaded last, and every rule is behind .hc, so the ordinary look is untouched
+ * when it is off.
+ *
+ * The approach keeps the artwork rather than throwing it away. A translucent
+ * scrim sits over each square, between the painted texture and the pieces: the
+ * board recedes, the pieces do not dim, and the photographs are still visible
+ * underneath. Measured against the scrimmed board, every piece clears 4.5:1,
+ * where 3:1 is the minimum for a shape.
+ *
+ * Colour alone is not enough. Turmeric and areca differ by hue but barely by
+ * brightness — the pairing red-green colour blindness struggles with most — so
+ * each player also carries a shape.
+ */
+
+/* ---------------------------------------------------------------- palette */
+.hc {
+  --p-madder:   #ff6b4a;   /* 5.6:1 against the darkest ring */
+  --p-indigo:   #5cb3ff;   /* 7.0:1 */
+  --p-turmeric: #ffd84d;   /* 11.4:1 */
+  --p-areca:    #55e08a;   /* 9.3:1 */
+
+  --khaki-text: #ffffff;
+  --khaki-text-dim: #dfe6f2;
+  --ink-text: #14100b;
+  --mat: #efe3c8;
+  --mat-edge: #6b5a38;
+  --home-ring: #ffcf4a;
+  --shell-mouth: #2a1109;
+}
+
+/* ------------------------------------------------------------------ board */
+
+/* The scrim. Between the texture and everything that matters, so the board
+   quietens down without taking the pieces with it. */
+.hc .cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(3, 7, 18, 0.45);
+  pointer-events: none;
+}
+.hc .cell.center-cell::after { background: rgba(3, 7, 18, 0.15); }
+
+/* Order matters: scrim underneath, marker above it, pieces above everything. */
+.hc .cell.safe-cell::before { z-index: 1; }
+.hc .pieces { position: relative; z-index: 2; }
+
+/* Squares need visible edges of their own, not just a change of shade. */
+.hc .cell {
+  outline: 1px solid rgba(255, 255, 255, 0.22);
+  outline-offset: -1px;
+}
+.hc .cell.player-start { outline: 2px solid var(--seat-colour, #fff); outline-offset: -2px; }
+.hc .cell.center-cell { outline: 3px solid var(--home-ring); outline-offset: -3px; }
+
+.hc .cell.safe-cell::before { width: 58%; height: 58%; }
+
+/* ----------------------------------------------------------------- pieces */
+
+/* A dark ring then a light one. Between them a piece separates from whatever
+   is behind it, whether that is a dark square or the bright centre. */
+.hc .token {
+  position: relative;
+  box-shadow:
+    0 0 0 2px #04070f,
+    0 0 0 4px rgba(255, 255, 255, 0.92),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+}
+
+/* The shape each player carries, so nobody has to rely on colour. */
+.hc .token-p-madder   { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='3.6'/%3E%3C/svg%3E"); }
+.hc .token-p-indigo   { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpolygon points='5,1.2 9,8.6 1,8.6'/%3E%3C/svg%3E"); }
+.hc .token-p-turmeric { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Crect x='1.6' y='1.6' width='6.8' height='6.8'/%3E%3C/svg%3E"); }
+.hc .token-p-areca    { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpolygon points='5,1 9,5 5,9 1,5'/%3E%3C/svg%3E"); }
+
+.hc .token::after {
+  content: "";
+  position: absolute;
+  inset: 26%;
+  background: #05070d;
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+  pointer-events: none;
+}
+/* Pieces already home are small and stacked; a mark there is just noise. */
+.hc .tray .token::after { display: none; }
+
+/* A playable piece has to be unmistakable, not merely a little brighter. */
+.hc .token.legal {
+  box-shadow:
+    0 0 0 3px #04070f,
+    0 0 0 6px #ffffff,
+    0 0 14px 4px rgba(255, 255, 255, 0.55);
+}
+
+/* ---------------------------------------------------------------- sidebar */
+.hc .mat-panel { background-blend-mode: normal; background-image: none; }
+
+.hc .turn-banner { font-size: 1.45rem; font-weight: 700; }
+.hc .status-line { color: #3d3018; font-size: 0.9rem; font-weight: 600; }
+.hc .roster-row { border-width: 2px; border-color: #7a6740; }
+.hc .roster-row.active-player { border-color: #14100b; box-shadow: 0 0 0 3px rgba(20,16,11,0.4); }
+.hc .roster-name { font-weight: 700; }
+.hc .count-badge { color: #3d3018; font-weight: 600; }
+.hc .log-line { color: #241c10; }
+.hc #log { border-color: #7a6740; }
+
+.hc .pool-chip { border-width: 2px; font-weight: 700; }
+.hc .pool-chip.selected { box-shadow: 0 0 0 3px rgba(20,16,11,0.5); }
+.hc .pool-label { opacity: 1; color: #3d3018; font-weight: 700; }
+
+.hc #roll-btn,
+.hc .begin-btn { border-width: 2px; font-weight: 700; }
+
+/* The dot beside each name is a colour cue, so give it the shape too. */
+.hc .dot { width: 14px; height: 14px; box-shadow: inset 0 0 0 2px rgba(0,0,0,0.55); }
+
+/* --------------------------------------------------------------- controls */
+.hc .segmented label { border-width: 2px; font-weight: 600; }
+.hc .segmented input:checked + label { box-shadow: 0 0 0 3px rgba(20,16,11,0.35); }
+.hc :focus-visible { outline: 3px solid #14100b; outline-offset: 3px; }
+
+.hc .seat-row { border-width: 2px; }
+.hc .lobby-status { color: #3d3018; font-weight: 600; }
+.hc .code-hint, .hc .lobby-diag { color: #4a3c22; }
+
+/* The cowries sit on the light panel, so they need a dark edge rather than a
+   light one. */
+.hc .shell { filter: drop-shadow(0 0 1.5px rgba(0,0,0,0.85)) drop-shadow(0 3px 4px rgba(0,0,0,0.5)); }
+
+.hc .notice { border-width: 2px; font-weight: 600; }

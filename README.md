@@ -184,6 +184,23 @@ Stylesheets load in cascade order; scripts load in dependency order with
 are plain scripts rather than ES modules on purpose: the game still opens by
 double-clicking `index.html`, with no server and no build step.
 
+## High contrast
+
+A **Display** setting on the setup screen, and a toggle in the sidebar so it can
+be turned on mid-game rather than only at the start. Remembered per browser, and
+on by default if the operating system asks for more contrast.
+
+It keeps the artwork. A translucent scrim sits over each square, between the
+painted texture and the pieces — the board recedes, the pieces do not dim, and
+the photographs are still visible underneath. Against that scrimmed board every
+piece clears **4.5:1**, where 3:1 is the usual floor for a shape.
+
+Colour alone is not enough, so each player also carries a shape: circle,
+triangle, square, diamond. Turmeric and areca differ clearly by hue but barely by
+brightness, which is exactly the pairing red-green colour blindness struggles
+with. `test/contrast-test.js` reads the real values out of the stylesheet and
+fails if a retuned colour ever drops below the line.
+
 ## Languages
 
 English, ಕನ್ನಡ, हिन्दी and Español, chosen in the setup screen and remembered per
@@ -214,6 +231,7 @@ The logic is verified headlessly. The tests read the real function source out of
 | `cpu-test.js` | Takes free captures, avoids covered squares, takes winning moves, no double-counted threats, ~9,600-position fuzz |
 | `turn-test.js` | Banked throws stay independent, unplayable throws skip, a mid-turn capture unlocks the rest, selection handling, placement ordering |
 | `i18n-test.js` | Every language covers every key, placeholders line up, nothing copies English, no key the game asks for is missing |
+| `contrast-test.js` | Every piece clears 4.5:1 against every ring under the scrim, the four shapes exist and differ, nothing leaks outside `.hc` |
 | `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
 
 `net-test.js` runs the real sync layer over an in-memory transport, with two fake

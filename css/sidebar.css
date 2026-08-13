@@ -119,3 +119,12 @@
 }
 .tie-btn:hover:not(:disabled) { background: rgba(255,255,255,0.3); }
 .tie-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* The high-contrast toggle sits with the other footer controls. */
+#contrast-btn { padding: 11px 13px; font-size: 1rem; line-height: 1; }
+#contrast-btn.on {
+  border-style: solid;
+  border-color: var(--ink-text);
+  background: var(--ink-0);
+  color: var(--khaki-text);
+}
