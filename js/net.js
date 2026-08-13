@@ -619,8 +619,14 @@
    * cross-network play starts working; leave them blank and the game runs on
    * STUN alone, exactly as it does now.
    *
-   *   app  the subdomain, from "yourname.metered.live" — already filled in
-   *   key  the API key from the dashboard, still needed
+   * Either of two things works, whichever the dashboard actually shows:
+   *
+   *   key      an API key. The credentials are fetched with it at connect time,
+   *            which is the better of the two — Metered issues short-lived ones
+   *            and a fetched credential is always current.
+   *   servers  a ready-made list of { urls, username, credential } objects. Use
+   *            this when the dashboard hands you the ICE servers directly
+   *            rather than a key.
    *
    * Verified against the live endpoint: with no key it answers 400 "Please
    * specify API Key", and with a wrong one 401 "Invalid API Key", so the path
@@ -630,7 +636,11 @@
    * the credentials have to reach the browser — and it is why the key is worth
    * rotating if the free quota ever starts disappearing.
    */
-  var RELAY = { app: "chowka-bhara", key: "" };   // <- paste the API key here
+  var RELAY = {
+    app: "chowka-bhara",
+    key: "",          // an API key, and the credentials are fetched with it
+    servers: []       // or a ready-made list, pasted straight from the dashboard
+  };
 
   var STUN = [
     { urls: [
@@ -665,6 +675,13 @@
     var diag = opts.onDiag || function () {};
 
     if (icePromise && !opts.fresh) return icePromise;
+
+    // A list given outright needs no request at all.
+    if (relay.servers && relay.servers.length) {
+      diag("diag.relayReady", { n: relay.servers.length });
+      icePromise = Promise.resolve({ iceServers: STUN.concat(relay.servers) });
+      return icePromise;
+    }
 
     if (!relay.app || !relay.key || !fetcher) {
       diag("diag.noRelay");

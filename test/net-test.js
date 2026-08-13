@@ -566,6 +566,20 @@ check('the notice has somewhere to appear',
 check('and starts hidden, so an empty room is not announced before it exists',
       /id="lobby-hint"[^>]*hidden/.test(read('index.html')));
 
+/* A dashboard that hands over the servers directly rather than a key must work
+   just as well, and without a request. */
+var requested = false;
+got = null;
+iceWith({
+  relay: { app: 'demo', key: '', servers: [
+    { urls: 'turn:relay.example:80', username: 'u', credential: 'p' }
+  ] },
+  fetch: function () { requested = true; return new Promise(function () {}); }
+}, function (c) { got = c; });
+check('a pasted server list is used as it stands',
+      got && got.iceServers.length === 2, JSON.stringify(got && got.iceServers));
+check('and nothing is fetched for it', requested === false);
+
 /* And the timeout does what it says: a relay that never answers gives up
    rather than leaving someone on a spinner. */
 var fired = null;
