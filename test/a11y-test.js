@@ -132,17 +132,19 @@ main.split('\n').forEach(function (line) {
 check('the opening tab is chosen at load, not on the first click', selectsAtLoad);
 
 /* Someone who needs larger text or more contrast usually finds that out
-   mid-game, so the control has to be on the board screen, not only on setup. */
+   mid-game, so the control has to be on the board screen too, not only on
+   setup — and directly under the log, where it is out of the way of play. */
 var gameAt = page.indexOf('id="game-screen"');
-var floatAt = page.indexOf('class="a11y-float"');
+var logAt = page.indexOf('id="log"', gameAt);
+var btnAt = page.indexOf('id="a11y-btn"', gameAt);
+var footAt = page.indexOf('class="sidebar-foot"', gameAt);
 check('the accessibility control is reachable during a game',
-      floatAt > gameAt && gameAt >= 0, 'game at ' + gameAt + ', control at ' + floatAt);
-check('and it is fixed in place rather than parked in the sidebar',
-      /\.a11y-float\s*\{[^}]*position:\s*fixed/.test(css));
-check('it stays below the overlays, which are meant to be answered first',
-      /\.a11y-float\s*\{[^}]*z-index:\s*40/.test(css));
-check('and it keeps a readable name when the word is hidden',
-      /clip-path/.test(css) && !/\.a11y-float-label\s*\{\s*display:\s*none/.test(css));
+      gameAt >= 0 && btnAt > gameAt, 'game at ' + gameAt + ', control at ' + btnAt);
+check('and it sits directly below the log',
+      btnAt > logAt && btnAt < footAt,
+      'log ' + logAt + ', control ' + btnAt + ', foot ' + footAt);
+check('the setup screen keeps its own',
+      page.indexOf('id="a11y-btn-setup"') >= 0);
 
 var assets = page.match(/(?:src|href)="(?:js|css)\/[^"]+"/g) || [];
 var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });

@@ -67,6 +67,18 @@ function renderBoardStructure() {
       piecesEl.id = "pieces-" + r + "-" + c;
       cell.appendChild(piecesEl);
 
+      // Its own element rather than a pseudo-element, because both of the
+      // cell's are already spoken for — the diamond and the high-contrast
+      // scrim — and because this one has to be drawn over the pieces. A
+      // square with six pieces stacked on it hid every marking it had, which
+      // is the square where knowing you are safe matters most.
+      if (state.safeCellSet[r + "," + c]) {
+        var ring = document.createElement("span");
+        ring.className = "safe-ring";
+        ring.setAttribute("aria-hidden", "true");
+        cell.appendChild(ring);
+      }
+
       boardEl.appendChild(cell);
     }
   }

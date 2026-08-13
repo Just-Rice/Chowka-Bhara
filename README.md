@@ -20,8 +20,11 @@ open index.html
   other; 3 use three consecutive sides; 4 use all four
 - Direction alternates ring to ring: anti-clockwise around the outer ring,
   clockwise around the next ring in, and so on
-- Only the four starting squares are safe — and they are safe from **everyone**.
-  No capture can happen on one, whoever owns it
+- Safe squares are safe from **everyone** — no capture can happen on one,
+  whoever owns it. There are two kinds: the four starting squares, and **every
+  corner of every ring**. Corners are where a piece has to turn, so a chase
+  behind it closes up there. All of them are ringed in white, drawn over the
+  pieces so a crowded square still reads as safe
 
 **Rolling** — cowries counted mouth-up. One rule covers both sets: your count is
 your move, and the two extremes earn another throw — every cowrie up is worth its

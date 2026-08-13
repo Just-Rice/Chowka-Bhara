@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Chowka-Bhara</title>
-<link rel="stylesheet" href="css/tokens.css?v=1.7.0">
-<link rel="stylesheet" href="css/layout.css?v=1.7.0">
-<link rel="stylesheet" href="css/screens.css?v=1.7.0">
-<link rel="stylesheet" href="css/board.css?v=1.7.0">
-<link rel="stylesheet" href="css/sidebar.css?v=1.7.0">
-<link rel="stylesheet" href="css/online.css?v=1.7.0">
-<link rel="stylesheet" href="css/contrast.css?v=1.7.0">
-<link rel="stylesheet" href="css/a11y.css?v=1.7.0">
+<link rel="stylesheet" href="css/tokens.css?v=1.7.1">
+<link rel="stylesheet" href="css/layout.css?v=1.7.1">
+<link rel="stylesheet" href="css/screens.css?v=1.7.1">
+<link rel="stylesheet" href="css/board.css?v=1.7.1">
+<link rel="stylesheet" href="css/sidebar.css?v=1.7.1">
+<link rel="stylesheet" href="css/online.css?v=1.7.1">
+<link rel="stylesheet" href="css/contrast.css?v=1.7.1">
+<link rel="stylesheet" href="css/a11y.css?v=1.7.1">
 </head>
 <body>
 <div id="app">
@@ -159,15 +159,6 @@
   <div id="game-screen" class="hidden">
     <div class="mat-panel">
 
-      <!-- Fixed to the corner rather than parked in the sidebar, so the
-           settings are one press away at any point in a game — including from
-           the board on a phone, where the sidebar is a long scroll down. It
-           lives inside the game screen, so it appears and disappears with it. -->
-      <button class="a11y-float" id="a11y-btn">
-        <span class="a11y-float-mark" aria-hidden="true">Aa</span>
-        <span class="a11y-float-label" data-i18n="a11y.title"></span>
-      </button>
-
       <div class="board-col">
         <div class="board-wrap">
           <div id="board"></div>
@@ -196,6 +187,10 @@
         <button class="howto-btn" id="howto-btn" data-i18n="howto.title"></button>
 
         <div id="log"></div>
+
+        <!-- Below the log, where the settings are out of the way of play but
+             still on the screen you are looking at while playing. -->
+        <button class="a11y-btn" id="a11y-btn" data-i18n="a11y.title"></button>
         <div class="sidebar-foot">
           <button class="tie-btn" id="tie-btn" hidden data-i18n="btn.callTie"></button>
           <button class="new-game-btn" id="new-game-btn" data-i18n="btn.newGame"></button>
@@ -261,16 +256,16 @@
   </div>
 </div>
 
-<script src="js/i18n.js?v=1.7.0"></script>
-<script src="js/a11y.js?v=1.7.0"></script>
-<script src="js/net.js?v=1.7.0"></script>
-<script src="js/config.js?v=1.7.0"></script>
-<script src="js/path.js?v=1.7.0"></script>
-<script src="js/rules.js?v=1.7.0"></script>
-<script src="js/ai.js?v=1.7.0"></script>
-<script src="js/render.js?v=1.7.0"></script>
-<script src="js/game.js?v=1.7.0"></script>
-<script src="js/online.js?v=1.7.0"></script>
-<script src="js/main.js?v=1.7.0"></script>
+<script src="js/i18n.js?v=1.7.1"></script>
+<script src="js/a11y.js?v=1.7.1"></script>
+<script src="js/net.js?v=1.7.1"></script>
+<script src="js/config.js?v=1.7.1"></script>
+<script src="js/path.js?v=1.7.1"></script>
+<script src="js/rules.js?v=1.7.1"></script>
+<script src="js/ai.js?v=1.7.1"></script>
+<script src="js/render.js?v=1.7.1"></script>
+<script src="js/game.js?v=1.7.1"></script>
+<script src="js/online.js?v=1.7.1"></script>
+<script src="js/main.js?v=1.7.1"></script>
 </body>
 </html>

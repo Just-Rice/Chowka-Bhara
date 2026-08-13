@@ -64,6 +64,19 @@
   }
   .cell.player-start::before { width: 54%; height: 54%; }
 
+  /* Drawn above the pieces, so a crowded square still says it is safe. Thin
+     dark edges either side of the white keep it visible against both the dark
+     outer ring and the pale centre, rather than only against one of them. */
+  .safe-ring {
+    position: absolute;
+    inset: 0;
+    border: 3px solid rgba(255,255,255,0.92);
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(0,0,0,0.4);
+    z-index: 3;
+    pointer-events: none;
+  }
+
   .cell.center-cell {
     background: url("../img/centre-home.jpg") center / cover,
                 radial-gradient(circle, var(--home-glow), var(--home-ring) 130%);

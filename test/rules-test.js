@@ -25,7 +25,8 @@ eval(NAMES.map(grab).join('\n'));
 
 /* The piece count, the cowrie count and the throw table are now board-
    dependent, so take the real ones rather than a stub that can drift. */
-eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds']
+eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
+      'buildSafeCells']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
@@ -191,8 +192,7 @@ check('the large board is played with six', piecesPerPlayer(7) === 6);
 function makeState(N, numPlayers) {
   var built = buildCanonicalPath(N);
   var all = [0, 1, 2, 3].map(function (s) { return rotatePath(built.path, s, N); });
-  var safe = {};
-  all.forEach(function (p) { safe[p[0][0] + ',' + p[0][1]] = true; });
+  var safe = buildSafeCells(N, all);
   var slots = SLOT_SETS[numPlayers];
   var players = [];
   for (var i = 0; i < numPlayers; i++) {
@@ -257,9 +257,43 @@ check('exact roll finishes', m.length === 1 && m[0].type === 'finish', JSON.stri
 m = computeLegalMoves(P, 2).filter(function (x) { return x.pieceId === 2 || x.pieceId === 3; });
 check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
 
-/* Safe squares: are the four start cells the ONLY safe ones? */
-check('exactly four safe squares', Object.keys(state.safeCellSet).length === 4,
-      Object.keys(state.safeCellSet).join(' | '));
+/* ---------------------------------------------------- safe squares ----- */
+
+/* Two kinds, and nothing else: the four starts, and every ring corner. Written
+   out per board rather than recomputed, so a change to the rule has to be a
+   deliberate change here too. */
+[{ N: 5, corners: [[0,0],[0,4],[4,0],[4,4], [1,1],[1,3],[3,1],[3,3]] },
+ { N: 7, corners: [[0,0],[0,6],[6,0],[6,6], [1,1],[1,5],[5,1],[5,5],
+                   [2,2],[2,4],[4,2],[4,4]] }].forEach(function (board) {
+  var st = makeState(board.N, 4);
+  var tag = board.N + 'x' + board.N + ': ';
+  var safe = st.safeCellSet;
+
+  var missing = board.corners.filter(function (rc) { return !safe[rc[0] + ',' + rc[1]]; });
+  check(tag + 'every ring corner is safe', missing.length === 0,
+        missing.map(function (rc) { return rc.join(','); }).join(' '));
+
+  var starts = st.players.map(function (p) { return p.path[0][0] + ',' + p.path[0][1]; });
+  var lostStart = starts.filter(function (k) { return !safe[k]; });
+  check(tag + 'and every start square still is', lostStart.length === 0, lostStart.join(' '));
+
+  /* Nothing else may creep in: a mid-ring square must stay capturable. */
+  check(tag + 'no more than the starts and the corners are safe',
+        Object.keys(safe).length === board.corners.length + 4,
+        Object.keys(safe).length + ' safe, expected ' + (board.corners.length + 4));
+
+  /* The centre is a destination, not a shelter. */
+  var mid = (board.N - 1) / 2;
+  check(tag + 'the centre is not one of them', !safe[mid + ',' + mid]);
+
+  /* Every safe square has to be somewhere a piece can actually stand. */
+  var onPath = {};
+  st.players.forEach(function (p) {
+    p.path.forEach(function (rc) { onPath[rc[0] + ',' + rc[1]] = true; });
+  });
+  var stranded = Object.keys(safe).filter(function (k) { return !onPath[k]; });
+  check(tag + 'and sits on the path', stranded.length === 0, stranded.join(' '));
+});
 
 /* ------------------------------------------------- report -------------- */
 

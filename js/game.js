@@ -6,6 +6,28 @@
 // given player count. 2 players sit opposite each other; 4 use every edge.
 var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
 
+/* Where a piece cannot be captured. Two kinds, and both are marked whatever the
+   player count, the way a physical board would show them:
+
+   the four starting squares, one per side, which is the traditional marking; and
+   every corner of the outer ring and of the two rings inside it. Corners are
+   where a piece has to turn, so a chase behind it closes up there — the corners
+   are where shelter is worth having. On both board sizes the outer ring plus two
+   more is every ring there is, so in practice it is every ring corner. */
+function buildSafeCells(N, allSlotPaths) {
+  var safe = {};
+  allSlotPaths.forEach(function(p) { safe[p[0][0] + "," + p[0][1]] = true; });
+
+  var rings = Math.min(3, (N - 1) / 2);
+  for (var k = 0; k < rings; k++) {
+    var lo = k, hi = N - 1 - k;
+    [[lo, lo], [lo, hi], [hi, lo], [hi, hi]].forEach(function(rc) {
+      safe[rc[0] + "," + rc[1]] = true;
+    });
+  }
+  return safe;
+}
+
 function initGame(N, numPlayers, numCPU, cpuSkill) {
   // Computers take the last seats, so a lone human is always the first to move.
   numCPU = Math.max(0, Math.min(numCPU || 0, numPlayers));
@@ -15,10 +37,7 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
   var ringBoundaries = built.ringBoundaries;
   var allSlotPaths = [0, 1, 2, 3].map(function(s){ return rotatePath(built.path, s, N); });
 
-  // Only the four starting squares are safe, matching the traditional board -
-  // marked regardless of player count, same as a physical board would show them.
-  var safeCellSet = {};
-  allSlotPaths.forEach(function(p){ safeCellSet[p[0][0] + "," + p[0][1]] = true; });
+  var safeCellSet = buildSafeCells(N, allSlotPaths);
 
   var slots = SLOT_SETS[numPlayers];
   var players = [];

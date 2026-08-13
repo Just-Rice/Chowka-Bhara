@@ -37,7 +37,8 @@ eval([
 
 /* The piece count, the cowrie count and the throw table are now board-
    dependent, so take the real ones rather than a stub that can drift. */
-eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds']
+eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
+      'buildSafeCells']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
@@ -51,8 +52,7 @@ function check(name, cond, detail) {
 function makeState(N, numPlayers) {
   var built = buildCanonicalPath(N);
   var all = [0, 1, 2, 3].map(function (s) { return rotatePath(built.path, s, N); });
-  var safe = {};
-  all.forEach(function (p) { safe[p[0][0] + ',' + p[0][1]] = true; });
+  var safe = buildSafeCells(N, all);
   var slots = SLOT_SETS[numPlayers];
   var players = [];
   for (var i = 0; i < numPlayers; i++) {
