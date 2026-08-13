@@ -27,52 +27,60 @@ function ringLoop(N, k, startRC, clockwise) {
   return loop.slice(idx).concat(loop.slice(0, idx));
 }
 
+/* The corners of ring k, which is where a lap always turns inward. Entering at
+   a corner rather than mid-edge is what makes both boards read the same way. */
+function ringCorners(N, k) {
+  var lo = k, hi = N - 1 - k;
+  return [[lo, lo], [lo, hi], [hi, lo], [hi, hi]];
+}
+
+/* Where the lap that just ended at `tail` steps to. Straight if a corner of the
+   next ring is next door, diagonal if it is not — which happens exactly once on
+   a 7x7 lap and never on a 5x5 one. */
+function turnInward(tail, targets) {
+  var straight = null, diagonal = null;
+  targets.forEach(function(t) {
+    var dr = Math.abs(tail[0] - t[0]), dc = Math.abs(tail[1] - t[1]);
+    if (dr + dc === 1) straight = straight || t;
+    else if (dr === 1 && dc === 1) diagonal = diagonal || t;
+  });
+  return straight || diagonal;
+}
+
 function buildCanonicalPath(N) {
   var mid = (N - 1) / 2;
   var path = [];
   var ringBoundaries = [];
-  var startCell = [0, mid]; // top-edge middle
-  var lastRingStart = null;
-  var clockwise = false;    // outer ring travels anti-clockwise
+  var entry = [0, mid];     // the middle of the player's own edge
   var k = 0;
 
-  while (true) {
-    var sideLen = N - 2 * k;
-    if (sideLen <= 0) break;
+  while (N - 2 * k > 1) {
+    /* Which way round the lap goes is decided by where it has to finish: back
+       on the player's own side of the ring, so the turn inward is always taken
+       from there. On the outer ring both directions finish there — that is the
+       side you started on — and that one goes anti-clockwise.
 
-    if (sideLen === 1) {
-      // The centre. A 3x3 ring only touches it from its four edge-middles, so
-      // if the lap happened to end on a corner we finish the lap first rather
-      // than cutting diagonally across. That costs one extra step, and only
-      // on boards where the parity works out that way (7x7, not 5x5).
-      var tail = path[path.length - 1];
-      if (tail && Math.abs(tail[0] - mid) + Math.abs(tail[1] - mid) > 1) {
-        path.push([lastRingStart[0], lastRingStart[1]]);
-        // That square belongs to the ring it is part of, not to the centre.
-        ringBoundaries[ringBoundaries.length - 1] = path.length;
-      }
-      path.push([mid, mid]);
-      ringBoundaries.push(path.length);
-      break;
+       On a 5x5 this alternates ring to ring. On a 7x7 the innermost ring comes
+       out running the same way as the one outside it, which is a consequence of
+       the rule rather than an exception to it. */
+    var clockwise = k > 0;
+    var cells = ringLoop(N, k, entry, clockwise);
+    if (clockwise && cells[cells.length - 1][0] !== k) {
+      clockwise = false;
+      cells = ringLoop(N, k, entry, clockwise);
     }
 
-    var ringCells = ringLoop(N, k, startCell, clockwise);
-    lastRingStart = startCell;
-    path = path.concat(ringCells);
+    path = path.concat(cells);
     ringBoundaries.push(path.length);
 
-    // Turn inward from the square the lap actually ended on. Turning in from
-    // the square below the player's *start* instead leaves a diagonal step,
-    // which is illegal everywhere else on this board.
-    var last = ringCells[ringCells.length - 1];
-    var lo = k + 1, hi = N - 2 - k;
-    startCell = [
-      Math.min(Math.max(last[0], lo), hi),
-      Math.min(Math.max(last[1], lo), hi)
-    ];
-    clockwise = !clockwise;
+    var inner = N - 2 * (k + 1);
+    entry = turnInward(path[path.length - 1],
+                       inner > 1 ? ringCorners(N, k + 1) : [[mid, mid]]);
     k++;
   }
+
+  path.push([mid, mid]);
+  ringBoundaries.push(path.length);
 
   return { path: path, ringBoundaries: ringBoundaries };
 }

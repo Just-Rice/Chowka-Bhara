@@ -19,7 +19,7 @@ function grab(name) {
   return SRC.slice(start, j + 1);
 }
 
-var NAMES = ['ringLoop', 'buildCanonicalPath', 'rotateRC', 'rotatePath',
+var NAMES = ['ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC', 'rotatePath',
              'physicalRing', 'layerOf', 'throwShells', 'computeLegalMoves'];
 eval(NAMES.map(grab).join('\n'));
 
@@ -68,23 +68,40 @@ function check(name, cond, detail) {
   });
   check(tag + 'reaches every square', Object.keys(seen).length === N * N,
         Object.keys(seen).length + ' distinct of ' + N * N);
-  check(tag + 'repeats at most one square', dupeCells.length <= 1,
-        dupeCells.join(' '));
-  /* The only permitted repeat is the approach square next to the centre. */
-  if (dupeCells.length === 1) {
-    var d = dupeCells[0].split(',').map(Number);
-    check(tag + 'the repeated square is the one beside the centre',
-          Math.abs(d[0] - mid) + Math.abs(d[1] - mid) === 1, dupeCells[0]);
+  check(tag + 'walks no square twice', dupeCells.length === 0, dupeCells.join(' '));
+
+  /* Every step is to a neighbouring square. Straight is the rule; the single
+     exception is the 7x7 turning off its outer ring, where the corner it has
+     to reach sits diagonally. Anything else — a second diagonal, or a jump of
+     more than one square — is a broken board. */
+  var far = [], diagonals = [];
+  for (var i = 1; i < path.length; i++) {
+    var dr = Math.abs(path[i][0] - path[i - 1][0]);
+    var dc = Math.abs(path[i][1] - path[i - 1][1]);
+    var where = i + ':' + JSON.stringify(path[i - 1]) + '->' + JSON.stringify(path[i]);
+    if (dr > 1 || dc > 1) far.push(where);
+    else if (dr === 1 && dc === 1) diagonals.push(where);
+  }
+  check(tag + 'no step reaches further than a neighbouring square',
+        far.length === 0, far.slice(0, 3).join(' '));
+  check(tag + 'exactly ' + (N === 7 ? 'one diagonal step' : 'no diagonal step'),
+        diagonals.length === (N === 7 ? 1 : 0), diagonals.join(' '));
+  if (N === 7) {
+    check(tag + 'and it is the turn off the outer ring into the corner',
+          diagonals[0] === '24:[0,4]->[1,5]', diagonals[0]);
   }
 
-  /* Consecutive path cells must be orthogonally adjacent, except where the
-   * path cuts inward between rings (also adjacent) — so: always adjacent. */
-  var jumps = [];
-  for (var i = 1; i < path.length; i++) {
-    var d = Math.abs(path[i][0] - path[i - 1][0]) + Math.abs(path[i][1] - path[i - 1][1]);
-    if (d !== 1) jumps.push(i + ':' + JSON.stringify(path[i - 1]) + '->' + JSON.stringify(path[i]));
-  }
-  check(tag + 'every step moves one square', jumps.length === 0, jumps.slice(0, 3).join(' '));
+  /* Each lap has to finish back on the player's own side of its ring, which is
+     what decides the direction it runs and where it turns inward. */
+  var at = 0;
+  built.ringBoundaries.forEach(function (end, ring) {
+    if (end - at > 1) {
+      var tail = path[end - 1];
+      check(tag + 'ring ' + ring + ' finishes on the near side',
+            tail[0] === ring, JSON.stringify(tail));
+    }
+    at = end;
+  });
 
   /* Ring direction must alternate: outer anti-clockwise, next clockwise. */
   var b = built.ringBoundaries;
@@ -117,6 +134,38 @@ function check(name, cond, detail) {
   }
   check(tag + 'layerOf matches physical ring', mismatch.length === 0,
         mismatch.slice(0, 3).join(' '));
+});
+
+/* ------------------------------------------------- the exact route ----- */
+
+/* Both boards written out square by square, as "rowcol". The route is a design
+   decision rather than something derived, so it is pinned here: any change to
+   it has to be a deliberate change to this list too, not a side effect. */
+var ROUTES = {
+  5: ('02 01 00 10 20 30 40 41 42 43 44 34 ' +
+      '24 14 04 03 13 23 33 32 31 21 11 12 ' +
+      '22').trim().split(/\s+/),
+  7: ('03 02 01 00 10 20 30 40 50 60 61 62 ' +
+      '63 64 65 66 56 46 36 26 16 06 05 04 ' +
+      '15 25 35 45 55 54 53 52 51 41 31 21 ' +
+      '11 12 13 14 24 34 44 43 42 32 22 23 ' +
+      '33').trim().split(/\s+/)
+};
+
+Object.keys(ROUTES).forEach(function (n) {
+  var N = parseInt(n, 10);
+  var got = buildCanonicalPath(N).path.map(function (rc) { return '' + rc[0] + rc[1]; });
+  var want = ROUTES[n];
+  var firstDiff = -1;
+  for (var i = 0; i < Math.max(got.length, want.length); i++) {
+    if (got[i] !== want[i]) { firstDiff = i; break; }
+  }
+  check(N + 'x' + N + ': the route is square for square what it should be',
+        firstDiff < 0,
+        firstDiff < 0 ? '' : 'step ' + firstDiff + ' is ' + got[firstDiff] +
+                             ', should be ' + want[firstDiff]);
+  check(N + 'x' + N + ': and the right length',
+        got.length === want.length, got.length + ' vs ' + want.length);
 });
 
 /* ------------------------------------------------- shell throw --------- */

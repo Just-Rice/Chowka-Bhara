@@ -58,7 +58,9 @@ function buildHowTo() {
   var list = el("howto-list");
   if (!list) return;
   list.innerHTML = "";
-  for (var i = 1; i <= 13; i++) {
+  // Runs past the end on purpose: missing keys are skipped, so a line can be
+  // added to the table without also having to remember this number.
+  for (var i = 1; i <= 24; i++) {
     var key = "howto." + i;
     var text = t(key);
     if (text === key) continue;

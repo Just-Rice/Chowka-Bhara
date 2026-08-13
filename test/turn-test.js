@@ -28,7 +28,7 @@ function grab(name) {
 }
 
 eval([
-  'ringLoop', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
+  'ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
   'layerOf', 'computeLegalMoves', 'currentPlayer',
   'playableChips', 'selectedEntry', 'ensureSelection', 'spendChip',
   'playerActive', 'ordinal', 'progressOf', 'standingsText',
@@ -337,7 +337,7 @@ check('the small board deals four pieces a side',
 state = makeState(7, 2);
 var big = state.players[0];
 check('the large board deals six', big.pieces.length === 6, String(big.pieces.length));
-check('the large board is a longer walk', state.pathLength === 50,
+check('the large board is a longer walk', state.pathLength === 49,
       String(state.pathLength));
 
 /* Exactness still governs the finish, at the new top value. */

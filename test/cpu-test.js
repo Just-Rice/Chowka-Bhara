@@ -19,7 +19,7 @@ function grab(name) {
 }
 
 eval([
-  'ringLoop', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
+  'ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
   'layerOf', 'computeLegalMoves', 'currentPlayer',
   'cellKey', 'isSafeCell', 'threatMap', 'opponentsOn', 'threatCreated',
   'scoreMove', 'playableChips', 'selectedEntry', 'chooseCPUPlay'

@@ -18,8 +18,11 @@ open index.html
   comparable length of game rather than twice the length
 - Each player enters at the middle of their own side. 2 players sit opposite each
   other; 3 use three consecutive sides; 4 use all four
-- Direction alternates ring to ring: anti-clockwise around the outer ring,
-  clockwise around the next ring in, and so on
+- Each lap finishes back on your own side of the board before turning inward,
+  onto a corner of the next ring in. On the 5×5 that comes out as alternating
+  directions ring by ring; on the 7×7 the two inner rings run the same way
+- Every move is straight except one: on the 7×7, turning off the outer ring is a
+  single diagonal step onto a safe corner
 - Safe squares are safe from **everyone** — no capture can happen on one,
   whoever owns it. There are two kinds: the four starting squares, and **every
   corner of the outer two rings**. Corners are where a piece has to turn, so a
@@ -296,25 +299,32 @@ as possible.
 
 ### Path geometry
 
-Every step on the board is orthogonal — pieces never move diagonally. The visit
-order for a player entering from the top edge:
+One rule decides the whole route: **a lap runs in whichever direction brings it
+back to the player's own side of its ring, and turns inward from there onto a
+corner of the next ring in.** The visit order for a player entering from the top
+edge:
 
 ```
-5x5 — 25 steps                7x7 — 50 steps
+5x5 — 25 steps                7x7 — 49 steps
   2  1  0 15 14                 3  2  1  0 23 22 21
-  3 22 23 16 13                 4 37 38 39 24 25 20
-  4 21 24 17 12                 5 36 41 40 47 26 19
-  5 20 19 18 11                 6 35 42 49 46 27 18
-  6  7  8  9 10                 7 34 43 44 45 28 17
-                                8 33 32 31 30 29 16
+  3 22 23 16 13                 4 36 37 38 39 24 20
+  4 21 24 17 12                 5 35 46 47 40 25 19
+  5 20 19 18 11                 6 34 45 48 41 26 18
+  6  7  8  9 10                 7 33 44 43 42 27 17
+                                8 32 31 30 29 28 16
                                 9 10 11 12 13 14 15
 ```
 
-A lap turns inward from the square it actually ends on, which keeps that step
-orthogonal like every other move.
+Both boards use every square exactly once, and no square is walked twice.
 
-The centre is only reachable straight-on from the four edge-middles of the
-innermost ring. On 5x5 the last lap happens to end on one of those, so the piece
-steps straight in. On 7x7 it ends on a corner, so the piece takes one extra step
-back onto the square beside the centre — the only square any path visits twice —
-before going in. That is why a 7x7 journey is 50 steps rather than 49.
+**Direction** follows from the rule rather than being imposed on it. On 5x5 it
+works out as strict alternation — outer ring anti-clockwise, inner ring
+clockwise. On 7x7 the two inner rings come out running the same way, because
+that is what brings each of them home to the near side.
+
+**The one diagonal.** Entering at a corner keeps both boards reading alike, but
+a full 24-square outer lap on 7x7 ends at column 4 while the inner ring's
+corners are at columns 1 and 5 — so no orthogonal step reaches one. Step 23 to
+24, `(0,4)` to `(1,5)`, is therefore diagonal: the only such step on either
+board. The alternative was to leave a square unvisited or walk one twice, and a
+single diagonal onto a safe corner was judged the smaller oddity.
