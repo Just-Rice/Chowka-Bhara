@@ -226,6 +226,23 @@ The non-English translations were written by Claude and have not been checked by
 a native speaker. Corrections welcome — they all live in `js/i18n.js`, one table
 per language, same keys throughout.
 
+## Releasing
+
+```sh
+python3 tools/stamp-assets.py 1.5.2      # before tagging
+```
+
+Every stylesheet and script is loaded with a `?v=` matching the release. Without
+it a browser can pair a freshly fetched `index.html` with a script cached from an
+earlier release — new markup, old code, a combination nobody ever tested. That
+once left the setup screen with no text at all: the old script called a control
+the new markup had dropped, threw, and never reached the line that fills the
+words in.
+
+Startup is also ordered so the words go in before anything that can throw, and
+listeners attach only if their element is really there. A stale script should
+cost one button, not the whole screen.
+
 ## Tests
 
 The logic is verified headlessly. The tests read the real function source out of

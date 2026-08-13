@@ -64,31 +64,43 @@ function buildHowTo() {
 }
 
 /* ============================= WIRE UP ============================= */
-A11Y.load();
 
-function openA11y() { A11Y.open(); }
-el("a11y-btn").addEventListener("click", openA11y);
-el("a11y-btn-setup").addEventListener("click", openA11y);
-el("a11y-close").addEventListener("click", function() { A11Y.close(); });
-el("a11y-backdrop").addEventListener("click", function() { A11Y.close(); });
-
+/* The words go in before anything that could throw. A single bad listener used
+   to take the whole page down with it, and an empty screen is a far worse
+   failure than a button that does nothing. */
 I18N.load();
 I18N.apply();
+A11Y.load();
+
+/* Attach a handler only if the element is really there. Markup and scripts can
+   fall out of step — a cached script from an earlier release meeting fresh
+   markup, say — and that should cost one control, not the entire screen. */
+function on(id, event, fn) {
+  var node = el(id);
+  if (node) node.addEventListener(event, fn);
+  else if (window.console) console.warn("[chowka] no element #" + id);
+}
+
+function openA11y() { A11Y.open(); }
+on("a11y-btn", "click", openA11y);
+on("a11y-btn-setup", "click", openA11y);
+on("a11y-close", "click", function() { A11Y.close(); });
+on("a11y-backdrop", "click", function() { A11Y.close(); });
 buildLangPicker();
 buildHowTo();
 renderSpaceLabels();
 
-el("tie-btn").addEventListener("click", function() {
+on("tie-btn", "click", function() {
   if (online.mode === "guest") return online.guest.sendIntent({ kind: "tie" });
   requestTie(myVotingSeat());
 });
 
-el("howto-btn").addEventListener("click", function() {
+on("howto-btn", "click", function() {
   el("howto-drawer").classList.remove("hidden");
 });
 function closeHowTo() { el("howto-drawer").classList.add("hidden"); }
-el("howto-close").addEventListener("click", closeHowTo);
-el("howto-backdrop").addEventListener("click", closeHowTo);
+on("howto-close", "click", closeHowTo);
+on("howto-backdrop", "click", closeHowTo);
 document.addEventListener("keydown", function(e) {
   if (e.key !== "Escape") return;
   closeHowTo();
@@ -114,7 +126,7 @@ Array.prototype.forEach.call(
 );
 syncModeUI();
 
-el("join-code").addEventListener("input", function() {
+on("join-code", "input", function() {
   var input = el("join-code");
   input.value = ChowkaNet.normaliseRoomCode(input.value);
 });
@@ -136,7 +148,7 @@ document.getElementById("begin-btn").addEventListener("click", function(){
   initGame(cfg.N, cfg.numPlayers, cfg.numCPU, cfg.cpuSkill);
 });
 
-el("start-online-btn").addEventListener("click", function() {
+on("start-online-btn", "click", function() {
   var cfg = online.config;
   var seats = online.host.seats();
 
@@ -155,12 +167,12 @@ el("start-online-btn").addEventListener("click", function() {
   updateUI();                       // also broadcasts the opening snapshot
 });
 
-el("lobby-cancel-btn").addEventListener("click", function() {
+on("lobby-cancel-btn", "click", function() {
   if (online.peer) { try { online.peer.destroy(); } catch (e) {} }
   location.reload();
 });
 
-el("pause-cpu-btn").addEventListener("click", function() {
+on("pause-cpu-btn", "click", function() {
   var seatId = online.pausedSeat;
   if (seatId === null || !online.host) return;
   online.config.seatKinds[seatId] = "cpu";
@@ -173,7 +185,7 @@ el("pause-cpu-btn").addEventListener("click", function() {
   if (state) updateUI();
 });
 
-el("pause-quit-btn").addEventListener("click", function() {
+on("pause-quit-btn", "click", function() {
   if (online.peer) { try { online.peer.destroy(); } catch (e) {} }
   location.reload();
 });

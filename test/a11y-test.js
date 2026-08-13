@@ -79,8 +79,30 @@ check('the panel asks for a good number of labels',
 check('the replaced Display keys are gone',
       i18n.indexOf('"setup.highContrast"') < 0, 'setup.highContrast still present');
 
+/* Two guards against the failure that once blanked the setup screen: a cached
+   script from an earlier release meeting fresh markup. */
+var main = read('js/main.js');
+var idxApply = main.indexOf('I18N.apply()');
+var idxWire = main.indexOf('WIRE UP');
+var applyAfterWire = main.indexOf('I18N.apply()', idxWire);
+var firstListener = main.indexOf('addEventListener', idxWire);
+check('the words go in before anything that can throw',
+      applyAfterWire > 0 && applyAfterWire < firstListener,
+      'apply at ' + applyAfterWire + ', first listener at ' + firstListener);
+
+check('no listener is attached without checking the element exists',
+      !/el\("[a-z0-9-]+"\)\.addEventListener/.test(main),
+      'found an unguarded addEventListener');
+
+var page = read('index.html');
+var assets = page.match(/(?:src|href)="(?:js|css)\/[^"]+"/g) || [];
+var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });
+check('every asset is version-stamped, so markup and scripts cannot mismatch',
+      unstamped.length === 0, unstamped.slice(0, 3).join(' '));
+
 print('');
 print('settings: ' + keys.join(', '));
+print('assets stamped: ' + assets.length);
 if (!fails.length) {
   print('✅ all accessibility checks passed');
 } else {
