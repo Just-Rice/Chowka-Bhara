@@ -64,8 +64,10 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
     for (var j = 0; j < piecesPerPlayer(N); j++) pieces.push({ id: j, status: "active", pathIndex: 0 });
     players.push({
       id: i,
-      nameKey: PLAYER_DEFS[i].key,
-      colorVar: PLAYER_DEFS[i].colorVar,
+      // The seat, not the colour: a name follows its player through a colour
+      // change, and the log has to say the same thing afterwards as before.
+      nameKey: "seat." + i,
+      colorVar: SEATS.colourOf(i),
       slot: slots[i],
       path: allSlotPaths[slots[i]],
       hasCaptured: false,
@@ -448,11 +450,11 @@ function requestTie(playerId) {
   var at = state.tieVotes.indexOf(playerId);
   if (at >= 0) {
     state.tieVotes.splice(at, 1);
-    addLog("log.tieWithdrawn", { name: PLAYER_DEFS[playerId].key });
+    addLog("log.tieWithdrawn", { name: "seat." + playerId });
   } else {
     state.tieVotes.push(playerId);
     addLog("log.tieAsked", {
-      name: PLAYER_DEFS[playerId].key,
+      name: "seat." + playerId,
       have: state.tieVotes.length,
       need: tieThreshold()
     });

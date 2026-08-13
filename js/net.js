@@ -80,7 +80,6 @@
         var owner = seatOwner(seat.id);
         return {
           id: seat.id,
-          nameKey: seat.nameKey,
           kind: seat.kind,                       // "local" | "open" | "cpu"
           // Occupancy and the name are separate: a guest who sent no name
           // still occupies the seat, and the fallback label is a translation

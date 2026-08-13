@@ -30,6 +30,7 @@ function setLanguage(code) {
   I18N.apply();
   buildHowTo();
   A11Y.build();
+  SEATS.build();
   buildLangPicker();
   renderSpaceLabels();
   renderLog();
@@ -78,6 +79,7 @@ function buildHowTo() {
 I18N.load();
 I18N.apply();
 A11Y.load();
+SEATS.load();
 
 /* Attach a handler only if the element is really there. Markup and scripts can
    fall out of step — a cached script from an earlier release meeting fresh
@@ -90,7 +92,8 @@ function on(id, event, fn) {
 
 function openA11y() {
   A11Y.open();
-  buildLangPicker();          // it lives inside the panel now
+  SEATS.build();              // players, above the accessibility settings
+  buildLangPicker();          // language lives inside the panel too
 }
 on("a11y-btn", "click", openA11y);
 on("a11y-btn-setup", "click", openA11y);
@@ -202,7 +205,7 @@ on("pause-cpu-btn", "click", function() {
   online.host.resumeWithCPU(seatId);
   online.pausedSeat = null;
   el("pause-overlay").classList.add("hidden");
-  addLog("log.cpuTakeover", { name: PLAYER_DEFS[seatId].key });
+  addLog("log.cpuTakeover", { name: "seat." + seatId });
   updateNetBadge();
   if (state) updateUI();
 });

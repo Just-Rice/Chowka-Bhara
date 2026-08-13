@@ -198,8 +198,12 @@ function applyRemoteIntent(seatId, intent) {
 function hostGameAdapter() {
   return {
     getSeats: function() {
+      // No name travels with a seat. PLAYER_DEFS has no `name` field, so this
+      // was sending undefined and the lobby was drawing an empty label; and a
+      // seat's name belongs to the person reading the screen, who renders it
+      // from their own settings.
       return online.config.seatKinds.map(function(kind, i) {
-        return { id: i, name: PLAYER_DEFS[i].name, kind: kind };
+        return { id: i, kind: kind };
       });
     },
     getSnapshot: function() { return state ? serializeState() : null; },
@@ -297,12 +301,12 @@ function renderSeatList(seats) {
 
     var dot = document.createElement("span");
     dot.className = "seat-dot";
-    dot.style.background = "var(--" + PLAYER_DEFS[seat.id].colorVar + ")";
+    dot.style.background = "var(--" + SEATS.colourOf(seat.id) + ")";
     row.appendChild(dot);
 
     var name = document.createElement("span");
     name.className = "seat-name";
-    name.textContent = seat.name;
+    name.textContent = playerName(seat.id);
     row.appendChild(name);
 
     var who = document.createElement("span");
@@ -445,7 +449,7 @@ function startJoining(code) {
       online.transport = transport;
       online.guest = ChowkaNet.createGuest({
         transport: transport,
-        name: null,
+        name: SEATS.myName(),
         selfPeerId: id,
         onSeats: function(seats) {
           // Trust the host's view of who sits where, not our own click.
@@ -506,7 +510,7 @@ function onSeatDropped(seatId, name) {
   if (online.mode === "host") online.config.seatKinds[seatId] = "open";
 
   el("pause-name").textContent = t("pause.dropped",
-    { name: name || t(PLAYER_DEFS[seatId].key) });
+    { name: name || playerName(seatId) });
   el("pause-note").textContent =
     t(online.mode === "host" ? "pause.hostNote" : "pause.guestNote");
   el("pause-cpu-btn").hidden = online.mode !== "host";

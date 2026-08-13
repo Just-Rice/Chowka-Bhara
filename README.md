@@ -186,6 +186,8 @@ css/
   online.css        lobby, seats, overlays, how-to-play drawer
 js/
   i18n.js           translation tables and lookup
+  a11y.js           text size, contrast, movement, notices
+  seats.js          player names and colours
   net.js            the online protocol, transport-agnostic
   config.js         shared configuration and game state
   path.js           board geometry — the ring walk to the centre
@@ -195,7 +197,7 @@ js/
   game.js           setup, turn flow, placings
   online.js         lobby, seats, snapshots, liveness
   main.js           language switching and start-up wiring
-test/               five suites, run with ./test/run.sh
+test/               eight suites, run with ./test/run.sh
 vendor/peerjs.min.js
 ```
 
@@ -294,7 +296,8 @@ The logic is verified headlessly. The tests read the real function source out of
 | `i18n-test.js` | Every language covers every key, placeholders line up, nothing copies English, no key the game asks for is missing |
 | `contrast-test.js` | Every piece clears 4.5:1 against every ring under the scrim, sidebar text clears 7:1, nothing leaks outside `.hc` |
 | `a11y-test.js` | All four settings exist and persist, every font size is relative, reduced motion reaches the game's timings and still marks playable pieces, every label present in all four languages |
-| `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
+| `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene, and that no lobby label is written straight into the page |
+| `render-test.js` | Board drawing against a small stub document: redrawing never multiplies the pieces, a piece is drawn where it stands rather than where it began, and the seat colour rules — a taken colour trades rather than clones, a corrupt saved file is repaired |
 
 `net-test.js` runs the real sync layer over an in-memory transport, with two fake
 browsers talking to each other. **It does not and cannot test the peer connection

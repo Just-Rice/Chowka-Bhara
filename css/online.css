@@ -154,14 +154,15 @@
   .howto-btn {
     display:block;
     width:100%;
-    padding: 10px;
-    background: transparent;
-    border: 1.5px dashed var(--mat-edge);
+    padding: 11px;
+    background: rgba(255,255,255,0.34);
+    border: 1.5px solid var(--mat-edge);
     border-radius: 8px;
     font-size: 0.9rem;
+    font-weight: 600;
     color: var(--ink-text);
   }
-  .howto-btn:hover { background: rgba(255,255,255,0.25); }
+  .howto-btn:hover { background: rgba(255,255,255,0.62); }
 
   /* Shared by every drawer. This was scoped to one id, so the second drawer
      was left unpositioned and its backdrop greyed only part of the page. */

@@ -96,6 +96,16 @@ function renderBoardStructure() {
 /* ============================= SIDEBAR RENDER ============================= */
 function renderSidebar() {
   var roster = document.getElementById("roster");
+
+  /* This redraws everything, so it has to start by clearing everything.
+     Emptying the roster alone was not enough: the finished trays live inside
+     it, so the pieces sitting in them were destroyed, while the pieces out on
+     the board survived and a second full set was made beside them. Changing
+     language mid-game runs this, which is why a few visits to the settings
+     panel could leave the board carrying several sets of pieces at once. */
+  Array.prototype.forEach.call(document.querySelectorAll(".token"), function(token) {
+    if (token.parentNode) token.parentNode.removeChild(token);
+  });
   roster.innerHTML = "";
 
   state.players.forEach(function(p) {
@@ -126,10 +136,17 @@ function renderSidebar() {
       token.addEventListener("keydown", function(e){
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestMove(p.id, piece.id); }
       });
-      // Tokens start on the board, on their owner's start square.
-      var startRC = p.path[0];
-      document.getElementById("pieces-" + startRC[0] + "-" + startRC[1])
-        .appendChild(token);
+      // Placed where the piece actually is, not where it began. At the start
+      // of a game those are the same square; mid-game they are not, and
+      // assuming otherwise put every piece back on its start square.
+      var home;
+      if (piece.status === "finished") {
+        home = document.getElementById("finished-" + p.id);
+      } else {
+        var rc = p.path[piece.pathIndex] || p.path[0];
+        home = document.getElementById("pieces-" + rc[0] + "-" + rc[1]);
+      }
+      if (home) home.appendChild(token);
     });
   });
 
@@ -274,7 +291,13 @@ function renderLog() {
     var vals = {};
     Object.keys(entry.params).forEach(function(k) {
       var v = entry.params[k];
-      vals[k] = (typeof v === "string" && v.indexOf("players.") === 0) ? t(v) : v;
+      if (typeof v === "string" && v.indexOf("seat.") === 0) {
+        vals[k] = playerName(parseInt(v.slice(5), 10));
+      } else if (typeof v === "string" && v.indexOf("players.") === 0) {
+        vals[k] = t(v);
+      } else {
+        vals[k] = v;
+      }
     });
     line.textContent = t(entry.key, vals);
     log.appendChild(line);

@@ -12,7 +12,9 @@ var PLAYER_DEFS = [
 ];
 
 var t = function (k, p) { return I18N.t(k, p); };
-function playerName(id) { return t(PLAYER_DEFS[id].key); }
+// A seat's name is whatever the player chose, falling back to the name of
+// the colour they are playing. See js/seats.js.
+function playerName(id) { return SEATS.nameOf(id); }
 
 /* The two boards are played as two different games. 5x5 is the four-cowrie
    game: four pieces a side, throws of 1 to 4 and 8. 7x7 has twice the path to

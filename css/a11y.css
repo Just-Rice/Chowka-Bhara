@@ -1,22 +1,65 @@
 /* Chowka-Bhara — the accessibility panel, and what its settings do. */
 
 /* ------------------------------------------------------------ the panel */
+/* Solid and filled. A dashed outline over nothing reads as a placeholder — a
+   box waiting to be filled in — which is the opposite of what a control that
+   people need to find should look like. */
 .a11y-btn {
   display: block;
   width: 100%;
-  padding: 10px;
+  padding: 11px;
   margin-bottom: 8px;
-  background: transparent;
-  border: 1.5px dashed var(--mat-edge);
+  background: rgba(255,255,255,0.34);
+  border: 1.5px solid var(--mat-edge);
   border-radius: 8px;
   font-size: 0.9rem;
+  font-weight: 600;
   color: var(--ink-text);
 }
-.a11y-btn:hover { background: rgba(255,255,255,0.25); }
+.a11y-btn:hover { background: rgba(255,255,255,0.62); }
 
 /* Below the log on the game screen and at the foot of setup, so the settings
    are reachable from either without floating over the board. */
 .a11y-btn + .sidebar-foot { margin-top: 4px; }
+
+/* ------------------------------------------------------------- players */
+
+/* A name and four colours to a line. The swatches are the colours themselves
+   rather than labelled buttons — the board says the same thing, so a word here
+   would be a second name for something already named by sight. */
+.seat-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.seat-edit-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1.5px solid var(--mat-edge);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.45);
+  color: var(--ink-text);
+  font: inherit;
+  font-size: 0.92rem;
+}
+.seat-edit-name::placeholder { opacity: 0.5; }
+
+.seat-edit-colours { display: flex; gap: 5px; flex: 0 0 auto; }
+.swatch {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--mat-edge);
+  padding: 0;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+}
+.swatch.on {
+  border-color: var(--ink-text);
+  box-shadow: 0 0 0 2px var(--mat), 0 0 0 4px var(--ink-text);
+}
+.swatch:focus-visible { outline: 2px solid var(--ink-text); outline-offset: 3px; }
 
 .a11y-row { padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,0.12); }
 .a11y-row:last-child { border-bottom: none; }

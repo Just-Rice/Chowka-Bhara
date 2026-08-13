@@ -102,6 +102,8 @@
 
 /* --------------------------------------------------------------- controls */
 .hc .segmented label { border-width: 2px; font-weight: 600; }
+.hc .seat-edit-name { border-width: 2px; background: rgba(255,255,255,0.7); }
+.hc .swatch { border-width: 3px; }
 
 /* Dimming is how an unavailable option reads, but 0.38 is below what this mode
    exists to guarantee. Here it leans on the dashed border and a lighter fade. */

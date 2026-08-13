@@ -107,10 +107,13 @@ check('language labels are in their own script',
 /* ----------------------------------- the game asks for keys that exist --- */
 
 /* Keys appear as t("...") in the modules and as data-i18n in the markup. */
-var SRC = read('index.html') + '\n' + ['config','path','rules','ai','render','game','online','main']
+var SRC = read('index.html') + '\n' +
+  ['config','path','rules','ai','render','game','online','main','seats','a11y']
   .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
 var used = {};
-var re = /\bt\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"/g, m;
+/* Modules reach the table either through the t() shorthand or through I18N.t,
+   and a key asked for by only one of those still has to exist. */
+var re = /\b(?:I18N\.)?t\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"/g, m;
 while ((m = re.exec(SRC))) used[m[1]] = true;
 /* data-i18n attributes count too. */
 var re2 = /data-i18n(?:-html)?="([^"]+)"/g;

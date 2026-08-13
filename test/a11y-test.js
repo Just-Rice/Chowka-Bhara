@@ -146,6 +146,32 @@ check('and it sits directly below the log',
 check('the setup screen keeps its own',
       page.indexOf('id="a11y-btn-setup"') >= 0);
 
+/* The panel's own button used to be a dashed outline over nothing, which reads
+   as a placeholder rather than a control — the opposite of what something
+   people need to find should look like. */
+['a11y-btn', 'howto-btn'].forEach(function (name) {
+  var rule = new RegExp('\\.' + name + '\\s*\\{[^}]*\\}');
+  var block = (rule.exec(css) || rule.exec(read('css/online.css')) || [''])[0];
+  check(name + ' is drawn solid, not dashed', block.indexOf('dashed') < 0, block.slice(0, 90));
+  check(name + ' has a fill of its own', /background:\s*rgba/.test(block), block.slice(0, 90));
+});
+
+/* The panel is called Settings now — "accessibility" is a long word in every
+   language here and a narrow one in meaning, since language and player names
+   live in the same panel. */
+check('the panel is not called accessibility any more',
+      i18n.indexOf('"a11y.title": "Accessibility"') < 0);
+['seats.title', 'seats.hint', 'seats.nameFor', 'seats.colourFor'].forEach(function (k) {
+  check('every language has ' + k,
+        (i18n.match(new RegExp('"' + k.replace('.', '\\.') + '"', 'g')) || []).length === 4);
+});
+
+/* Two players in one colour would make the board unreadable, so a colour is
+   traded rather than copied. */
+var seats = read('js/seats.js');
+check('choosing a taken colour trades for it', /row\.colour = mine/.test(seats));
+check('and a saved file that collides is repaired', /spare\.shift\(\)/.test(seats));
+
 var assets = page.match(/(?:src|href)="(?:js|css|img)\/[^"]+"/g) || [];
 var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });
 check('every asset is version-stamped, so markup and scripts cannot mismatch',
