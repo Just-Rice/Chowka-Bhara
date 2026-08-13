@@ -619,14 +619,18 @@
    * cross-network play starts working; leave them blank and the game runs on
    * STUN alone, exactly as it does now.
    *
-   *   app  the subdomain, from "yourname.metered.live"
-   *   key  the API key on the same page
+   *   app  the subdomain, from "yourname.metered.live" — already filled in
+   *   key  the API key from the dashboard, still needed
+   *
+   * Verified against the live endpoint: with no key it answers 400 "Please
+   * specify API Key", and with a wrong one 401 "Invalid API Key", so the path
+   * and the parameter name below are right and the key is all that is missing.
    *
    * Both end up in a public file. That is how any browser-side relay works —
    * the credentials have to reach the browser — and it is why the key is worth
    * rotating if the free quota ever starts disappearing.
    */
-  var RELAY = { app: "", key: "" };
+  var RELAY = { app: "chowka-bhara", key: "" };   // <- paste the API key here
 
   var STUN = [
     { urls: [
