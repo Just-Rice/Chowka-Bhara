@@ -285,7 +285,9 @@ function animateShells(result) {
 }
 
 function animateHop(playerPath, token, fromIdx, toIdx) {
-  var delay = state.reducedMotion ? 0 : 120;
+  // Per square. 120ms read as a piece being flicked rather than moved; this is
+  // slow enough to follow a count of eight without being a wait.
+  var delay = state.reducedMotion ? 0 : 160;
   var i = fromIdx + 1;
   function step() {
     if (i > toIdx) return Promise.resolve();
