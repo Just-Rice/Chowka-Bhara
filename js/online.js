@@ -235,7 +235,10 @@ function readSetup() {
     N: parseInt(document.querySelector('input[name="board-size"]:checked').value, 10),
     numPlayers: parseInt(document.querySelector('input[name="num-players"]:checked').value, 10),
     numCPU: parseInt(document.querySelector('input[name="num-cpu"]:checked').value, 10),
-    cpuSkill: document.querySelector('input[name="cpu-skill"]:checked').value
+    // Each playing tab has its own skill control, so read the one on show.
+    cpuSkill: document.querySelector(
+      currentMode() === "host" ? 'input[name="host-skill"]:checked'
+                               : 'input[name="cpu-skill"]:checked').value
   };
 }
 

@@ -39,15 +39,6 @@
   color: var(--khaki-text);
 }
 
-/* Sample text, so the size choice can be judged rather than guessed at. */
-.a11y-sample {
-  margin-top: 18px;
-  padding: 14px 16px;
-  border: 1px dashed var(--mat-edge);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
 
 /* ---------------------------------------------------------- less motion */
 
@@ -82,3 +73,11 @@
   html[style*="132%"] #game-screen .mat-panel { grid-template-columns: minmax(0,1fr) 340px; }
   html[style*="115%"] #game-screen .mat-panel { grid-template-columns: minmax(0,1fr) 320px; }
 }
+
+/* The size options are drawn at the size they select. The ratios match the
+   scales in a11y.js, so the buttons are a true preview rather than a caption
+   about one. */
+.a11y-size-normal  { font-size: 0.9rem; }
+.a11y-size-large   { font-size: 1.04rem; }
+.a11y-size-largest { font-size: 1.19rem; }
+.a11y-options:has(.a11y-size-normal) { align-items: center; }

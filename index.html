@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Chowka-Bhara</title>
-<link rel="stylesheet" href="css/tokens.css?v=1.5.2">
-<link rel="stylesheet" href="css/layout.css?v=1.5.2">
-<link rel="stylesheet" href="css/screens.css?v=1.5.2">
-<link rel="stylesheet" href="css/board.css?v=1.5.2">
-<link rel="stylesheet" href="css/sidebar.css?v=1.5.2">
-<link rel="stylesheet" href="css/online.css?v=1.5.2">
-<link rel="stylesheet" href="css/contrast.css?v=1.5.2">
-<link rel="stylesheet" href="css/a11y.css?v=1.5.2">
+<link rel="stylesheet" href="css/tokens.css?v=1.6.0">
+<link rel="stylesheet" href="css/layout.css?v=1.6.0">
+<link rel="stylesheet" href="css/screens.css?v=1.6.0">
+<link rel="stylesheet" href="css/board.css?v=1.6.0">
+<link rel="stylesheet" href="css/sidebar.css?v=1.6.0">
+<link rel="stylesheet" href="css/online.css?v=1.6.0">
+<link rel="stylesheet" href="css/contrast.css?v=1.6.0">
+<link rel="stylesheet" href="css/a11y.css?v=1.6.0">
 </head>
 <body>
 <div id="app">
@@ -25,85 +25,104 @@
   <div id="setup-screen">
     <div class="mat-panel">
 
-      <div class="setup-section">
-        <span class="setup-label" data-i18n="setup.play"></span>
-        <div class="segmented" id="mode-group">
-          <input type="radio" name="play-mode" id="mode-local" value="local" checked>
-          <label for="mode-local"><span data-i18n="setup.local"></span><span class="sub" data-i18n="setup.localSub"></span></label>
-          <input type="radio" name="play-mode" id="mode-host" value="host">
-          <label for="mode-host"><span data-i18n="setup.host"></span><span class="sub" data-i18n="setup.hostSub"></span></label>
-          <input type="radio" name="play-mode" id="mode-join" value="join">
-          <label for="mode-join"><span data-i18n="setup.join"></span><span class="sub" data-i18n="setup.joinSub"></span></label>
+      <div class="setup-tabs" role="tablist">
+        <button class="setup-tab on" id="tab-local" role="tab" aria-selected="true"
+                data-i18n="tab.local"></button>
+        <button class="setup-tab" id="tab-host" role="tab" aria-selected="false"
+                data-i18n="tab.host"></button>
+        <button class="setup-tab" id="tab-join" role="tab" aria-selected="false"
+                data-i18n="tab.join"></button>
+      </div>
+
+      <!-- Board and player count belong to both playing tabs. Rather than two
+           copies that can disagree, the one block is moved into whichever tab
+           is showing, which keeps its state for free. -->
+      <div id="game-settings">
+        <div class="setup-section">
+          <span class="setup-label" data-i18n="setup.board"></span>
+          <div class="segmented" id="board-size-group">
+            <input type="radio" name="board-size" id="size-5" value="5" checked>
+            <label for="size-5">5 &times; 5<span class="sub" data-spaces="25"></span></label>
+            <input type="radio" name="board-size" id="size-7" value="7">
+            <label for="size-7">7 &times; 7<span class="sub" data-spaces="49"></span></label>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <span class="setup-label" data-i18n="setup.players"></span>
+          <div class="segmented" id="num-players-group">
+            <input type="radio" name="num-players" id="np-2" value="2" checked>
+            <label for="np-2">2</label>
+            <input type="radio" name="num-players" id="np-3" value="3">
+            <label for="np-3">3</label>
+            <input type="radio" name="num-players" id="np-4" value="4">
+            <label for="np-4">4</label>
+          </div>
         </div>
       </div>
 
-      <div class="setup-section">
-        <button class="a11y-btn" id="a11y-btn-setup" data-i18n="a11y.title"></button>
-      </div>
+      <!-- ---------------------------------------------------- on this device -->
+      <div class="setup-panel" id="panel-local" role="tabpanel">
+        <div class="panel-slot"></div>
 
-      <div class="setup-section">
-        <span class="setup-label" data-i18n="setup.language"></span>
-        <div class="segmented" id="lang-group"></div>
-      </div>
-
-      <div class="setup-section" id="join-section" hidden>
-        <span class="setup-label" data-i18n="setup.roomCode"></span>
-        <input id="join-code" class="code-input" maxlength="9" placeholder="BCDFH"
-               autocomplete="off" autocapitalize="characters" spellcheck="false">
-      </div>
-
-      <div id="local-options">
-      <div class="setup-section">
-        <span class="setup-label" data-i18n="setup.board"></span>
-        <div class="segmented" id="board-size-group">
-          <input type="radio" name="board-size" id="size-5" value="5" checked>
-          <label for="size-5">5 &times; 5<span class="sub" data-spaces="25"></span></label>
-          <input type="radio" name="board-size" id="size-7" value="7">
-          <label for="size-7">7 &times; 7<span class="sub" data-spaces="49"></span></label>
+        <div class="setup-section">
+          <span class="setup-label" data-i18n="setup.cpuPlayers"></span>
+          <div class="segmented" id="num-cpu-group">
+            <input type="radio" name="num-cpu" id="cpu-0" value="0" checked>
+            <label for="cpu-0"><span data-i18n="setup.none"></span><span class="sub" data-i18n="setup.allHuman"></span></label>
+            <input type="radio" name="num-cpu" id="cpu-1" value="1">
+            <label for="cpu-1">1</label>
+            <input type="radio" name="num-cpu" id="cpu-2" value="2">
+            <label for="cpu-2">2</label>
+            <input type="radio" name="num-cpu" id="cpu-3" value="3">
+            <label for="cpu-3">3</label>
+          </div>
         </div>
-      </div>
 
-      <div class="setup-section">
-        <span class="setup-label" data-i18n="setup.players"></span>
-        <div class="segmented" id="num-players-group">
-          <input type="radio" name="num-players" id="np-2" value="2" checked>
-          <label for="np-2">2</label>
-          <input type="radio" name="num-players" id="np-3" value="3">
-          <label for="np-3">3</label>
-          <input type="radio" name="num-players" id="np-4" value="4">
-          <label for="np-4">4</label>
+        <div class="setup-section" id="cpu-skill-section">
+          <span class="setup-label" data-i18n="setup.cpuSkill"></span>
+          <div class="segmented" id="cpu-skill-group">
+            <input type="radio" name="cpu-skill" id="skill-easy" value="easy">
+            <label for="skill-easy"><span data-i18n="setup.easy"></span><span class="sub" data-i18n="setup.easySub"></span></label>
+            <input type="radio" name="cpu-skill" id="skill-sharp" value="sharp" checked>
+            <label for="skill-sharp"><span data-i18n="setup.sharp"></span><span class="sub" data-i18n="setup.sharpSub"></span></label>
+          </div>
         </div>
+
+        <button class="begin-btn" id="begin-btn" data-i18n="setup.begin"></button>
       </div>
 
-      <div class="setup-section">
-        <span class="setup-label" data-i18n="setup.cpuPlayers"></span>
-        <div class="segmented" id="num-cpu-group">
-          <input type="radio" name="num-cpu" id="cpu-0" value="0" checked>
-          <label for="cpu-0"><span data-i18n="setup.none"></span><span class="sub" data-i18n="setup.allHuman"></span></label>
-          <input type="radio" name="num-cpu" id="cpu-1" value="1">
-          <label for="cpu-1">1</label>
-          <input type="radio" name="num-cpu" id="cpu-2" value="2">
-          <label for="cpu-2">2</label>
-          <input type="radio" name="num-cpu" id="cpu-3" value="3">
-          <label for="cpu-3">3</label>
+      <!-- --------------------------------------------------------- host online -->
+      <div class="setup-panel" id="panel-host" role="tabpanel" hidden>
+        <div class="panel-slot"></div>
+
+        <div class="setup-section">
+          <span class="setup-label" data-i18n="setup.cpuSkill"></span>
+          <div class="segmented" id="host-skill-group">
+            <input type="radio" name="host-skill" id="host-skill-easy" value="easy">
+            <label for="host-skill-easy"><span data-i18n="setup.easy"></span><span class="sub" data-i18n="setup.easySub"></span></label>
+            <input type="radio" name="host-skill" id="host-skill-sharp" value="sharp" checked>
+            <label for="host-skill-sharp"><span data-i18n="setup.sharp"></span><span class="sub" data-i18n="setup.sharpSub"></span></label>
+          </div>
         </div>
+
+        <p class="setup-note" data-i18n="setup.hostNote"></p>
+        <button class="begin-btn" id="host-btn" data-i18n="setup.openRoom"></button>
       </div>
 
-      <div class="setup-section" id="cpu-skill-section">
-        <span class="setup-label" data-i18n="setup.cpuSkill"></span>
-        <div class="segmented" id="cpu-skill-group">
-          <input type="radio" name="cpu-skill" id="skill-easy" value="easy">
-          <label for="skill-easy"><span data-i18n="setup.easy"></span><span class="sub" data-i18n="setup.easySub"></span></label>
-          <input type="radio" name="cpu-skill" id="skill-sharp" value="sharp" checked>
-          <label for="skill-sharp"><span data-i18n="setup.sharp"></span><span class="sub" data-i18n="setup.sharpSub"></span></label>
+      <!-- --------------------------------------------------------- join online -->
+      <div class="setup-panel" id="panel-join" role="tabpanel" hidden>
+        <div class="setup-section">
+          <span class="setup-label" data-i18n="setup.roomCode"></span>
+          <input id="join-code" class="code-input" maxlength="9" placeholder="BCDFH"
+                 autocomplete="off" autocapitalize="characters" spellcheck="false">
         </div>
+
+        <p class="setup-note" data-i18n="setup.joinNote"></p>
+        <button class="begin-btn" id="join-btn" data-i18n="setup.joinRoom"></button>
       </div>
 
-      </div><!-- /local-options -->
-
-      <div class="rules-preview" data-i18n-html="setup.rules"></div>
-
-      <button class="begin-btn" id="begin-btn" data-i18n="setup.begin"></button>
+      <button class="a11y-btn" id="a11y-btn-setup" data-i18n="a11y.title"></button>
     </div>
   </div>
 
@@ -178,24 +197,29 @@
 
 <div id="notice" class="notice" hidden></div>
 
-<div id="a11y-drawer" class="hidden">
-  <div class="howto-backdrop" id="a11y-backdrop"></div>
-  <aside class="howto-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-heading">
-    <div class="howto-head">
+<div id="a11y-drawer" class="drawer hidden">
+  <div class="drawer-backdrop" id="a11y-backdrop"></div>
+  <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-heading">
+    <div class="drawer-head">
       <h2 id="a11y-heading" data-i18n="a11y.title"></h2>
-      <button class="howto-close" id="a11y-close" aria-label="Close">&times;</button>
+      <button class="drawer-close" id="a11y-close" aria-label="Close">&times;</button>
     </div>
     <div id="a11y-rows"></div>
-    <p class="a11y-sample" data-i18n="a11y.sample"></p>
+
+    <div class="a11y-row">
+      <div class="a11y-head"><span class="a11y-label" data-i18n="setup.language"></span></div>
+      <p class="a11y-hint" data-i18n="a11y.languageHint"></p>
+      <div class="segmented" id="lang-group"></div>
+    </div>
   </aside>
 </div>
 
-<div id="howto-drawer" class="hidden">
-  <div class="howto-backdrop" id="howto-backdrop"></div>
-  <aside class="howto-panel" role="dialog" aria-modal="true" aria-labelledby="howto-heading">
-    <div class="howto-head">
+<div id="howto-drawer" class="drawer hidden">
+  <div class="drawer-backdrop" id="howto-backdrop"></div>
+  <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="howto-heading">
+    <div class="drawer-head">
       <h2 id="howto-heading" data-i18n="howto.title"></h2>
-      <button class="howto-close" id="howto-close" aria-label="Close">&times;</button>
+      <button class="drawer-close" id="howto-close" aria-label="Close">&times;</button>
     </div>
     <ul id="howto-list"></ul>
   </aside>
@@ -225,16 +249,16 @@
   </div>
 </div>
 
-<script src="js/i18n.js?v=1.5.2"></script>
-<script src="js/a11y.js?v=1.5.2"></script>
-<script src="js/net.js?v=1.5.2"></script>
-<script src="js/config.js?v=1.5.2"></script>
-<script src="js/path.js?v=1.5.2"></script>
-<script src="js/rules.js?v=1.5.2"></script>
-<script src="js/ai.js?v=1.5.2"></script>
-<script src="js/render.js?v=1.5.2"></script>
-<script src="js/game.js?v=1.5.2"></script>
-<script src="js/online.js?v=1.5.2"></script>
-<script src="js/main.js?v=1.5.2"></script>
+<script src="js/i18n.js?v=1.6.0"></script>
+<script src="js/a11y.js?v=1.6.0"></script>
+<script src="js/net.js?v=1.6.0"></script>
+<script src="js/config.js?v=1.6.0"></script>
+<script src="js/path.js?v=1.6.0"></script>
+<script src="js/rules.js?v=1.6.0"></script>
+<script src="js/ai.js?v=1.6.0"></script>
+<script src="js/render.js?v=1.6.0"></script>
+<script src="js/game.js?v=1.6.0"></script>
+<script src="js/online.js?v=1.6.0"></script>
+<script src="js/main.js?v=1.6.0"></script>
 </body>
 </html>

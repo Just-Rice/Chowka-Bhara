@@ -184,10 +184,20 @@ Stylesheets load in cascade order; scripts load in dependency order with
 are plain scripts rather than ES modules on purpose: the game still opens by
 double-clicking `index.html`, with no server and no build step.
 
+## Setting up a game
+
+Three tabs: **On this device**, **Host online**, **Join online**. Each shows only
+what it needs, and each has its own start button rather than one that changes
+label depending on hidden state.
+
+Board size and player count belong to both playing tabs. Rather than two copies
+that can quietly disagree, the single block of controls is moved into whichever
+tab is showing, which preserves its state for nothing.
+
 ## Accessibility
 
-An **Accessibility** panel, reachable from the setup screen and from the sidebar
-mid-game — because discovering you need one of these usually happens while you
+An **Accessibility** panel — a drawer that covers the screen until it is
+closed — reachable from the setup screen and from the sidebar mid-game — because discovering you need one of these usually happens while you
 are playing. Everything is remembered per browser, and anything the operating
 system already asks for is honoured as the default.
 
@@ -197,6 +207,10 @@ system already asks for is honoured as the default.
 | **Contrast** | Darkens the board so the pieces stand off it |
 | **Movement** | Stops the tumbling cowries and sliding pieces. This reaches the game's own animation timings, not only the CSS |
 | **Messages** | Whether passing notices clear themselves after five seconds or wait to be dismissed |
+| **Language** | English, ಕನ್ನಡ, हिन्दी, Español — it belongs with the other display settings |
+
+Each text-size option is drawn at the size it selects, so the choice shows itself
+rather than being described.
 
 High contrast keeps the artwork rather than replacing it. A translucent scrim
 sits over each square, between the painted texture and the pieces — the board

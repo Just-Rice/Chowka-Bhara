@@ -30,6 +30,7 @@ function setLanguage(code) {
   I18N.apply();
   buildHowTo();
   A11Y.build();
+  buildLangPicker();
   renderSpaceLabels();
   renderLog();
   if (state) {
@@ -39,7 +40,7 @@ function setLanguage(code) {
     updateUI();
   }
   if (online.host) renderSeatList(online.host.seats());
-  syncModeUI();
+  selectTab(setupTab);
 }
 
 // The board-size labels count squares, which differs per board.
@@ -81,7 +82,10 @@ function on(id, event, fn) {
   else if (window.console) console.warn("[chowka] no element #" + id);
 }
 
-function openA11y() { A11Y.open(); }
+function openA11y() {
+  A11Y.open();
+  buildLangPicker();          // it lives inside the panel now
+}
 on("a11y-btn", "click", openA11y);
 on("a11y-btn-setup", "click", openA11y);
 on("a11y-close", "click", function() { A11Y.close(); });
@@ -107,45 +111,52 @@ document.addEventListener("keydown", function(e) {
   A11Y.close();
 });
 
-function currentMode() {
-  return document.querySelector('input[name="play-mode"]:checked').value;
+/* One tab is showing at a time; that is the mode. */
+var setupTab = "local";
+function currentMode() { return setupTab; }
+
+/* Board size and player count belong to both playing tabs. Rather than two
+   copies that can quietly disagree, the single block is moved into whichever
+   tab is showing, which keeps its state for nothing. */
+function selectTab(which) {
+  setupTab = which;
+
+  ["local", "host", "join"].forEach(function(name) {
+    var tab = el("tab-" + name), panel = el("panel-" + name);
+    if (tab) {
+      tab.classList.toggle("on", name === which);
+      tab.setAttribute("aria-selected", String(name === which));
+    }
+    if (panel) panel.hidden = name !== which;
+  });
+
+  var settings = el("game-settings");
+  var slot = document.querySelector("#panel-" + which + " .panel-slot");
+  if (settings && slot) slot.appendChild(settings);
+
+  syncCPUOptions();
 }
 
-// Joining takes all its settings from the host, so the local options are
-// hidden rather than shown and ignored.
-function syncModeUI() {
-  var mode = currentMode();
-  el("join-section").hidden = mode !== "join";
-  el("local-options").hidden = mode === "join";
-  el("begin-btn").textContent =
-    t(mode === "host" ? "setup.openRoom" : mode === "join" ? "setup.joinRoom" : "setup.begin");
-}
-Array.prototype.forEach.call(
-  document.querySelectorAll('input[name="play-mode"]'),
-  function(elm) { elm.addEventListener("change", syncModeUI); }
-);
-syncModeUI();
+["local", "host", "join"].forEach(function(name) {
+  on("tab-" + name, "click", function() { selectTab(name); });
+});
 
 on("join-code", "input", function() {
   var input = el("join-code");
   input.value = ChowkaNet.normaliseRoomCode(input.value);
 });
 
-document.getElementById("begin-btn").addEventListener("click", function(){
-  var mode = currentMode();
-
-  if (mode === "host") return startHosting();
-  if (mode === "join") {
-    var code = ChowkaNet.normaliseRoomCode(el("join-code").value);
-    if (code.length < 4) {
-      el("join-code").focus();
-      return;
-    }
-    return startJoining(code);
-  }
-
+on("begin-btn", "click", function() {
   var cfg = readSetup();
   initGame(cfg.N, cfg.numPlayers, cfg.numCPU, cfg.cpuSkill);
+});
+
+on("host-btn", "click", function() { startHosting(); });
+
+on("join-btn", "click", function() {
+  var code = ChowkaNet.normaliseRoomCode(el("join-code").value);
+  if (code.length < 4) return el("join-code").focus();
+  startJoining(code);
 });
 
 on("start-online-btn", "click", function() {

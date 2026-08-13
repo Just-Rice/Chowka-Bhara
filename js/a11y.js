@@ -130,6 +130,9 @@ var A11Y = {
         b.className = "a11y-opt";
         b.setAttribute("data-value", opt[0]);
         b.textContent = I18N.t(opt[1]);
+        // Each size option is drawn at the size it selects, so the choice shows
+        // itself rather than being described.
+        if (row.key === "text") b.classList.add("a11y-size-" + opt[0]);
         b.addEventListener("click", function () { A11Y.set(row.key, opt[0]); });
         group.appendChild(b);
       });
