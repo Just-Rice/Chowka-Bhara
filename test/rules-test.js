@@ -26,10 +26,10 @@ eval(NAMES.map(grab).join('\n'));
 /* The piece count, the cowrie count and the throw table are now board-
    dependent, so take the real ones rather than a stub that can drift. */
 eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
-      'buildSafeCells']
+      'buildSafeCells', 'seatCount']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
-var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
+var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
 var state = null;
 
 var fails = [];
@@ -305,6 +305,30 @@ check('exact roll finishes', m.length === 1 && m[0].type === 'finish', JSON.stri
 /* Finished pieces never generate moves. */
 m = computeLegalMoves(P, 2).filter(function (x) { return x.pieceId === 2 || x.pieceId === 3; });
 check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
+
+/* ------------------------------------------------------- seating ------- */
+
+/* Two or four. Three seats players on three consecutive sides, which is not the
+   same game for all three of them, so it is not offered. */
+check('only two- and four-player tables exist',
+      Object.keys(SLOT_SETS).sort().join() === '2,4', Object.keys(SLOT_SETS).join());
+check('two players sit opposite each other',
+      SLOT_SETS[2].join() === '0,2', SLOT_SETS[2].join());
+check('four use every side', SLOT_SETS[4].join() === '0,1,2,3', SLOT_SETS[4].join());
+
+/* Nothing that arrives from outside — an old snapshot, a stale link — may leave
+   the game holding a seating it has no table for. */
+check('a stray count is rounded to a real table',
+      seatCount(3) === 4 && seatCount(2) === 2 && seatCount(4) === 4 &&
+      seatCount(0) === 2 && seatCount(9) === 4,
+      [0, 2, 3, 4, 9].map(seatCount).join(' '));
+
+/* And the setup screen must not offer what the game will not deal. */
+var markup = read('index.html');
+check('the setup screen offers two and four only',
+      (markup.match(/name="num-players"/g) || []).length === 2,
+      (markup.match(/name="num-players"/g) || []).length + ' options');
+check('and three is not among them', markup.indexOf('id="np-3"') < 0);
 
 /* ---------------------------------------------------- safe squares ----- */
 

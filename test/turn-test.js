@@ -41,7 +41,7 @@ eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
       'buildSafeCells']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
-var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
+var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
 var state = null;
 
 var fails = [];
@@ -278,8 +278,8 @@ state.tieVotes = [0, 1];
 check('two of two carries', state.tieVotes.length >= tieThreshold());
 
 /* Three players: two is a majority — your example. */
-seatsOf(3, ['local', 'remote', 'remote']);
-check('three players need two votes', tieThreshold() === 2, String(tieThreshold()));
+seatsOf(4, ['local', 'remote', 'remote', 'cpu']);
+check('three voters need two', tieThreshold() === 2, String(tieThreshold()));
 state.tieVotes = [0];
 check('one of three is not enough', state.tieVotes.length < tieThreshold());
 state.tieVotes = [0, 1];
@@ -302,14 +302,19 @@ check('computer seats are not counted as voters',
 check('so two humans among four seats need both',
       tieThreshold() === 2, String(tieThreshold()));
 
-/* Nor does a player who has already finished. */
-seatsOf(3, ['local', 'remote', 'remote']);
+/* Nor does a player who has already finished. Three voters is still a real
+   position — four seats with one of them a computer — even though three
+   players is not a table the game deals. */
+seatsOf(4, ['local', 'remote', 'remote', 'cpu']);
+check('three humans among four seats need two',
+      tieVoters().length === 3 && tieThreshold() === 2,
+      tieVoters().length + ' voters, threshold ' + tieThreshold());
 state.players[2].pieces.forEach(function (pc) { pc.status = 'finished'; });
 check('a player already home no longer votes',
       tieVoters().length === 2, tieVoters().length + ' voters');
 
 /* Votes are tracked per player. */
-seatsOf(3, ['local', 'remote', 'remote']);
+seatsOf(4, ['local', 'remote', 'remote', 'cpu']);
 state.tieVotes = [1];
 check('a vote is remembered against its player', hasVotedForTie(1) === true);
 check('and nobody else is counted as having voted',

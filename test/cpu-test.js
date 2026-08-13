@@ -32,7 +32,7 @@ eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
       'buildSafeCells']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
-var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
+var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
 var state = null;
 
 var fails = [];
@@ -223,7 +223,7 @@ function randomPosition(N, numPlayers, skill) {
 
 var iterations = 0, returnedOutside = 0, threw = 0, nullPick = 0;
 [5, 7].forEach(function (N) {
-  [2, 3, 4].forEach(function (np) {
+  [2, 4].forEach(function (np) {
     ['easy', 'sharp'].forEach(function (skill) {
       for (var t = 0; t < 800; t++) {
         state = randomPosition(N, np, skill);
@@ -269,7 +269,7 @@ check('fuzz: always returns a move', nullPick === 0, nullPick + ' nulls');
 check('fuzz: only ever returns a legal move', returnedOutside === 0,
       returnedOutside + ' outside the legal set');
 
-print('fuzzed ' + iterations + ' positions across 5x5/7x7, 2-4 players, both skills');
+print('fuzzed ' + iterations + ' positions across 5x5/7x7, 2 and 4 players, both skills');
 print('');
 if (!fails.length) {
   print('✅ all CPU checks passed');

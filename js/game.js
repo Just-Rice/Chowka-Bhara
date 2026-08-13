@@ -4,7 +4,16 @@
 /* ============================= GAME INIT ============================= */
 // Which of the 4 edge-slots (0=top,1=right,2=bottom,3=left) are used for a
 // given player count. 2 players sit opposite each other; 4 use every edge.
-var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
+//
+// Three is not offered. It seats players on three consecutive sides, which
+// leaves one player with an opponent on either flank and one with a free side —
+// the game is not the same for all three, and it plays worse for it.
+var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
+
+// Anything that is not a table we deal is rounded up to the nearest one, so a
+// stray count from an old link or a stale snapshot cannot leave initGame
+// holding an undefined seating.
+function seatCount(n) { return n >= 3 ? 4 : 2; }
 
 /* Where a piece cannot be captured. Two kinds, and both are marked whatever the
    player count, the way a physical board would show them:
@@ -34,6 +43,7 @@ function buildSafeCells(N, allSlotPaths) {
 }
 
 function initGame(N, numPlayers, numCPU, cpuSkill) {
+  numPlayers = seatCount(numPlayers);
   // Computers take the last seats, so a lone human is always the first to move.
   numCPU = Math.max(0, Math.min(numCPU || 0, numPlayers));
   var firstCPU = numPlayers - numCPU;

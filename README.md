@@ -12,12 +12,14 @@ open index.html
 **Board & setup**
 
 - 5×5 or 7×7 grid, concentric square rings from the outside in to a centre "home"
-- 2–4 players. The board decides the rest: **5×5 is the four-cowrie game**, four
+- 2 or 4 players. The board decides the rest: **5×5 is the four-cowrie game**, four
   pieces a side; **7×7 is played with six cowries and six pieces a side**. The
   larger board is twice the walk, so bigger throws and more to move keep it to a
   comparable length of game rather than twice the length
-- Each player enters at the middle of their own side. 2 players sit opposite each
-  other; 3 use three consecutive sides; 4 use all four
+- Each player enters at the middle of their own side. 2 sit opposite each other;
+  4 use all four. **Three is not offered**: it seats players on three consecutive
+  sides, which leaves one with an opponent on either flank and one with a free
+  side — not the same game for all three of them
 - Each lap finishes back on your own side of the board before turning inward,
   onto a corner of the next ring in. On the 5×5 that comes out as alternating
   directions ring by ring; on the 7×7 the two inner rings run the same way
@@ -95,6 +97,7 @@ nearest you. Everyone sees their own colour at the bottom.
   again the moment a piece moves
 - Online, a tie is **agreed rather than declared**, as at a chess board. Asking
   puts it to the others: two of two, two of three, or three of four carries it.
+  Three voters is reachable at a four-player table where one seat is a computer.
   Everyone else gets a notice saying who asked and where the vote stands, and
   pressing again withdraws your own. Computer players and anyone already home
   get no say. Playing on this device alone there is nobody to ask, so it simply
