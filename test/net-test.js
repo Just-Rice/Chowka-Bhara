@@ -612,6 +612,26 @@ check('and the lobby renders them through the translations',
 check('switching language redraws the log too',
       /renderDiag\(\)/.test(onlineSrc.slice(onlineSrc.indexOf('function refreshLobbyText'))));
 
+/* The relays that used to be listed here are gone — two no longer resolve in
+   DNS and the third answers on no port. A dead relay is worse than none: the
+   browser waits on it while gathering and produces nothing. */
+var ice = Net.ICE;
+var urls = JSON.stringify(ice.iceServers);
+['peerjs.com', 'openrelay'].forEach(function (dead) {
+  check('the dead relay ' + dead + ' is not still listed', urls.indexOf(dead) < 0);
+});
+check('several STUN servers are offered', (urls.match(/stun:/g) || []).length >= 3,
+      String((urls.match(/stun:/g) || []).length));
+check('every entry has somewhere to point',
+      ice.iceServers.every(function (e) { return !!e.urls; }));
+check('and any relay carries credentials',
+      ice.iceServers.every(function (e) {
+        var isTurn = JSON.stringify(e.urls).indexOf('turn:') >= 0;
+        return !isTurn || (e.username && e.credential);
+      }));
+check('the relay list is left where it can be filled in',
+      /var TURN = \[/.test(read('js/net.js')));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

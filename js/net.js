@@ -465,9 +465,37 @@
     // what it is doing rather than leaving a blank screen.
     var diag = opts.onDiag || function () {};
 
+    /* Which kinds of route the browser managed to find. This is the question a
+       failed connection actually turns on: "host" and "srflx" mean the two are
+       trying to reach each other directly, and if that is all there is, a
+       network that refuses direct contact has nothing left to fall back to.
+       "relay" means a TURN server answered and the connection will hold up
+       almost anywhere. Saying so beats watching "checking" turn into
+       "disconnected" with no explanation. */
+    function watchRoutes(conn, tries) {
+      var pc = conn.peerConnection;
+      if (!pc) {
+        if (tries > 0) setTimeout(function () { watchRoutes(conn, tries - 1); }, 250);
+        return;
+      }
+      var kinds = {};
+      pc.addEventListener("icecandidate", function (e) {
+        if (e.candidate && e.candidate.candidate) {
+          var m = /\btyp (\w+)/.exec(e.candidate.candidate);
+          if (m) kinds[m[1]] = true;
+          return;
+        }
+        // A null candidate means gathering has finished.
+        var found = Object.keys(kinds);
+        diag("diag.routes", { kinds: found.join(", ") || "none" });
+        if (found.indexOf("relay") < 0) diag("diag.noRelay");
+      });
+    }
+
     function wire(conn) {
       conns[conn.peer] = conn;
       diag("diag.negotiating", { peer: conn.peer.slice(-6) });
+      watchRoutes(conn, 12);
 
       conn.on("data", function (data) {
         handlers.message.forEach(function (fn) { fn(conn.peer, data); });
@@ -565,20 +593,38 @@
       .replace(/O/g, "0").replace(/I/g, "1").replace(/L/g, "1");
   }
 
-  /* PeerJS ships STUN plus its own free TURN relays. STUN alone fails whenever
-   * both players are behind a NAT that will not hole-punch — mobile carriers
-   * especially — so extra public relays are listed here as fallbacks. A relay
-   * costs latency but is the difference between playing and not. */
+  /* How the two browsers try to find each other.
+   *
+   * STUN only tells each side what its own public address looks like; the two
+   * then try to punch a hole to each other directly. That works on most home
+   * networks and fails on a good many others — mobile carriers, and any network
+   * with client isolation, where two devices on the same Wi-Fi are deliberately
+   * kept from talking.
+   *
+   * A TURN relay is the fallback for those, and there is none here. The three
+   * that used to be listed are gone: eu-0.turn.peerjs.com and
+   * us-0.turn.peerjs.com no longer resolve in DNS at all, and
+   * openrelay.metered.ca answers on no port. A dead relay is worse than no
+   * relay — the browser waits on it during gathering and produces nothing — so
+   * they are removed rather than left in as decoration.
+   *
+   * Add one below and cross-network play becomes reliable. Every provider hands
+   * out the same three fields.
+   */
+  var TURN = [
+    // { urls: "turn:<host>:3478", username: "<user>", credential: "<secret>" },
+    // { urls: "turn:<host>:443?transport=tcp", username: "<user>", credential: "<secret>" }
+  ];
+
   var ICE = {
     iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-      { urls: "turn:eu-0.turn.peerjs.com:3478", username: "peerjs", credential: "peerjsp" },
-      { urls: "turn:us-0.turn.peerjs.com:3478", username: "peerjs", credential: "peerjsp" },
-      { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-      { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-      { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
-    ]
+      { urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302",
+        "stun:stun.cloudflare.com:3478",
+        "stun:global.stun.twilio.com:3478"
+      ] }
+    ].concat(TURN)
   };
 
   root.ChowkaNet = {

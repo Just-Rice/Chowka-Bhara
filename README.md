@@ -145,12 +145,22 @@ the first place.
 - If someone drops, the game pauses and waits. They can rejoin with the same code
   and pick their seat back up, or the host can hand it to the computer.
 - Matchmaking runs on PeerJS's free public cloud. It occasionally has downtime,
-  and if it ever disappears online play breaks until the server address in
-  `js/net.js` is pointed somewhere else. Everything else keeps working.
-- The library is only fetched when you click into online play, so opening
-  `index.html` offline still gives you the full local and computer game.
-- Room codes skip vowels and lookalike characters, so they can be read aloud
-  without spelling anything rude or ambiguous.
+  and when it does a room code simply will not connect.
+- **There is no TURN relay.** STUN tells each browser its own public address and
+  the two then try to reach each other directly, which works on most home
+  networks and fails on mobile carriers and on any network with client
+  isolation — where two devices on the same Wi-Fi are deliberately kept apart.
+  The three relays that used to be listed are dead: `eu-0.turn.peerjs.com` and
+  `us-0.turn.peerjs.com` no longer resolve in DNS, and `openrelay.metered.ca`
+  answers on no port. They were removed rather than left in, because a dead
+  relay is worse than none — the browser waits on it during gathering and gets
+  nothing back. Add one to `TURN` in `js/net.js` and cross-network play becomes
+  reliable.
+- The lobby's connection log says which kinds of route were found. `host` and
+  `srflx` mean the two are trying to reach each other directly; `relay` means a
+  TURN server answered. A log that reaches `network path: disconnected` without
+  ever saying `connected`, and reports no relay, is this problem and not a bug
+  in the game.
 
 ## Artwork
 
