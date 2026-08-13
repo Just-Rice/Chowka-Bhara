@@ -82,7 +82,12 @@
           id: seat.id,
           nameKey: seat.nameKey,
           kind: seat.kind,                       // "local" | "open" | "cpu"
-          takenBy: owner ? (peers[owner].name || "Guest") : null,
+          // Occupancy and the name are separate: a guest who sent no name
+          // still occupies the seat, and the fallback label is a translation
+          // each client renders in its own language rather than a word
+          // crossing the network.
+          occupied: !!owner,
+          takenBy: owner ? (peers[owner].name || null) : null,
           ready: owner ? !!peers[owner].ready : false,
           peerId: owner
         };
@@ -136,7 +141,9 @@
       if (msg.t === M.PING) return;        // liveness only
 
       if (msg.t === M.HELLO) {
-        peers[peerId].name = String(msg.name || "Guest").slice(0, 20);
+        // No name means no name — the label is a translation each client
+        // renders for itself, so no English default crosses the wire.
+        peers[peerId].name = msg.name ? String(msg.name).slice(0, 20) : null;
         transport.send(peerId, {
           t: M.WELCOME, protocol: PROTOCOL, seats: seatsPayload()
         });
@@ -267,7 +274,7 @@
 
   function createGuest(opts) {
     var transport = opts.transport;
-    var name = opts.name || "Guest";
+    var name = opts.name || null;
     var mySeat = null;
     var TIMEOUT = opts.timeout || 7000;
     // Reaching the host the first time means signalling plus ICE, which

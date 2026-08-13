@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Chowka-Bhara</title>
-<link rel="stylesheet" href="css/tokens.css?v=1.6.5">
-<link rel="stylesheet" href="css/layout.css?v=1.6.5">
-<link rel="stylesheet" href="css/screens.css?v=1.6.5">
-<link rel="stylesheet" href="css/board.css?v=1.6.5">
-<link rel="stylesheet" href="css/sidebar.css?v=1.6.5">
-<link rel="stylesheet" href="css/online.css?v=1.6.5">
-<link rel="stylesheet" href="css/contrast.css?v=1.6.5">
-<link rel="stylesheet" href="css/a11y.css?v=1.6.5">
+<link rel="stylesheet" href="css/tokens.css?v=1.7.0">
+<link rel="stylesheet" href="css/layout.css?v=1.7.0">
+<link rel="stylesheet" href="css/screens.css?v=1.7.0">
+<link rel="stylesheet" href="css/board.css?v=1.7.0">
+<link rel="stylesheet" href="css/sidebar.css?v=1.7.0">
+<link rel="stylesheet" href="css/online.css?v=1.7.0">
+<link rel="stylesheet" href="css/contrast.css?v=1.7.0">
+<link rel="stylesheet" href="css/a11y.css?v=1.7.0">
 </head>
 <body>
 <div id="app">
@@ -47,9 +47,9 @@
               <span class="setup-label" data-i18n="setup.board"></span>
               <div class="segmented" id="board-size-group">
                 <input type="radio" name="board-size" id="size-5" value="5" checked>
-                <label for="size-5">5 &times; 5<span class="sub" data-spaces="25"></span></label>
+                <label for="size-5">5 &times; 5<span class="sub" data-board="5"></span></label>
                 <input type="radio" name="board-size" id="size-7" value="7">
-                <label for="size-7">7 &times; 7<span class="sub" data-spaces="49"></span></label>
+                <label for="size-7">7 &times; 7<span class="sub" data-board="7"></span></label>
               </div>
             </div>
 
@@ -131,10 +131,10 @@
   <!-- ============================= LOBBY (ONLINE) ============================= -->
   <div id="lobby-screen" class="hidden">
     <div class="mat-panel">
-      <p class="lobby-status" id="lobby-status">Connecting…</p>
+      <p class="lobby-status" id="lobby-status" data-i18n="lobby.opening"></p>
 
       <div id="code-display" hidden>
-        <span class="setup-label">Room code</span>
+        <span class="setup-label" data-i18n="setup.roomCode"></span>
         <div class="room-code" id="room-code"></div>
         <p class="code-hint" data-i18n-html="lobby.codeHint"></p>
       </div>
@@ -159,6 +159,15 @@
   <div id="game-screen" class="hidden">
     <div class="mat-panel">
 
+      <!-- Fixed to the corner rather than parked in the sidebar, so the
+           settings are one press away at any point in a game — including from
+           the board on a phone, where the sidebar is a long scroll down. It
+           lives inside the game screen, so it appears and disappears with it. -->
+      <button class="a11y-float" id="a11y-btn">
+        <span class="a11y-float-mark" aria-hidden="true">Aa</span>
+        <span class="a11y-float-label" data-i18n="a11y.title"></span>
+      </button>
+
       <div class="board-col">
         <div class="board-wrap">
           <div id="board"></div>
@@ -170,11 +179,9 @@
         <div style="text-align:center"><span class="net-badge" id="net-badge" hidden></span></div>
         <div class="status-line" id="status-line"></div>
 
+        <!-- Filled in by renderShellTray when a game starts: four cowries on
+             the 5x5 board, six on the 7x7. -->
         <div class="shell-tray" id="shell-tray">
-          <div class="shell down"></div>
-          <div class="shell down"></div>
-          <div class="shell down"></div>
-          <div class="shell down"></div>
         </div>
         <button id="roll-btn"></button>
 
@@ -186,7 +193,6 @@
 
         <div class="roster" id="roster"></div>
 
-        <button class="a11y-btn" id="a11y-btn" data-i18n="a11y.title"></button>
         <button class="howto-btn" id="howto-btn" data-i18n="howto.title"></button>
 
         <div id="log"></div>
@@ -255,16 +261,16 @@
   </div>
 </div>
 
-<script src="js/i18n.js?v=1.6.5"></script>
-<script src="js/a11y.js?v=1.6.5"></script>
-<script src="js/net.js?v=1.6.5"></script>
-<script src="js/config.js?v=1.6.5"></script>
-<script src="js/path.js?v=1.6.5"></script>
-<script src="js/rules.js?v=1.6.5"></script>
-<script src="js/ai.js?v=1.6.5"></script>
-<script src="js/render.js?v=1.6.5"></script>
-<script src="js/game.js?v=1.6.5"></script>
-<script src="js/online.js?v=1.6.5"></script>
-<script src="js/main.js?v=1.6.5"></script>
+<script src="js/i18n.js?v=1.7.0"></script>
+<script src="js/a11y.js?v=1.7.0"></script>
+<script src="js/net.js?v=1.7.0"></script>
+<script src="js/config.js?v=1.7.0"></script>
+<script src="js/path.js?v=1.7.0"></script>
+<script src="js/rules.js?v=1.7.0"></script>
+<script src="js/ai.js?v=1.7.0"></script>
+<script src="js/render.js?v=1.7.0"></script>
+<script src="js/game.js?v=1.7.0"></script>
+<script src="js/online.js?v=1.7.0"></script>
+<script src="js/main.js?v=1.7.0"></script>
 </body>
 </html>

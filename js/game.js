@@ -27,7 +27,7 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
     // Every piece begins on its owner's start square, as it would on a real
     // board. There is no separate "entering" move, so a roll of 2 always
     // moves two squares.
-    for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: "active", pathIndex: 0 });
+    for (var j = 0; j < piecesPerPlayer(N); j++) pieces.push({ id: j, status: "active", pathIndex: 0 });
     players.push({
       id: i,
       nameKey: PLAYER_DEFS[i].key,
@@ -75,6 +75,7 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
   document.getElementById("win-overlay").classList.add("hidden");
 
   renderBoardStructure();
+  renderShellTray();
   renderSidebar();
   updateCellDensity();
   addLog("log.newGame", { n: N, players: numPlayers });

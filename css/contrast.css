@@ -99,6 +99,7 @@
 
 /* --------------------------------------------------------------- controls */
 .hc .segmented label { border-width: 2px; font-weight: 600; }
+.hc .a11y-float { border-width: 2px; font-weight: 700; }
 
 /* Dimming is how an unavailable option reads, but 0.38 is below what this mode
    exists to guarantee. Here it leans on the dashed border and a lighter fade. */

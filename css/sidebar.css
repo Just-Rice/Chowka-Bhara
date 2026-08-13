@@ -17,9 +17,16 @@
     font-family: var(--font-mono);
   }
 
-  .shell-tray { display:flex; justify-content:center; gap:10px; padding: 10px 0; perspective: 400px; }
+  .shell-tray {
+    display:flex; justify-content:center; padding: 10px 0; perspective: 400px;
+    --shell: 44px;
+    gap: 10px;
+  }
+  /* Six have to share the same sidebar four used to, so they come down in size
+     rather than wrapping onto a second row — a throw reads as one line. */
+  .shell-tray.six { --shell: 34px; gap: 7px; }
   .shell {
-    width: 44px; height: 44px;
+    width: var(--shell); height: var(--shell);
     position:relative;
     transform-style: preserve-3d;
     background: url("../img/cowrie-up.png") center / contain no-repeat;

@@ -35,7 +35,11 @@ eval([
   'tieVoters', 'tieThreshold', 'hasVotedForTie'
 ].map(grab).join('\n'));
 
-var PIECES_PER_PLAYER = 4;
+/* The piece count, the cowrie count and the throw table are now board-
+   dependent, so take the real ones rather than a stub that can drift. */
+eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds']
+     .map(grab).join('\n'));
+var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
 var state = null;
 
@@ -53,7 +57,7 @@ function makeState(N, numPlayers) {
   var players = [];
   for (var i = 0; i < numPlayers; i++) {
     var pieces = [];
-    for (var j = 0; j < PIECES_PER_PLAYER; j++) {
+    for (var j = 0; j < piecesPerPlayer(N); j++) {
       pieces.push({ id: j, status: 'active', pathIndex: 0 });
     }
     players.push({
@@ -318,6 +322,51 @@ state.players[1].isCPU = true;
 check('playing the computer, only the person counts',
       tieVoters().length === 1, tieVoters().length + ' voters');
 online.mode = 'host';
+
+/* ---------------------------------------- the six-piece 7x7 game ------ */
+
+/* The large board is a different game: six pieces a side and six cowries, so
+   throws run up to 12. These check the two boards really are set up
+   differently and that the bigger throws behave on the longer path. */
+online.mode = 'local';
+
+state = makeState(5, 2);
+check('the small board deals four pieces a side',
+      state.players[0].pieces.length === 4, String(state.players[0].pieces.length));
+
+state = makeState(7, 2);
+var big = state.players[0];
+check('the large board deals six', big.pieces.length === 6, String(big.pieces.length));
+check('the large board is a longer walk', state.pathLength === 50,
+      String(state.pathLength));
+
+/* Exactness still governs the finish, at the new top value. */
+var last = state.pathLength - 1;
+big.hasCaptured = true;
+big.pieces.forEach(function (pc) { pc.status = 'done'; });
+big.pieces[0].status = 'active';
+big.pieces[0].pathIndex = last - 12;
+var finishing = computeLegalMoves(big, 12);
+check('a throw of 12 can finish from exactly twelve out',
+      finishing.length === 1 && finishing[0].type === 'finish',
+      JSON.stringify(finishing));
+
+big.pieces[0].pathIndex = last - 11;
+check('and overshooting with it is still no move',
+      computeLegalMoves(big, 12).length === 0);
+
+/* A value the small board can never produce has to be playable here. */
+big.pieces[0].pathIndex = 3;
+check('five is a real move on the large board',
+      computeLegalMoves(big, 5).length === 1);
+
+/* The tray is built from the board, so no fixed set may be left in the page. */
+var page = read('index.html');
+var trayAt = page.indexOf('id="shell-tray"');
+check('the page ships no fixed set of cowries',
+      page.slice(trayAt, trayAt + 200).indexOf('class="shell') < 0);
+check('the tray is built instead', read('js/render.js').indexOf('function renderShellTray(') >= 0);
+check('and built when a game starts', read('js/game.js').indexOf('renderShellTray()') >= 0);
 
 /* ------------------------------------------------------- report ------- */
 

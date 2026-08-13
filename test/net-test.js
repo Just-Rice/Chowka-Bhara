@@ -543,17 +543,17 @@ eval(body);
 check('with no room open, nothing is counted', openSeatsLeft() === 0);
 
 online.host = { seats: function () { return [
-  { id: 0, kind: 'local', takenBy: null },        // the host's own seat
-  { id: 1, kind: 'open',  takenBy: 'Ravi' },      // a friend sat down
-  { id: 2, kind: 'open',  takenBy: null },        // still waiting
-  { id: 3, kind: 'cpu',   takenBy: null }         // deliberately a computer
+  { id: 0, kind: 'local', occupied: false },       // the host's own seat
+  { id: 1, kind: 'open',  occupied: true  },       // a friend sat down
+  { id: 2, kind: 'open',  occupied: false },       // still waiting
+  { id: 3, kind: 'cpu',   occupied: false }        // deliberately a computer
 ]; } };
 check('only seats left open and unclaimed count', openSeatsLeft() === 1,
       'got ' + openSeatsLeft());
 
 online.host = { seats: function () { return [
-  { id: 0, kind: 'local', takenBy: null },
-  { id: 1, kind: 'open',  takenBy: 'Ravi' }
+  { id: 0, kind: 'local', occupied: false },
+  { id: 1, kind: 'open',  occupied: true }
 ]; } };
 check('a full room shows nothing', openSeatsLeft() === 0);
 
@@ -565,6 +565,41 @@ check('the notice has somewhere to appear',
       read('index.html').indexOf('id="lobby-hint"') >= 0);
 check('and starts hidden, so an empty room is not announced before it exists',
       /id="lobby-hint"[^>]*hidden/.test(read('index.html')));
+
+/* --------------------------------------------------- the lobby, in words -- */
+
+/* Every lobby label had a translation written for it and none of them were
+   being called, so the lobby stayed in English whichever language was chosen.
+   These make that a failure rather than something only a Kannada speaker would
+   notice. */
+var bareText = onlineSrc.match(/textContent\s*=\s*"[^"]*[A-Za-z]{2}[^"]*"/g) || [];
+check('no lobby label is written straight into the page',
+      bareText.length === 0, bareText.slice(0, 3).join(' | '));
+
+/* Read each call's arguments — some choose between keys, and the refresh
+   re-plays whichever key is current — and insist a key is what goes in. */
+var statusCalls = [];
+for (var at = onlineSrc.indexOf('setLobbyStatus(');
+     at >= 0;
+     at = onlineSrc.indexOf('setLobbyStatus(', at + 1)) {
+  if (/[\w.]/.test(onlineSrc[at - 1] || '')) continue;   // the definition itself
+  statusCalls.push(onlineSrc.slice(at, onlineSrc.indexOf(';', at)));
+}
+var notKeys = statusCalls.filter(function (c) {
+  return !/"(lobby|err)\./.test(c) && c.indexOf('statusKey') < 0;
+});
+check('the lobby status line is set by key, so it can be re-rendered',
+      notKeys.length === 0, notKeys.join(' | '));
+check('and switching language re-renders it',
+      /refreshLobbyText\(\)/.test(read('js/main.js')));
+
+/* A default name in English would cross the network and land untranslated on
+   the other player's screen, which is the one thing the key-based design is
+   meant to prevent. */
+check('no English stand-in name is sent between players',
+      read('js/net.js').indexOf('"Guest"') < 0);
+check('and each side renders that fallback itself',
+      /t\("lobby\.guest"\)/.test(onlineSrc));
 
 /* -------------------------------------------------------------- report --- */
 

@@ -23,7 +23,11 @@ var NAMES = ['ringLoop', 'buildCanonicalPath', 'rotateRC', 'rotatePath',
              'physicalRing', 'layerOf', 'throwShells', 'computeLegalMoves'];
 eval(NAMES.map(grab).join('\n'));
 
-var PIECES_PER_PLAYER = 4;
+/* The piece count, the cowrie count and the throw table are now board-
+   dependent, so take the real ones rather than a stub that can drift. */
+eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds']
+     .map(grab).join('\n'));
+var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
 var state = null;
 
@@ -116,26 +120,71 @@ function check(name, cond, detail) {
 
 /* ------------------------------------------------- shell throw --------- */
 
-var counts = {};
-var BONUS = { 8: true, 4: true };
-for (var t = 0; t < 200000; t++) {
-  var r = throwShells();
-  counts[r.moveValue] = (counts[r.moveValue] || 0) + 1;
-  if (!!r.bonus !== !!BONUS[r.moveValue]) {
-    check('bonus flag matches rules', false, 'move ' + r.moveValue + ' bonus ' + r.bonus);
-    break;
+/* Both boards, against the tables written out by hand here rather than
+   generated from the same code being tested. 5x5 is the four-cowrie game;
+   7x7 is played with six, where a throw of six and a throw of nothing are the
+   two that earn another turn, worth 6 and 12. */
+var THROWS = [
+  { N: 5, shells: 4, bonus: { 4: true, 8: true },
+    want: { 1: 4 / 16, 2: 6 / 16, 3: 4 / 16, 4: 1 / 16, 8: 1 / 16 } },
+  { N: 7, shells: 6, bonus: { 6: true, 12: true },
+    want: { 1: 6 / 64, 2: 15 / 64, 3: 20 / 64, 4: 15 / 64, 5: 6 / 64,
+            6: 1 / 64, 12: 1 / 64 } }
+];
+
+THROWS.forEach(function (board) {
+  var tag = board.N + 'x' + board.N + ': ';
+  var counts = {}, rolls = 200000, bad = null;
+
+  for (var i = 0; i < rolls; i++) {
+    var r = throwShells(board.N);
+    counts[r.moveValue] = (counts[r.moveValue] || 0) + 1;
+    if (r.shells.length !== board.shells) { bad = 'threw ' + r.shells.length + ' cowries'; break; }
+    if (!!r.bonus !== !!board.bonus[r.moveValue]) {
+      bad = 'move ' + r.moveValue + ' gave bonus ' + r.bonus; break;
+    }
+    if (r.upCount === 0 && r.moveValue !== board.shells * 2) {
+      bad = 'none up gave ' + r.moveValue; break;
+    }
+    if (r.upCount === board.shells && r.moveValue !== board.shells) {
+      bad = 'all up gave ' + r.moveValue; break;
+    }
+    if (r.upCount > 0 && r.upCount < board.shells && r.moveValue !== r.upCount) {
+      bad = r.upCount + ' up gave ' + r.moveValue; break;
+    }
   }
-  if (r.upCount === 0 && r.moveValue !== 8) check('0 up = 8', false);
-  if (r.upCount === 4 && r.moveValue !== 4) check('4 up = 4', false);
-}
-/* C(4,k)/16 → 1:4/16, 2:6/16, 3:4/16, 4:1/16, 8(=0 up):1/16 */
-var want = { 1: 4 / 16, 2: 6 / 16, 3: 4 / 16, 4: 1 / 16, 8: 1 / 16 };
-Object.keys(want).forEach(function (v) {
-  var got = (counts[v] || 0) / 200000;
-  check('throw distribution for move ' + v,
-        Math.abs(got - want[v]) < 0.01,
-        'got ' + got.toFixed(4) + ', expected ' + want[v].toFixed(4));
+  check(tag + 'every throw follows the rules', bad === null, bad);
+
+  Object.keys(board.want).forEach(function (v) {
+    var got = (counts[v] || 0) / rolls;
+    check(tag + 'throw distribution for move ' + v,
+          Math.abs(got - board.want[v]) < 0.01,
+          'got ' + got.toFixed(4) + ', expected ' + board.want[v].toFixed(4));
+  });
+
+  var seen = Object.keys(counts).map(Number).sort(function (a, b) { return a - b; });
+  var expected = Object.keys(board.want).map(Number).sort(function (a, b) { return a - b; });
+  check(tag + 'no throw outside the table', seen.join() === expected.join(),
+        'saw ' + seen.join() + ', expected ' + expected.join());
+
+  /* The computer weighs its moves against these odds, so they have to be the
+     same odds the cowries actually produce. */
+  var odds = rollOdds(board.N);
+  var total = 0, wrong = [];
+  odds.forEach(function (o) {
+    total += o.p;
+    if (Math.abs(o.p - board.want[o.value]) > 1e-9) {
+      wrong.push(o.value + ' at ' + o.p);
+    }
+  });
+  check(tag + 'the odds the computer uses match the cowries',
+        wrong.length === 0, wrong.join(' '));
+  check(tag + 'and they add up to one', Math.abs(total - 1) < 1e-9, String(total));
 });
+
+/* Pieces a side, which is the other half of the change. */
+check('the small board is played with four pieces a side', piecesPerPlayer(5) === 4);
+check('the large board is played with six', piecesPerPlayer(7) === 6);
 
 /* ------------------------------------------------- rules engine -------- */
 
@@ -148,7 +197,7 @@ function makeState(N, numPlayers) {
   var players = [];
   for (var i = 0; i < numPlayers; i++) {
     var pieces = [];
-    for (var j = 0; j < PIECES_PER_PLAYER; j++) pieces.push({ id: j, status: 'active', pathIndex: 0 });
+    for (var j = 0; j < piecesPerPlayer(N); j++) pieces.push({ id: j, status: 'active', pathIndex: 0 });
     players.push({
       id: i, name: 'P' + i, slot: slots[i], path: all[slots[i]],
       hasCaptured: false, pieces: pieces

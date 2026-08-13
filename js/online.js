@@ -224,10 +224,28 @@ function netDiag(line) {
   if (n) n.textContent = diagLines.join("  \u00b7  ");
 }
 
-function setLobbyStatus(text, isError) {
+/* The lobby line is set as a key rather than as finished text, so that
+   switching language mid-lobby re-renders whatever it currently says instead
+   of leaving one English sentence stranded on an otherwise translated screen. */
+function setLobbyStatus(key, params) {
+  online.statusKey = key;
+  online.statusParams = params || null;
+  var node = el("lobby-status");
+  node.textContent = t(key, params);
+  node.classList.remove("error");
+}
+
+/* Errors arrive as finished text — some of it from the browser, in whatever
+   language it chose — so they are shown as given and not re-rendered. */
+function setLobbyError(text) {
+  online.statusKey = null;
   var node = el("lobby-status");
   node.textContent = text;
-  node.classList.toggle("error", !!isError);
+  node.classList.add("error");
+}
+
+function refreshLobbyText() {
+  if (online.statusKey) setLobbyStatus(online.statusKey, online.statusParams);
 }
 
 function readSetup() {
@@ -247,7 +265,7 @@ function readSetup() {
 function openSeatsLeft() {
   if (!online.host) return 0;
   return online.host.seats().filter(function(seat) {
-    return seat.kind === "open" && !seat.takenBy;
+    return seat.kind === "open" && !seat.occupied;
   }).length;
 }
 
@@ -293,10 +311,10 @@ function renderSeatList(seats) {
     var isMine = online.mode === "guest" && online.mySeat === seat.id;
 
     if (seat.kind === "local") {
-      who.textContent = online.mode === "host" ? "You (host)" : "Host";
+      who.textContent = online.mode === "host" ? t("lobby.youHost") : t("lobby.hostSeat");
       row.appendChild(who);
-    } else if (seat.takenBy) {
-      who.textContent = seat.takenBy + (isMine ? " (you)" : "");
+    } else if (seat.occupied) {
+      who.textContent = (seat.takenBy || t("lobby.guest")) + (isMine ? t("lobby.you") : "");
       row.appendChild(who);
 
       if (isMine) {
@@ -312,17 +330,17 @@ function renderSeatList(seats) {
       } else {
         var tag = document.createElement("span");
         tag.className = "seat-ready" + (seat.ready ? " yes" : "");
-        tag.textContent = seat.ready ? "ready" : "not ready";
+        tag.textContent = seat.ready ? t("lobby.readyTag") : t("lobby.notReady");
         row.appendChild(tag);
       }
     } else if (online.mode === "host") {
       who.textContent = t("lobby.waiting");
       row.appendChild(who);
       var sel = document.createElement("select");
-      [["open", "Open to a friend"], ["cpu", "Computer"]].forEach(function(opt) {
+      [["open", "lobby.openToFriend"], ["cpu", "lobby.computer"]].forEach(function(opt) {
         var o = document.createElement("option");
         o.value = opt[0];
-        o.textContent = opt[1];
+        o.textContent = t(opt[1]);
         if (online.config.seatKinds[seat.id] === opt[0]) o.selected = true;
         sel.appendChild(o);
       });
@@ -332,16 +350,16 @@ function renderSeatList(seats) {
       });
       row.appendChild(sel);
     } else {
-      who.textContent = "Open";
+      who.textContent = t("lobby.open");
       row.appendChild(who);
       var btn = document.createElement("button");
       btn.className = "seat-claim-btn";
-      btn.textContent = "Sit here";
+      btn.textContent = t("lobby.sitHere");
       btn.addEventListener("click", function() {
         online.mySeat = seat.id;
         online.myReady = false;
         online.guest.claim(seat.id);
-        setLobbyStatus(t("lobby.seatTaken"));
+        setLobbyStatus("lobby.seatTaken");
       });
       row.appendChild(btn);
     }
@@ -363,7 +381,7 @@ function startHosting() {
   }
 
   showScreen("lobby-screen");
-  setLobbyStatus(t("lobby.opening"));
+  setLobbyStatus("lobby.opening");
 
   loadPeerJS().then(function() {
     var code = ChowkaNet.makeRoomCode(5);
@@ -388,7 +406,7 @@ function startHosting() {
       el("start-online-btn").hidden = false;
       refreshStartButton();
       startHeartbeat();
-      setLobbyStatus("Room open. Share the code, then start when everyone is seated.");
+      setLobbyStatus("lobby.roomOpen");
       renderSeatList(online.host.seats());
     });
 
@@ -405,15 +423,15 @@ function startHosting() {
         netDiag("signalling still holds the old session — retrying");
         return;
       }
-      setLobbyStatus(peerErrorMessage(err), true);
+      setLobbyError(peerErrorMessage(err));
     });
-  }).catch(function(e) { setLobbyStatus(e.message, true); });
+  }).catch(function(e) { setLobbyError(e.message); });
 }
 
 function startJoining(code) {
   online.mode = "guest";
   showScreen("lobby-screen");
-  setLobbyStatus("Connecting to " + code + "…");
+  setLobbyStatus("lobby.connecting", { code: code });
   el("code-display").hidden = true;
   el("start-online-btn").hidden = true;   // only the host starts the game
 
@@ -427,7 +445,7 @@ function startJoining(code) {
       online.transport = transport;
       online.guest = ChowkaNet.createGuest({
         transport: transport,
-        name: "Guest",
+        name: null,
         selfPeerId: id,
         onSeats: function(seats) {
           // Trust the host's view of who sits where, not our own click.
@@ -436,11 +454,9 @@ function startJoining(code) {
           online.myReady = !!(mine && mine.ready);
           renderSeatList(seats);
           updateNetBadge();
-          setLobbyStatus(!mine
-            ? "Connected to " + code + ". Pick a seat."
-            : mine.ready
-              ? "Ready. Waiting for the host to start."
-              : "Seat taken. Press \u201cI'm ready\u201d when you are.");
+          setLobbyStatus(!mine ? "lobby.connected"
+                       : mine.ready ? "lobby.ready" : "lobby.seatTaken",
+                         { code: code });
           applyBoardRotation();
         },
         onSnapshot: onGuestSnapshot,
@@ -448,19 +464,19 @@ function startJoining(code) {
           if (state) { state.lastRoll = result; animateShells(result); }
         },
         onHostLost: function() {
-          setLobbyStatus(t("err.hostLost"), true);
+          setLobbyError(t("err.hostLost"));
           onSeatDropped(null, t("pause.host"));
         },
         onConnectFailed: function() {
           // Never got through at all, which is a different problem from
           // having been connected and lost them.
-          setLobbyStatus(t("err.noReach"), true);
+          setLobbyError(t("err.noReach"));
         },
         onHostBack: function() {
           onSeatReturned(null);
         },
         onNote: addRemoteLog,
-        onReject: function(reason) { setLobbyStatus(reason, true); },
+        onReject: function(reason) { setLobbyError(reason); },
         onPaused: onSeatDropped,
         onResumed: onSeatReturned
       });
@@ -468,8 +484,8 @@ function startJoining(code) {
       startHeartbeat();
     });
 
-    peer.on("error", function(err) { setLobbyStatus(peerErrorMessage(err), true); });
-  }).catch(function(e) { setLobbyStatus(e.message, true); });
+    peer.on("error", function(err) { setLobbyError(peerErrorMessage(err)); });
+  }).catch(function(e) { setLobbyError(e.message); });
 }
 
 function onGuestSnapshot(snap) {
@@ -489,10 +505,10 @@ function onSeatDropped(seatId, name) {
   // Reopen the seat so the same player can walk back into it.
   if (online.mode === "host") online.config.seatKinds[seatId] = "open";
 
-  el("pause-name").textContent = (name || PLAYER_DEFS[seatId].name) + " dropped out";
-  el("pause-note").textContent = online.mode === "host"
-    ? "They can rejoin with the same room code, or the computer can take over."
-    : "Waiting for them to rejoin. The host can hand the seat to the computer.";
+  el("pause-name").textContent = t("pause.dropped",
+    { name: name || t(PLAYER_DEFS[seatId].key) });
+  el("pause-note").textContent =
+    t(online.mode === "host" ? "pause.hostNote" : "pause.guestNote");
   el("pause-cpu-btn").hidden = online.mode !== "host";
   el("pause-overlay").classList.remove("hidden");
   updateNetBadge();

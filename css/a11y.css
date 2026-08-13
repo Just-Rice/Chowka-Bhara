@@ -14,6 +14,52 @@
 }
 .a11y-btn:hover { background: rgba(255,255,255,0.25); }
 
+/* The in-game control. Someone who needs larger text or more contrast usually
+   discovers that mid-game, so it stays in the corner rather than waiting in a
+   sidebar the board has pushed off the screen. */
+.a11y-float {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  /* Above the board, below every overlay: a floating button riding on top of
+     the win card or the connection-lost panel would be reachable when those
+     are meant to be the only thing you can answer. */
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px 10px 12px;
+  border: 1.5px solid var(--mat-edge);
+  border-radius: 999px;
+  background: var(--mat);
+  color: var(--ink-text);
+  font-size: 0.86rem;
+  font-weight: 600;
+  box-shadow: 0 6px 18px -6px rgba(20,16,11,0.55);
+}
+.a11y-float:hover { background: #fff8e8; }
+.a11y-float-mark {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Narrow screens keep the circle and drop the word — but only from sight. The
+   text stays for anyone reading the page aloud, which is the audience least
+   able to guess what "Aa" means. */
+@media (max-width: 560px) {
+  .a11y-float { padding: 0; width: 46px; height: 46px; justify-content: center; }
+  .a11y-float-label {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 .a11y-row { padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,0.12); }
 .a11y-row:last-child { border-bottom: none; }
 .a11y-head { display: flex; align-items: baseline; gap: 8px; }

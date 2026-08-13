@@ -131,6 +131,19 @@ main.split('\n').forEach(function (line) {
 });
 check('the opening tab is chosen at load, not on the first click', selectsAtLoad);
 
+/* Someone who needs larger text or more contrast usually finds that out
+   mid-game, so the control has to be on the board screen, not only on setup. */
+var gameAt = page.indexOf('id="game-screen"');
+var floatAt = page.indexOf('class="a11y-float"');
+check('the accessibility control is reachable during a game',
+      floatAt > gameAt && gameAt >= 0, 'game at ' + gameAt + ', control at ' + floatAt);
+check('and it is fixed in place rather than parked in the sidebar',
+      /\.a11y-float\s*\{[^}]*position:\s*fixed/.test(css));
+check('it stays below the overlays, which are meant to be answered first',
+      /\.a11y-float\s*\{[^}]*z-index:\s*40/.test(css));
+check('and it keeps a readable name when the word is hidden',
+      /clip-path/.test(css) && !/\.a11y-float-label\s*\{\s*display:\s*none/.test(css));
+
 var assets = page.match(/(?:src|href)="(?:js|css)\/[^"]+"/g) || [];
 var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });
 check('every asset is version-stamped, so markup and scripts cannot mismatch',

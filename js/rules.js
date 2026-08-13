@@ -2,18 +2,21 @@
 "use strict";
 
 /* ============================= SHELL THROW ============================= */
-function throwShells() {
+// Four cowries on the small board, six on the large. The board is passed in
+// so a test can throw for either without a game running.
+function throwShells(N) {
+  var count = shellCount(N === undefined ? (state ? state.N : 5) : N);
   var shells = [];
   var i;
-  for (i = 0; i < 4; i++) shells.push(Math.random() < 0.5);
+  for (i = 0; i < count; i++) shells.push(Math.random() < 0.5);
   var upCount = shells.filter(Boolean).length;
-  var moveValue, bonus;
-  if (upCount === 0)      { moveValue = 8; bonus = true;  }
-  else if (upCount === 1) { moveValue = 1; bonus = false; }
-  else if (upCount === 2) { moveValue = 2; bonus = false; }
-  else if (upCount === 3) { moveValue = 3; bonus = false; }
-  else                    { moveValue = 4; bonus = true;  }
-  return { shells: shells, upCount: upCount, moveValue: moveValue, bonus: bonus };
+  var outcome = throwOutcome(upCount, count);
+  return {
+    shells: shells,
+    upCount: upCount,
+    moveValue: outcome.moveValue,
+    bonus: outcome.bonus
+  };
 }
 
 function sleep(ms) { return new Promise(function(res){ setTimeout(res, ms); }); }

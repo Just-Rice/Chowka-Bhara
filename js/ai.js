@@ -19,7 +19,7 @@ function threatMap(againstPlayer) {
   var map = {};
   var lastIndex = state.pathLength - 1;
 
-  ROLL_ODDS.forEach(function(roll) {
+  rollOdds(state.N).forEach(function(roll) {
     var reachable = {};
     state.players.forEach(function(p) {
       if (p.id === againstPlayer.id) return;
@@ -58,7 +58,7 @@ function opponentsOn(rc, player) {
 function threatCreated(player, destIndex) {
   var lastIndex = state.pathLength - 1;
   var total = 0;
-  ROLL_ODDS.forEach(function(roll) {
+  rollOdds(state.N).forEach(function(roll) {
     var d = destIndex + roll.value;
     if (d >= lastIndex) return;
     if (layerOf(d, state.ringBoundaries) > 0 && !player.hasCaptured) return;
@@ -80,7 +80,7 @@ function scoreMove(player, move, threats) {
     var alreadyHome = player.pieces.filter(function(pc) {
       return pc.status === "finished";
     }).length;
-    if (alreadyHome === PIECES_PER_PLAYER - 1) score += 5000;  // this wins
+    if (alreadyHome === piecesPerPlayer(state.N) - 1) score += 5000;  // this wins
     return score;
   }
 

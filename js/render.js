@@ -131,7 +131,7 @@ function renderRoster() {
     document.getElementById("hand-count-" + p.id).textContent =
       t("roster.onBoard", { n: onBoard });
     document.getElementById("finished-count-" + p.id).textContent =
-      t("roster.home", { n: finCount, total: PIECES_PER_PLAYER });
+      t("roster.home", { n: finCount, total: piecesPerPlayer(state.N) });
     var row = document.getElementById("roster-" + p.id);
     row.classList.toggle("active-player", p.id === state.currentPlayerIndex && state.turnState !== "GAME_OVER");
   });
@@ -271,6 +271,23 @@ function renderLog() {
 }
 
 /* ============================= ANIMATION ============================= */
+
+/* The tray is built rather than written out, because the two boards are played
+   with different numbers of cowries. Six need to be smaller to sit in one row
+   in the sidebar, which the class carries. */
+function renderShellTray() {
+  var tray = document.getElementById("shell-tray");
+  if (!tray) return;
+  var count = shellCount(state ? state.N : 5);
+  tray.classList.toggle("six", count === 6);
+  tray.innerHTML = "";
+  for (var i = 0; i < count; i++) {
+    var shell = document.createElement("div");
+    shell.className = "shell down";
+    tray.appendChild(shell);
+  }
+}
+
 function animateShells(result) {
   var shellEls = Array.prototype.slice.call(document.querySelectorAll(".shell"));
   shellEls.forEach(function(el){ el.classList.add("flipping"); });

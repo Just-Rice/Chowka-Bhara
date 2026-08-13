@@ -12,7 +12,10 @@ open index.html
 **Board & setup**
 
 - 5×5 or 7×7 grid, concentric square rings from the outside in to a centre "home"
-- 2–4 players, 4 pieces each
+- 2–4 players. The board decides the rest: **5×5 is the four-cowrie game**, four
+  pieces a side; **7×7 is played with six cowries and six pieces a side**. The
+  larger board is twice the walk, so bigger throws and more to move keep it to a
+  comparable length of game rather than twice the length
 - Each player enters at the middle of their own side. 2 players sit opposite each
   other; 3 use three consecutive sides; 4 use all four
 - Direction alternates ring to ring: anti-clockwise around the outer ring,
@@ -20,21 +23,25 @@ open index.html
 - Only the four starting squares are safe — and they are safe from **everyone**.
   No capture can happen on one, whoever owns it
 
-**Rolling** — 4 cowries, counted mouth-up:
+**Rolling** — cowries counted mouth-up. One rule covers both sets: your count is
+your move, and the two extremes earn another throw — every cowrie up is worth its
+own number, none up is worth double the set.
 
-| Shells up | Move | Throw again |
-| --- | --- | --- |
-| 1 | 1 | no |
-| 2 | 2 | no |
-| 3 | 3 | no |
-| 4 | 4 | **yes** |
-| 0 | 8 | **yes** |
+| Cowries up | 5×5 (four cowries) | 7×7 (six cowries) | Throw again |
+| --- | --- | --- | --- |
+| 1 | 1 | 1 | no |
+| 2 | 2 | 2 | no |
+| 3 | 3 | 3 | no |
+| 4 | **4** | 4 | 5×5 only |
+| 5 | — | 5 | no |
+| 6 | — | **6** | 7×7 only |
+| 0 | **8** | **12** | **yes** |
 
 There is **no cap** on consecutive bonus throws.
 
 **Banked throws**
 
-- Keep throwing while you roll 4s and 0s. Every throw is banked rather than
+- Keep throwing while you roll the two bonus values. Every throw is banked rather than
   played immediately
 - Once you roll a 1, 2 or 3, spend the bank: assign each banked throw to **any**
   of your pieces, in **any** order
@@ -49,7 +56,7 @@ nearest you. Everyone sees their own colour at the bottom.
 
 **Movement**
 
-- All four pieces begin **on** your start square. There is no separate entering
+- Every piece begins **on** your start square. There is no separate entering
   move, so a roll of 2 always moves two squares
 - No piece may enter an inner ring until your side has captured. The unlock is
   **per player, not per piece**: once *any* of your pieces captures, *all* of them
@@ -68,7 +75,7 @@ nearest you. Everyone sees their own colour at the bottom.
 
 **Winning**
 
-- First player with all 4 pieces on the exact centre takes 1st place
+- First player with every piece on the exact centre takes 1st place
 - The game then asks whether to **play on** for the remaining places. Play on and
   the finished player drops out while the rest race for 2nd, 3rd and 4th
 - Play can stall: two players each one square from home, both needing an exact
@@ -268,7 +275,7 @@ The logic is verified headlessly. The tests read the real function source out of
 
 | Suite | Covers |
 | --- | --- |
-| `rules-test.js` | Path geometry, shell odds over 200,000 throws, entering, the inner-ring gate, overshoot, exact finish |
+| `rules-test.js` | Path geometry, both throw tables over 200,000 throws each, the odds the computer uses matching the cowries, entering, the inner-ring gate, overshoot, exact finish |
 | `cpu-test.js` | Takes free captures, avoids covered squares, takes winning moves, no double-counted threats, ~9,600-position fuzz |
 | `turn-test.js` | Banked throws stay independent, unplayable throws skip, a mid-turn capture unlocks the rest, selection handling, placement ordering |
 | `i18n-test.js` | Every language covers every key, placeholders line up, nothing copies English, no key the game asks for is missing |

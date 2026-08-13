@@ -25,10 +25,12 @@ eval([
   'scoreMove', 'playableChips', 'selectedEntry', 'chooseCPUPlay'
 ].map(grab).join('\n'));
 
-/* ROLL_ODDS is a literal, not a function — take it from source too. */
-eval(SRC.slice(SRC.indexOf('var ROLL_ODDS'), SRC.indexOf('];', SRC.indexOf('var ROLL_ODDS')) + 2));
 
-var PIECES_PER_PLAYER = 4;
+/* The piece count, the cowrie count and the throw table are now board-
+   dependent, so take the real ones rather than a stub that can drift. */
+eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds']
+     .map(grab).join('\n'));
+var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
 var state = null;
 
@@ -55,7 +57,7 @@ function makeState(N, numPlayers, skill) {
   var players = [];
   for (var i = 0; i < numPlayers; i++) {
     var pieces = [];
-    for (var j = 0; j < PIECES_PER_PLAYER; j++) {
+    for (var j = 0; j < piecesPerPlayer(N); j++) {
       pieces.push({ id: j, status: 'active', pathIndex: 0 });
     }
     players.push({
@@ -138,7 +140,7 @@ for (a = 1; quietFrom === null && a < state.ringBoundaries[0] - 2; a++) {
   var rcQ = me.path[a + 2];
   if (state.safeCellSet[cellKey(rcQ)]) continue;
   var reachable = false;
-  ROLL_ODDS.forEach(function (r) {
+  rollOdds(state.N).forEach(function (r) {
     var d = foe.pieces[0].pathIndex + r.value;
     if (d >= foe.path.length - 1) return;
     if (foe.path[d][0] === rcQ[0] && foe.path[d][1] === rcQ[1]) reachable = true;

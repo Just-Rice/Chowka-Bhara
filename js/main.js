@@ -40,13 +40,17 @@ function setLanguage(code) {
     updateUI();
   }
   if (online.host) renderSeatList(online.host.seats());
+  refreshLobbyText();         // I18N.apply() has just reset it to its default
   selectTab(setupTab);
 }
 
-// The board-size labels count squares, which differs per board.
+// The board-size labels say what changes with the board: how far there is to
+// walk, and how many pieces walk it. The two boards are different games, so
+// the choice should show that before it is made.
 function renderSpaceLabels() {
-  Array.prototype.forEach.call(document.querySelectorAll("[data-spaces]"), function(elm) {
-    elm.textContent = t("setup.spaces", { n: elm.getAttribute("data-spaces") });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-board]"), function(elm) {
+    var N = parseInt(elm.getAttribute("data-board"), 10);
+    elm.textContent = t("setup.spaces", { n: N * N, p: piecesPerPlayer(N) });
   });
 }
 
@@ -171,7 +175,7 @@ on("start-online-btn", "click", function() {
   // Seats nobody claimed fall to the computer rather than standing empty.
   cfg.seatKinds = cfg.seatKinds.map(function(kind, i) {
     if (kind === "local") return "local";
-    return seats[i] && seats[i].takenBy ? "remote" : "cpu";
+    return seats[i] && seats[i].occupied ? "remote" : "cpu";
   });
 
   initGame(cfg.N, cfg.numPlayers, 0, cfg.cpuSkill);
