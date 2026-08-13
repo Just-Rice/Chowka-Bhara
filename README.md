@@ -22,8 +22,10 @@ open index.html
   clockwise around the next ring in, and so on
 - Safe squares are safe from **everyone** — no capture can happen on one,
   whoever owns it. There are two kinds: the four starting squares, and **every
-  corner of every ring**. Corners are where a piece has to turn, so a chase
-  behind it closes up there. All of them are ringed in white, drawn over the
+  corner of the outer two rings**. Corners are where a piece has to turn, so a
+  chase behind it closes up there. The 7×7's innermost ring is deliberately left
+  open — it is the last stretch before home, and there should be nowhere to sit
+  it out. All of them are ringed in white, drawn over the
   pieces so a crowded square still reads as safe
 
 **Rolling** — cowries counted mouth-up. One rule covers both sets: your count is

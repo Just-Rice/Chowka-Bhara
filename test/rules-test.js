@@ -263,8 +263,9 @@ check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
    out per board rather than recomputed, so a change to the rule has to be a
    deliberate change here too. */
 [{ N: 5, corners: [[0,0],[0,4],[4,0],[4,4], [1,1],[1,3],[3,1],[3,3]] },
- { N: 7, corners: [[0,0],[0,6],[6,0],[6,6], [1,1],[1,5],[5,1],[5,5],
-                   [2,2],[2,4],[4,2],[4,4]] }].forEach(function (board) {
+ { N: 7, corners: [[0,0],[0,6],[6,0],[6,6], [1,1],[1,5],[5,1],[5,5]],
+   /* The last ring before home is deliberately open. */
+   unsafe: [[2,2],[2,4],[4,2],[4,4]] }].forEach(function (board) {
   var st = makeState(board.N, 4);
   var tag = board.N + 'x' + board.N + ': ';
   var safe = st.safeCellSet;
@@ -285,6 +286,12 @@ check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
   /* The centre is a destination, not a shelter. */
   var mid = (board.N - 1) / 2;
   check(tag + 'the centre is not one of them', !safe[mid + ',' + mid]);
+
+  /* Nor is the last ring before it — there should be nowhere to sit out the
+     final stretch. */
+  var sheltered = (board.unsafe || []).filter(function (rc) { return safe[rc[0] + ',' + rc[1]]; });
+  check(tag + 'the innermost ring is left open', sheltered.length === 0,
+        sheltered.map(function (rc) { return rc.join(','); }).join(' '));
 
   /* Every safe square has to be somewhere a piece can actually stand. */
   var onPath = {};
