@@ -1,6 +1,14 @@
 /* A brief notice across the top of the board. Used when something happens on
    someone else's turn that you would otherwise only find in the log. */
 var noticeTimer = null;
+
+function hideNotice() {
+  var n = document.getElementById("notice");
+  if (!n) return;
+  n.classList.remove("show");
+  setTimeout(function() { n.hidden = true; }, 250);
+}
+
 function showNotice(text) {
   var n = document.getElementById("notice");
   if (!n) return;
@@ -8,10 +16,17 @@ function showNotice(text) {
   n.hidden = false;
   n.classList.add("show");
   if (noticeTimer) clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(function() {
-    n.classList.remove("show");
-    setTimeout(function() { n.hidden = true; }, 250);
-  }, 5000);
+
+  // Five seconds is not long enough for everybody, so it can be set to wait
+  // until it is dismissed instead.
+  if (A11Y.get("messages") === "stay") {
+    n.onclick = hideNotice;
+    n.classList.add("dismissable");
+    return;
+  }
+  n.onclick = null;
+  n.classList.remove("dismissable");
+  noticeTimer = setTimeout(hideNotice, 5000);
 }
 
 /* Tell everyone except the person who asked. */

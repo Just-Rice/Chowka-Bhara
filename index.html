@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/sidebar.css">
 <link rel="stylesheet" href="css/online.css">
 <link rel="stylesheet" href="css/contrast.css">
+<link rel="stylesheet" href="css/a11y.css">
 </head>
 <body>
 <div id="app">
@@ -37,13 +38,7 @@
       </div>
 
       <div class="setup-section">
-        <span class="setup-label" data-i18n="setup.display"></span>
-        <div class="segmented" id="contrast-group">
-          <input type="radio" name="contrast" id="contrast-off" value="off" checked>
-          <label for="contrast-off"><span data-i18n="setup.standard"></span></label>
-          <input type="radio" name="contrast" id="contrast-on" value="on">
-          <label for="contrast-on"><span data-i18n="setup.highContrast"></span><span class="sub" data-i18n="setup.highContrastSub"></span></label>
-        </div>
+        <button class="a11y-btn" id="a11y-btn-setup" data-i18n="a11y.title"></button>
       </div>
 
       <div class="setup-section">
@@ -166,11 +161,11 @@
 
         <div class="roster" id="roster"></div>
 
+        <button class="a11y-btn" id="a11y-btn" data-i18n="a11y.title"></button>
         <button class="howto-btn" id="howto-btn" data-i18n="howto.title"></button>
 
         <div id="log"></div>
         <div class="sidebar-foot">
-          <button class="tie-btn" id="contrast-btn" aria-pressed="false" title="High contrast">◐</button>
           <button class="tie-btn" id="tie-btn" hidden data-i18n="btn.callTie"></button>
           <button class="new-game-btn" id="new-game-btn" data-i18n="btn.newGame"></button>
         </div>
@@ -182,6 +177,18 @@
 </div>
 
 <div id="notice" class="notice" hidden></div>
+
+<div id="a11y-drawer" class="hidden">
+  <div class="howto-backdrop" id="a11y-backdrop"></div>
+  <aside class="howto-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-heading">
+    <div class="howto-head">
+      <h2 id="a11y-heading" data-i18n="a11y.title"></h2>
+      <button class="howto-close" id="a11y-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="a11y-rows"></div>
+    <p class="a11y-sample" data-i18n="a11y.sample"></p>
+  </aside>
+</div>
 
 <div id="howto-drawer" class="hidden">
   <div class="howto-backdrop" id="howto-backdrop"></div>
@@ -219,6 +226,7 @@
 </div>
 
 <script src="js/i18n.js"></script>
+<script src="js/a11y.js"></script>
 <script src="js/net.js"></script>
 <script src="js/config.js"></script>
 <script src="js/path.js"></script>

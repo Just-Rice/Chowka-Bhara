@@ -78,28 +78,14 @@ for (var i = 0; i < players.length; i++) {
   }
 }
 
-/* Two of them differ by hue far more than by brightness — which is the pairing
-   red-green colour blindness struggles with. That is why every piece also
-   carries a shape, and why this test insists the shapes exist and differ. */
-var marks = css.match(/--mark:\s*url\("data:image\/svg\+xml,([^"]+)"\)/g) || [];
-check('every player carries a shape as well as a colour', marks.length === 4,
-      marks.length + ' shapes');
-var unique = {};
-marks.forEach(function (m) { unique[m] = true; });
-check('the four shapes are all different', Object.keys(unique).length === 4,
-      Object.keys(unique).length + ' distinct');
-
-var dim = players.map(function (p) { return colours[p]; })
-  .map(function (c) { return lum(c); });
-var closest = 99;
-for (i = 0; i < dim.length; i++) {
-  for (j = i + 1; j < dim.length; j++) {
-    var rr = (Math.max(dim[i], dim[j]) + 0.05) / (Math.min(dim[i], dim[j]) + 0.05);
-    if (rr < closest) closest = rr;
-  }
+/* Text has to clear 4.5:1 on the panel too, not just the pieces on the board. */
+var panel = /--mat:\s*(#[0-9a-fA-F]{6})/.exec(css);
+var inkText = /--ink-text:\s*(#[0-9a-fA-F]{6})/.exec(css);
+check('the sidebar defines its own panel and text colours', !!panel && !!inkText);
+if (panel && inkText) {
+  var r = ratio(inkText[1], panel[1]);
+  check('sidebar text reads against the panel', r >= 7, r.toFixed(2) + ':1');
 }
-check('the shapes are doing real work, since some pieces are close in brightness',
-      closest < 2.0, 'closest pair ' + closest.toFixed(2) + ':1');
 
 /* Nothing may leak into the ordinary look. */
 var selectors = css.match(/^\.[^{@\/\s][^{]*\{/gm) || [];

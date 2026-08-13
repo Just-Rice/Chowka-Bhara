@@ -66,7 +66,9 @@ Object.keys(STRINGS).forEach(function (code) {
 var SAME_OK = {
   kn: ['net.online'],
   hi: ['net.online'],
-  es: ['net.online', 'players.areca', 'lobby.computer']
+  // Words that are genuinely the same in Spanish, not forgotten lines.
+  es: ['net.online', 'players.areca', 'lobby.computer', 'a11y.textNormal',
+       'a11y.contrastOff']
 };
 Object.keys(STRINGS).forEach(function (code) {
   if (code === 'en') return;

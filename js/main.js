@@ -29,6 +29,7 @@ function setLanguage(code) {
   if (!I18N.set(code)) return;
   I18N.apply();
   buildHowTo();
+  A11Y.build();
   renderSpaceLabels();
   renderLog();
   if (state) {
@@ -63,41 +64,13 @@ function buildHowTo() {
 }
 
 /* ============================= WIRE UP ============================= */
-/* High contrast is remembered per browser and reachable from the setup screen
-   or mid-game, since needing it should not mean restarting. */
-function applyContrast(on) {
-  document.documentElement.classList.toggle("hc", !!on);
-  var btn = el("contrast-btn");
-  if (btn) {
-    btn.setAttribute("aria-pressed", String(!!on));
-    btn.classList.toggle("on", !!on);
-  }
-  var radio = el(on ? "contrast-on" : "contrast-off");
-  if (radio) radio.checked = true;
-  try { localStorage.setItem("chowka:contrast", on ? "1" : "0"); } catch (e) {}
-}
+A11Y.load();
 
-function contrastOn() {
-  return document.documentElement.classList.contains("hc");
-}
-
-(function () {
-  var saved = null;
-  try { saved = localStorage.getItem("chowka:contrast"); } catch (e) {}
-  // Respect the operating system asking for more contrast, if nothing is saved.
-  if (saved === null && window.matchMedia &&
-      window.matchMedia("(prefers-contrast: more)").matches) saved = "1";
-  applyContrast(saved === "1");
-})();
-
-Array.prototype.forEach.call(
-  document.querySelectorAll('input[name="contrast"]'),
-  function (r) { r.addEventListener("change", function () { applyContrast(r.value === "on"); }); }
-);
-
-el("contrast-btn").addEventListener("click", function () {
-  applyContrast(!contrastOn());
-});
+function openA11y() { A11Y.open(); }
+el("a11y-btn").addEventListener("click", openA11y);
+el("a11y-btn-setup").addEventListener("click", openA11y);
+el("a11y-close").addEventListener("click", function() { A11Y.close(); });
+el("a11y-backdrop").addEventListener("click", function() { A11Y.close(); });
 
 I18N.load();
 I18N.apply();
@@ -117,7 +90,9 @@ function closeHowTo() { el("howto-drawer").classList.add("hidden"); }
 el("howto-close").addEventListener("click", closeHowTo);
 el("howto-backdrop").addEventListener("click", closeHowTo);
 document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") closeHowTo();
+  if (e.key !== "Escape") return;
+  closeHowTo();
+  A11Y.close();
 });
 
 function currentMode() {

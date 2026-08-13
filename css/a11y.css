@@ -1,0 +1,84 @@
+/* Chowka-Bhara — the accessibility panel, and what its settings do. */
+
+/* ------------------------------------------------------------ the panel */
+.a11y-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: transparent;
+  border: 1.5px dashed var(--mat-edge);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--ink-text);
+}
+.a11y-btn:hover { background: rgba(255,255,255,0.25); }
+
+.a11y-row { padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,0.12); }
+.a11y-row:last-child { border-bottom: none; }
+.a11y-head { display: flex; align-items: baseline; gap: 8px; }
+.a11y-label { font-weight: 700; font-size: 1rem; }
+.a11y-hint { margin: 3px 0 10px; font-size: 0.85rem; opacity: 0.75; line-height: 1.5; }
+
+.a11y-options { display: flex; gap: 7px; flex-wrap: wrap; }
+.a11y-opt {
+  flex: 1 1 auto;
+  min-width: 88px;
+  padding: 11px 12px;
+  border: 1.5px solid var(--mat-edge);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.28);
+  color: var(--ink-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.a11y-opt:hover { background: rgba(255,255,255,0.5); }
+.a11y-opt.on {
+  background: var(--ink-0);
+  border-color: var(--ink-0);
+  color: var(--khaki-text);
+}
+
+/* Sample text, so the size choice can be judged rather than guessed at. */
+.a11y-sample {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px dashed var(--mat-edge);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ---------------------------------------------------------- less motion */
+
+/* The game also shortens its own animation timings; this covers everything
+   drawn purely in CSS. */
+.no-motion *,
+.no-motion *::before,
+.no-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+.no-motion .shell.flipping { animation: none !important; }
+.no-motion #board { transition: none !important; }
+.no-motion .token.legal { animation: none !important; }
+
+/* Losing the pulse costs the clearest signal of which piece can move, so it is
+   replaced with a static ring rather than simply removed. */
+.no-motion .token.legal {
+  box-shadow: 0 0 0 3px rgba(243,230,195,0.95), 0 1px 3px rgba(0,0,0,0.55);
+}
+.no-motion.hc .token.legal {
+  box-shadow: 0 0 0 3px #04070f, 0 0 0 6px #ffffff;
+}
+
+/* ------------------------------------------------------ larger text room */
+
+/* At the biggest setting the sidebar needs more width, or the readouts wrap
+   into an unreadable column. */
+@media (min-width: 821px) {
+  html[style*="132%"] #game-screen .mat-panel { grid-template-columns: minmax(0,1fr) 340px; }
+  html[style*="115%"] #game-screen .mat-panel { grid-template-columns: minmax(0,1fr) 320px; }
+}

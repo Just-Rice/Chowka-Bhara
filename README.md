@@ -184,22 +184,32 @@ Stylesheets load in cascade order; scripts load in dependency order with
 are plain scripts rather than ES modules on purpose: the game still opens by
 double-clicking `index.html`, with no server and no build step.
 
-## High contrast
+## Accessibility
 
-A **Display** setting on the setup screen, and a toggle in the sidebar so it can
-be turned on mid-game rather than only at the start. Remembered per browser, and
-on by default if the operating system asks for more contrast.
+An **Accessibility** panel, reachable from the setup screen and from the sidebar
+mid-game — because discovering you need one of these usually happens while you
+are playing. Everything is remembered per browser, and anything the operating
+system already asks for is honoured as the default.
 
-It keeps the artwork. A translucent scrim sits over each square, between the
-painted texture and the pieces — the board recedes, the pieces do not dim, and
-the photographs are still visible underneath. Against that scrimmed board every
-piece clears **4.5:1**, where 3:1 is the usual floor for a shape.
+| Setting | What it does |
+| --- | --- |
+| **Text size** | Normal, Large, Largest — up to 132%. Every font size in the project is in `rem`, so one root change moves all of it together, and the sidebar widens to match |
+| **Contrast** | Darkens the board so the pieces stand off it |
+| **Movement** | Stops the tumbling cowries and sliding pieces. This reaches the game's own animation timings, not only the CSS |
+| **Messages** | Whether passing notices clear themselves after five seconds or wait to be dismissed |
 
-Colour alone is not enough, so each player also carries a shape: circle,
-triangle, square, diamond. Turmeric and areca differ clearly by hue but barely by
-brightness, which is exactly the pairing red-green colour blindness struggles
-with. `test/contrast-test.js` reads the real values out of the stylesheet and
-fails if a retuned colour ever drops below the line.
+High contrast keeps the artwork rather than replacing it. A translucent scrim
+sits over each square, between the painted texture and the pieces — the board
+recedes, the pieces do not dim, and the photographs are still visible
+underneath. Against that scrimmed board every piece clears **4.5:1**, which is
+the floor for text rather than the 3:1 floor for shapes, because a piece on a
+textured board is harder to pick out than a letter on a flat one.
+
+Two things the tests guard, because both would fail silently. `contrast-test.js`
+reads the real colours out of the stylesheet and recomputes the ratios, so a
+retuned colour that drops below the line fails the build. `a11y-test.js` checks
+no stylesheet has introduced a `px` font size, which would be text that quietly
+stops scaling.
 
 ## Languages
 
@@ -231,7 +241,8 @@ The logic is verified headlessly. The tests read the real function source out of
 | `cpu-test.js` | Takes free captures, avoids covered squares, takes winning moves, no double-counted threats, ~9,600-position fuzz |
 | `turn-test.js` | Banked throws stay independent, unplayable throws skip, a mid-turn capture unlocks the rest, selection handling, placement ordering |
 | `i18n-test.js` | Every language covers every key, placeholders line up, nothing copies English, no key the game asks for is missing |
-| `contrast-test.js` | Every piece clears 4.5:1 against every ring under the scrim, the four shapes exist and differ, nothing leaks outside `.hc` |
+| `contrast-test.js` | Every piece clears 4.5:1 against every ring under the scrim, sidebar text clears 7:1, nothing leaks outside `.hc` |
+| `a11y-test.js` | All four settings exist and persist, every font size is relative, reduced motion reaches the game's timings and still marks playable pieces, every label present in all four languages |
 | `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene |
 
 `net-test.js` runs the real sync layer over an in-memory transport, with two fake

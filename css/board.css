@@ -184,3 +184,11 @@
   background: rgba(201,147,47,0.18);
   font-weight: 600;
 }
+
+/* A notice set to wait rather than fade says so. */
+.notice.dismissable { cursor: pointer; }
+.notice.dismissable::after {
+  content: " ×";
+  opacity: .6;
+  font-weight: 700;
+}
