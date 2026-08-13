@@ -10,15 +10,18 @@ var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
    player count, the way a physical board would show them:
 
    the four starting squares, one per side, which is the traditional marking; and
-   the corners of the outer two rings. Corners are where a piece has to turn, so
-   a chase behind it closes up there — the corners are where shelter is worth
-   having. The innermost ring of the 7x7 is deliberately left unprotected: it is
-   the last stretch before home, and there should be nowhere to sit it out. */
+   the corners of every ring except the last one before home. Corners are where a
+   piece has to turn, so a chase behind it closes up there — the corners are
+   where shelter is worth having. The innermost ring is deliberately left with
+   none: it is the final stretch, and there should be nowhere to sit it out.
+
+   That leaves the 5x5 with the outer ring's corners only, and the 7x7 with the
+   outer two rings'. */
 function buildSafeCells(N, allSlotPaths) {
   var safe = {};
   allSlotPaths.forEach(function(p) { safe[p[0][0] + "," + p[0][1]] = true; });
 
-  var rings = Math.min(2, (N - 1) / 2);
+  var rings = (N - 1) / 2 - 1;   // every ring but the innermost
   for (var k = 0; k < rings; k++) {
     var lo = k, hi = N - 1 - k;
     [[lo, lo], [lo, hi], [hi, lo], [hi, hi]].forEach(function(rc) {
