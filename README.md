@@ -25,11 +25,12 @@ open index.html
   single diagonal step onto a safe corner
 - Safe squares are safe from **everyone** — no capture can happen on one,
   whoever owns it. There are two kinds: the four starting squares, and **every
-  corner of every ring except the last one before home**. Corners are where a
-  piece has to turn, so a chase behind it closes up there; the final ring is
-  deliberately left open, since there should be nowhere to sit out the last
-  stretch. That is the outer ring's corners on the 5×5, and the outer two rings'
-  on the 7×7 — 8 safe squares and 12 respectively All of them are ringed in white, drawn over the
+  the four starting squares — which on the 5×5 is all of them, four out of
+  twenty-five, as the game has always been played. The 7×7 is a longer walk and
+  shelters its corners as well, since a corner is where a piece has to turn and
+  a chase behind it closes up; but never on the last ring before home, because
+  there should be nowhere to sit out the final stretch. **5×5: 4 safe squares.
+  7×7: 12** All of them are ringed in white, drawn over the
   pieces so a crowded square still reads as safe
 
 **Rolling** — cowries counted mouth-up. One rule covers both sets: your count is

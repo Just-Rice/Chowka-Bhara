@@ -9,19 +9,21 @@ var SLOT_SETS = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
 /* Where a piece cannot be captured. Two kinds, and both are marked whatever the
    player count, the way a physical board would show them:
 
-   the four starting squares, one per side, which is the traditional marking; and
-   the corners of every ring except the last one before home. Corners are where a
-   piece has to turn, so a chase behind it closes up there — the corners are
-   where shelter is worth having. The innermost ring is deliberately left with
-   none: it is the final stretch, and there should be nowhere to sit it out.
+   The four starting squares, one per side, are safe on both boards. That is the
+   traditional marking, and on the 5x5 it is the whole of it — four safe squares
+   out of twenty-five, as the game has always been played.
 
-   That leaves the 5x5 with the outer ring's corners only, and the 7x7 with the
-   outer two rings'. */
+   The 7x7 is a longer walk and shelters its corners as well, since a corner is
+   where a piece has to turn and a chase behind it closes up. Not every corner:
+   the last ring before home has none, because there should be nowhere to sit out
+   the final stretch. Corner shelter therefore only appears on a board with three
+   or more rings, which the 5x5 does not have. */
 function buildSafeCells(N, allSlotPaths) {
   var safe = {};
   allSlotPaths.forEach(function(p) { safe[p[0][0] + "," + p[0][1]] = true; });
 
-  var rings = (N - 1) / 2 - 1;   // every ring but the innermost
+  var ringCount = (N - 1) / 2;
+  var rings = ringCount >= 3 ? ringCount - 1 : 0;   // never the ring before home
   for (var k = 0; k < rings; k++) {
     var lo = k, hi = N - 1 - k;
     [[lo, lo], [lo, hi], [hi, lo], [hi, hi]].forEach(function(rc) {

@@ -311,9 +311,10 @@ check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
 /* Two kinds, and nothing else: the four starts, and every ring corner. Written
    out per board rather than recomputed, so a change to the rule has to be a
    deliberate change here too. */
-[{ N: 5, corners: [[0,0],[0,4],[4,0],[4,4]],
-   /* The last ring before home is deliberately open, on both boards. */
-   unsafe: [[1,1],[1,3],[3,1],[3,3]] },
+/* The 5x5 keeps the traditional four and nothing else. The 7x7 shelters corners
+   too, but never on the last ring before home. */
+[{ N: 5, corners: [],
+   unsafe: [[0,0],[0,4],[4,0],[4,4], [1,1],[1,3],[3,1],[3,3]] },
  { N: 7, corners: [[0,0],[0,6],[6,0],[6,6], [1,1],[1,5],[5,1],[5,5]],
    unsafe: [[2,2],[2,4],[4,2],[4,4]] }].forEach(function (board) {
   var st = makeState(board.N, 4);
@@ -321,7 +322,7 @@ check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
   var safe = st.safeCellSet;
 
   var missing = board.corners.filter(function (rc) { return !safe[rc[0] + ',' + rc[1]]; });
-  check(tag + 'every ring corner is safe', missing.length === 0,
+  check(tag + 'every sheltered corner is safe', missing.length === 0,
         missing.map(function (rc) { return rc.join(','); }).join(' '));
 
   var starts = st.players.map(function (p) { return p.path[0][0] + ',' + p.path[0][1]; });
@@ -340,7 +341,7 @@ check('finished pieces are not movable', m.length === 0, JSON.stringify(m));
   /* Nor is the last ring before it — there should be nowhere to sit out the
      final stretch. */
   var sheltered = (board.unsafe || []).filter(function (rc) { return safe[rc[0] + ',' + rc[1]]; });
-  check(tag + 'the last ring before home is left open', sheltered.length === 0,
+  check(tag + 'no square is sheltered that should not be', sheltered.length === 0,
         sheltered.map(function (rc) { return rc.join(','); }).join(' '));
 
   /* Every safe square has to be somewhere a piece can actually stand. */
