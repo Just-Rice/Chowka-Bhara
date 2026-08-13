@@ -146,13 +146,22 @@ check('and it sits directly below the log',
 check('the setup screen keeps its own',
       page.indexOf('id="a11y-btn-setup"') >= 0);
 
-var assets = page.match(/(?:src|href)="(?:js|css)\/[^"]+"/g) || [];
+var assets = page.match(/(?:src|href)="(?:js|css|img)\/[^"]+"/g) || [];
 var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });
 check('every asset is version-stamped, so markup and scripts cannot mismatch',
       unstamped.length === 0, unstamped.slice(0, 3).join(' '));
 
+/* A phone with no icon to use invents one, so the home-screen identity is part
+   of the page rather than an optional extra. */
+['apple-touch-icon', 'rel="manifest"', 'theme-color'].forEach(function (needed) {
+  check('the page declares ' + needed, page.indexOf(needed) >= 0);
+});
+check('an icon is offered at the size iOS asks for',
+      /apple-touch-icon"?[^>]*icon-180\.png/.test(page) ||
+      /href="img\/icon-180\.png/.test(page));
+
 print('');
-print('settings: ' + keys.join(', '));
+print('settings: '  + keys.join(', '));
 print('assets stamped: ' + assets.length);
 if (!fails.length) {
   print('✅ all accessibility checks passed');

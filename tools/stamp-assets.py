@@ -33,7 +33,7 @@ def main():
         clean = path.split("?")[0]
         return '%s="%s?v=%s"' % (attr, clean, version)
 
-    s, n = re.subn(r'(src|href)="((?:js|css)/[^"]+?)"', stamp, s)
+    s, n = re.subn(r'(src|href)="((?:js|css|img)/[^"]+?)"', stamp, s)
     page.write_text(s)
     print("  stamped %d asset references with v%s" % (n, version))
 
