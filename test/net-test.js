@@ -566,6 +566,21 @@ check('the notice has somewhere to appear',
 check('and starts hidden, so an empty room is not announced before it exists',
       /id="lobby-hint"[^>]*hidden/.test(read('index.html')));
 
+/* And the timeout does what it says: a relay that never answers gives up
+   rather than leaving someone on a spinner. */
+var fired = null;
+got = null;
+iceWith({
+  relay: { app: 'demo', key: 'abc123' },
+  setTimeout: function (fn) { fired = fn; return 1; },
+  fetch: function () { return new Promise(function () {}); }   // never settles
+}, function (c) { got = c; });
+check('a silent relay has not resolved on its own', got === null);
+fired();
+drainMicrotasks();
+check('but the timeout lets the game start anyway',
+      got && got.iceServers.length === 1, JSON.stringify(got));
+
 /* --------------------------------------------------- the lobby, in words -- */
 
 /* Every lobby label had a translation written for it and none of them were
@@ -615,22 +630,78 @@ check('switching language redraws the log too',
 /* The relays that used to be listed here are gone — two no longer resolve in
    DNS and the third answers on no port. A dead relay is worse than none: the
    browser waits on it while gathering and produces nothing. */
-var ice = Net.ICE;
-var urls = JSON.stringify(ice.iceServers);
+var netSource = read('js/net.js');
+var urls = JSON.stringify(Net.ICE.iceServers);
 ['peerjs.com', 'openrelay'].forEach(function (dead) {
   check('the dead relay ' + dead + ' is not still listed', urls.indexOf(dead) < 0);
 });
 check('several STUN servers are offered', (urls.match(/stun:/g) || []).length >= 3,
       String((urls.match(/stun:/g) || []).length));
-check('every entry has somewhere to point',
-      ice.iceServers.every(function (e) { return !!e.urls; }));
-check('and any relay carries credentials',
-      ice.iceServers.every(function (e) {
-        var isTurn = JSON.stringify(e.urls).indexOf('turn:') >= 0;
-        return !isTurn || (e.username && e.credential);
-      }));
-check('the relay list is left where it can be filled in',
-      /var TURN = \[/.test(read('js/net.js')));
+check('the relay is left where it can be filled in',
+      /var RELAY = \{ app: "", key: "" \}/.test(netSource),
+      'RELAY is not an empty, obvious slot');
+
+/* Credentials are fetched, because Metered issues short-lived ones. What
+   matters is that no way of failing can stop a game starting: every path below
+   has to end with a usable configuration. */
+function iceWith(opts, then) {
+  // No clock unless a test asks for one: the shell's setTimeout fires whatever
+  // delay it is given, which would make every fetch look like a timeout.
+  var merged = { fresh: true, setTimeout: function () { return null; },
+                 clearTimeout: function () {} };
+  Object.keys(opts).forEach(function (k) { merged[k] = opts[k]; });
+  Net.iceConfig(merged).then(then);
+  // Promise callbacks are microtasks, which the shell only runs when the
+  // script yields — so they are drained here rather than after the checks.
+  drainMicrotasks();
+}
+
+var got = null;
+iceWith({ relay: { app: '', key: '' } }, function (c) { got = c; });
+check('with no credentials, STUN alone and no request made',
+      got && got.iceServers.length === 1, JSON.stringify(got));
+
+var asked = null;
+got = null;
+iceWith({
+  relay: { app: 'demo', key: 'abc123' },
+  fetch: function (url) {
+    asked = url;
+    return Promise.resolve({ ok: true, json: function () {
+      return Promise.resolve([{ urls: 'turn:relay.example:80', username: 'u', credential: 'p' }]);
+    } });
+  }
+}, function (c) { got = c; });
+check('the credentials endpoint is asked with the key',
+      asked && asked.indexOf('demo.metered.live') > 0 && asked.indexOf('abc123') > 0, asked);
+check('a relay that answers is added on top of STUN',
+      got && got.iceServers.length === 2 &&
+      JSON.stringify(got.iceServers).indexOf('turn:relay.example') > 0,
+      JSON.stringify(got && got.iceServers));
+
+got = null;
+iceWith({
+  relay: { app: 'demo', key: 'abc123' },
+  fetch: function () { return Promise.reject(new Error('offline')); }
+}, function (c) { got = c; });
+check('a relay that refuses does not stop a game starting',
+      got && got.iceServers.length === 1, JSON.stringify(got));
+
+got = null;
+iceWith({
+  relay: { app: 'demo', key: 'abc123' },
+  fetch: function () { return Promise.resolve({ ok: false }); }
+}, function (c) { got = c; });
+check('nor does one that answers with an error', got && got.iceServers.length === 1);
+
+got = null;
+iceWith({
+  relay: { app: 'demo', key: 'abc123' },
+  fetch: function () { return Promise.resolve({ ok: true, json: function () {
+    return Promise.resolve([]);
+  } }); }
+}, function (c) { got = c; });
+check('nor one that answers with nothing', got && got.iceServers.length === 1);
 
 /* -------------------------------------------------------------- report --- */
 

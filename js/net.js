@@ -611,24 +611,93 @@
    * Add one below and cross-network play becomes reliable. Every provider hands
    * out the same three fields.
    */
-  var TURN = [
-    // { urls: "turn:<host>:3478", username: "<user>", credential: "<secret>" },
-    // { urls: "turn:<host>:443?transport=tcp", username: "<user>", credential: "<secret>" }
+  /* Where the relay comes from.
+   *
+   * Metered hands out short-lived credentials from an endpoint rather than a
+   * fixed username and password, which is why this is fetched rather than
+   * written down. Fill in the two fields from the Metered dashboard and
+   * cross-network play starts working; leave them blank and the game runs on
+   * STUN alone, exactly as it does now.
+   *
+   *   app  the subdomain, from "yourname.metered.live"
+   *   key  the API key on the same page
+   *
+   * Both end up in a public file. That is how any browser-side relay works —
+   * the credentials have to reach the browser — and it is why the key is worth
+   * rotating if the free quota ever starts disappearing.
+   */
+  var RELAY = { app: "", key: "" };
+
+  var STUN = [
+    { urls: [
+      "stun:stun.l.google.com:19302",
+      "stun:stun1.l.google.com:19302",
+      "stun:stun.cloudflare.com:3478",
+      "stun:global.stun.twilio.com:3478"
+    ] }
   ];
 
-  var ICE = {
-    iceServers: [
-      { urls: [
-        "stun:stun.l.google.com:19302",
-        "stun:stun1.l.google.com:19302",
-        "stun:stun.cloudflare.com:3478",
-        "stun:global.stun.twilio.com:3478"
-      ] }
-    ].concat(TURN)
-  };
+  /* STUN only tells each browser its own public address, so the two can try to
+     reach each other directly. That works on most home networks and fails on
+     mobile carriers and on any network with client isolation. A relay is the
+     fallback for those. */
+  var ICE = { iceServers: STUN };
+
+  var icePromise = null;
+
+  /* Resolved once per session, and never allowed to hold up a connection: if
+     the credentials endpoint is slow, blocked or down, the game goes ahead on
+     STUN alone rather than sitting on a spinner. A relay that cannot be
+     fetched is the situation we are already in, not a new failure. */
+  function iceConfig(opts) {
+    opts = opts || {};
+    var fetcher = opts.fetch || (typeof fetch === "function" ? fetch : null);
+    var timeout = opts.timeout || 4000;
+    // Injectable so the timeout itself can be tested, and so a shell without a
+    // real clock does not fire it the instant it is set.
+    var later = opts.setTimeout || (typeof setTimeout === "function" ? setTimeout : null);
+    var cancel = opts.clearTimeout || (typeof clearTimeout === "function" ? clearTimeout : function () {});
+    var relay = opts.relay || RELAY;
+    var diag = opts.onDiag || function () {};
+
+    if (icePromise && !opts.fresh) return icePromise;
+
+    if (!relay.app || !relay.key || !fetcher) {
+      diag("diag.noRelay");
+      icePromise = Promise.resolve({ iceServers: STUN });
+      return icePromise;
+    }
+
+    var url = "https://" + relay.app + ".metered.live/api/v1/turn/credentials?apiKey=" +
+              encodeURIComponent(relay.key);
+
+    icePromise = new Promise(function (resolve) {
+      var settled = false;
+      function fallback() {
+        if (settled) return;
+        settled = true;
+        diag("diag.relayFailed");
+        resolve({ iceServers: STUN });
+      }
+      var timer = later ? later(fallback, timeout) : null;
+
+      fetcher(url).then(function (res) {
+        return res && res.ok ? res.json() : null;
+      }).then(function (servers) {
+        if (settled) return;
+        if (!servers || !servers.length) return fallback();
+        cancel(timer);
+        settled = true;
+        diag("diag.relayReady", { n: servers.length });
+        resolve({ iceServers: STUN.concat(servers) });
+      }).catch(fallback);
+    });
+    return icePromise;
+  }
 
   root.ChowkaNet = {
     ICE: ICE,
+    iceConfig: iceConfig,
     PROTOCOL: PROTOCOL,
     M: M,
     createHost: createHost,

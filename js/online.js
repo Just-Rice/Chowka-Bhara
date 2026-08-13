@@ -395,9 +395,13 @@ function startHosting() {
   showScreen("lobby-screen");
   setLobbyStatus("lobby.opening");
 
+  // Credentials first, then the connection — but never blocking on them:
+  // iceConfig falls back to STUN rather than leaving anyone waiting.
   loadPeerJS().then(function() {
+    return ChowkaNet.iceConfig({ onDiag: netDiag });
+  }).then(function(ice) {
     var code = ChowkaNet.makeRoomCode(5);
-    var peer = new Peer(ChowkaNet.ROOM_PREFIX + code, { debug: 0, config: ChowkaNet.ICE });
+    var peer = new Peer(ChowkaNet.ROOM_PREFIX + code, { debug: 0, config: ice });
     online.peer = peer;
     online.roomCode = code;
 
@@ -448,7 +452,9 @@ function startJoining(code) {
   el("start-online-btn").hidden = true;   // only the host starts the game
 
   loadPeerJS().then(function() {
-    var peer = new Peer(undefined, { debug: 0, config: ChowkaNet.ICE });
+    return ChowkaNet.iceConfig({ onDiag: netDiag });
+  }).then(function(ice) {
+    var peer = new Peer(undefined, { debug: 0, config: ice });
     online.peer = peer;
 
     peer.on("open", function(id) {
