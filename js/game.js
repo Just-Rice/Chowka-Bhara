@@ -306,6 +306,16 @@ function onTokenClick(playerId, pieceId, fromCPU) {
     var from = piece.pathIndex;
     animateHop(player.path, token, from, move.destIndex).then(function(){
       piece.pathIndex = move.destIndex;
+      /* The log recorded what was thrown and what a throw did to somebody else,
+         but never the movement itself — so a turn that threw twice, captured,
+         and earned a further throw could not be reconstructed afterwards by
+         anyone, including me. It says so now: how far, and to where. */
+      addLog("log.moved", {
+        name: player.nameKey,
+        n: move.destIndex - from,
+        at: move.destIndex + 1,
+        total: state.pathLength
+      });
       afterPlacement();
     });
   }
