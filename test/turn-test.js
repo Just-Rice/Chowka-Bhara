@@ -507,6 +507,64 @@ check('and step 8 is a starting square, so safe from everyone',
 check('the game says so rather than saying nothing',
       read('js/game.js').indexOf('log.safeSquare') > 0);
 
+/* ------------------------------- every square, every pair of throws ----- */
+
+/* Spot-checking a move proves one move. This walks every starting square on
+   both boards, spending every pair of throws that board can produce, and
+   insists each one moves exactly its own number of squares and that the pair
+   comes to their sum. It is where a report of a piece travelling one square too
+   far would show up, if it were in the movement at all. */
+[5, 7].forEach(function (N) {
+  var values = rollOdds(N).map(function (o) { return o.value; });
+  var built = buildCanonicalPath(N);
+  var last = built.path.length - 1;
+  var wrongStep = [], wrongTotal = [], tried = 0;
+
+  values.forEach(function (a) {
+    values.forEach(function (b) {
+      for (var from = 0; from + a + b <= last; from++) {
+        var st = makeState(N, 2);
+        st.players[0].hasCaptured = true;
+        st.players[0].pieces.forEach(function (pc, i) {
+          pc.status = i === 0 ? 'active' : 'finished';
+        });
+        st.players[0].pieces[0].pathIndex = from;
+        st.poolSeq = 0;
+        st.pool = [{ id: 1, value: a }, { id: 2, value: b }];
+        state = st;
+
+        var at = from, played = 0;
+        [1, 2].forEach(function (id) {
+          state.selectedChipId = id;
+          var entry = selectedEntry();
+          if (!entry) return;
+          var move = entry.moves.filter(function (m) { return m.pieceId === 0; })[0];
+          if (!move) return;
+          if (move.destIndex - at !== entry.chip.value && move.type !== 'finish') {
+            wrongStep.push(N + ': from ' + at + ' a ' + entry.chip.value +
+                           ' moved ' + (move.destIndex - at));
+          }
+          at = move.destIndex;
+          state.players[0].pieces[0].pathIndex = at;
+          played += entry.chip.value;
+          spendChip(id);
+        });
+        tried++;
+        if (played === a + b && at !== from + a + b) {
+          wrongTotal.push(N + ': from ' + from + ', ' + a + ' and ' + b +
+                          ' ended at ' + at + ' not ' + (from + a + b));
+        }
+      }
+    });
+  });
+
+  check(N + 'x' + N + ': every throw moves its own number of squares',
+        wrongStep.length === 0, wrongStep.slice(0, 3).join(' | '));
+  check(N + 'x' + N + ': and two throws come to their sum',
+        wrongTotal.length === 0, wrongTotal.slice(0, 3).join(' | '));
+  check(N + 'x' + N + ': over a useful number of positions', tried > 200, String(tried));
+});
+
 /* ------------------------------------------------------- report ------- */
 
 print('');
