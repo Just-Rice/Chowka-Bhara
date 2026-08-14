@@ -85,10 +85,15 @@
     transition: transform .08s ease, border-color .12s ease, background .12s ease;
   }
   .pool-chip:hover:not(:disabled) { background: var(--accent); border-color: var(--accent-hover); }
+  /* The oldest banked throw is selected for you, so a click spends it without
+     being asked. Which one that is has to be unmistakable, or a turn holding
+     an 8, a 4 and a 3 spends the 8 while you believe you are spending the 4. */
   .pool-chip.selected {
     background: var(--chip-on);
     border-color: var(--home-glow);
     color: #3a2a03;
+    box-shadow: 0 0 0 3px var(--home-ring), 0 0 12px rgba(201,147,47,0.5);
+    transform: translateY(-2px);
   }
   .pool-chip:disabled { opacity: 0.32; cursor: default; }
   .pool-chip .chip-sub {

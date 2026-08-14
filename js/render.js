@@ -193,6 +193,17 @@ function updateCellDensity() {
 }
 
 /* ============================= UI STATE ============================= */
+/* Which throw a click is about to spend. Several can be banked at once and the
+   oldest is selected for you, so "Choose a piece" left the most consequential
+   part of the decision — how far the piece will go — off the only button you
+   are looking at. A turn holding an 8, a 4 and a 3 spends the 8 first, and
+   there was nothing to say so. */
+function choosePieceLabel() {
+  var entry = typeof selectedEntry === "function" ? selectedEntry() : null;
+  if (!entry) return t("btn.choosePiece");
+  return t("btn.choosePieceFor", { n: entry.chip.value });
+}
+
 function updateUI() {
   renderRoster();
   var player = currentPlayer();
@@ -211,7 +222,7 @@ function updateUI() {
   rollBtn.textContent =
       !mine ? (player.isCPU ? t("btn.computerPlaying")
                             : t("btn.waitingFor", { name: playerName(player.id) }))
-    : state.turnState === "AWAITING_MOVE" ? t("btn.choosePiece")
+    : state.turnState === "AWAITING_MOVE" ? choosePieceLabel()
     : state.pool.length ? t("btn.throwAgain")
     : t("btn.throw");
 

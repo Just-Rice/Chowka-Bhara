@@ -565,6 +565,37 @@ check('the game says so rather than saying nothing',
   check(N + 'x' + N + ': over a useful number of positions', tried > 200, String(tried));
 });
 
+/* ------------------------------- which throw a click is about to spend -- */
+
+/* Several throws can be banked at once and the oldest is selected for you, so a
+   click spends it without asking. A turn that banks an 8, a 4 and a 3 — which
+   is what "0 up" then two bonus throws produces — spends the 8 first. Nothing
+   said so, and the piece moving eight looked like a four and a three moving
+   eight. */
+state = makeState(5, 2);
+state.players[0].hasCaptured = true;
+state.players[0].pieces.forEach(function (pc, i) { pc.status = i === 0 ? 'active' : 'finished'; });
+state.players[0].pieces[0].pathIndex = 0;
+state.poolSeq = 0;
+state.pool = [{ id: ++state.poolSeq, value: 8 },
+              { id: ++state.poolSeq, value: 4 },
+              { id: ++state.poolSeq, value: 3 }];
+state.selectedChipId = null;
+ensureSelection();
+check('the throw selected for you is the oldest banked one',
+      selectedEntry() && selectedEntry().chip.value === 8,
+      selectedEntry() ? String(selectedEntry().chip.value) : 'none');
+check('so a click on a piece would move it eight, not four',
+      selectedEntry().moves.filter(function (m) { return m.pieceId === 0; })[0].destIndex === 8);
+check('and the button is able to say which throw that is',
+      read('js/i18n.js').indexOf('btn.choosePieceFor') > 0 &&
+      read('js/render.js').indexOf('choosePieceLabel') > 0);
+
+/* "0 up" is the biggest throw on the board and read as a zero. */
+check('none-up gets a line of its own', read('js/game.js').indexOf('log.threwNone') > 0);
+check('and it is the throw worth double the set',
+      throwOutcome(0, 4).moveValue === 8 && throwOutcome(0, 6).moveValue === 12);
+
 /* ------------------------------------------------------- report ------- */
 
 print('');

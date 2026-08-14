@@ -153,7 +153,13 @@ function onRollClick() {
   animateShells(result).then(function(){
     var player = currentPlayer();
     state.pool.push({ id: ++state.poolSeq, value: result.moveValue });
-    addLog(result.bonus ? "log.threwAgain" : "log.threw",
+    /* "0 up" reads as nothing having happened, when in fact it is the biggest
+       throw on the board — eight on the 5x5, twelve on the 7x7. It gets a line
+       that says so rather than a zero to be skimmed past. */
+    var rollKey = result.upCount === 0 ? "log.threwNone"
+                : result.bonus ? "log.threwAgain"
+                : "log.threw";
+    addLog(rollKey,
            { name: player.nameKey, up: result.upCount, move: result.moveValue });
 
     state.busy = false;

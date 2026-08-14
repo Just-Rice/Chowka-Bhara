@@ -89,7 +89,7 @@
 .hc .count-badge { color: #3d3018; font-weight: 600; }
 
 .hc .pool-chip { border-width: 2px; font-weight: 700; }
-.hc .pool-chip.selected { box-shadow: 0 0 0 3px rgba(20,16,11,0.5); }
+.hc .pool-chip.selected { box-shadow: 0 0 0 4px #14100b, 0 0 0 7px var(--home-ring); }
 .hc .pool-label { opacity: 1; color: #3d3018; font-weight: 700; }
 
 .hc #roll-btn,
