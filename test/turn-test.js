@@ -478,6 +478,35 @@ check('a 4 and a 3 move seven squares, not eight',
   });
 });
 
+/* ------------------------------------------- safe squares along a path -- */
+
+/* The four starting squares fall at fixed steps of everybody's own path, so a
+   piece can land on one without ever thinking about whose it is. An opponent
+   standing there cannot be taken — which is the rule, and looks exactly like a
+   capture that failed unless something says so. */
+[[5, [0, 4, 8, 12]], [7, [0, 3, 6, 9, 12, 15, 18, 21, 24, 28, 32, 36]]].forEach(function (c) {
+  var N = c[0], expect = c[1];
+  var st = makeState(N, 2);
+  var steps = [];
+  st.players[0].path.forEach(function (rc, i) {
+    if (st.safeCellSet[rc[0] + ',' + rc[1]]) steps.push(i);
+  });
+  check(N + 'x' + N + ': the safe steps along a path are where they should be',
+        steps.join() === expect.join(), steps.join());
+});
+
+/* The specific case that was queried: a piece one step before a start square,
+   moving four and then three, lands on it. */
+state = makeState(5, 2);
+var start8 = state.players[0].path[8];
+check('a 5x5 piece on step 1 that moves 7 lands on step 8',
+      1 + 4 + 3 === 8);
+check('and step 8 is a starting square, so safe from everyone',
+      !!state.safeCellSet[start8[0] + ',' + start8[1]],
+      JSON.stringify(start8));
+check('the game says so rather than saying nothing',
+      read('js/game.js').indexOf('log.safeSquare') > 0);
+
 /* ------------------------------------------------------- report ------- */
 
 print('');

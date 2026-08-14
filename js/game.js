@@ -234,6 +234,22 @@ function onTokenClick(playerId, pieceId, fromCPU) {
     if (move.type !== "finish") {
       var destRC = player.path[move.destIndex];
       var destKey = destRC[0] + "," + destRC[1];
+      /* Landing on somebody and nothing happening is the rule working — safe
+         squares are safe from everyone — but in silence it reads as a piece
+         being skipped over, or as a capture that failed. It says so now. */
+      if (state.safeCellSet[destKey]) {
+        state.players.forEach(function(p) {
+          if (p.id === player.id) return;
+          p.pieces.forEach(function(op) {
+            if (op.status !== "active") return;
+            var opRC = p.path[op.pathIndex];
+            if (opRC[0] === destRC[0] && opRC[1] === destRC[1]) {
+              addLog("log.safeSquare", { name: player.nameKey, victim: p.nameKey });
+            }
+          });
+        });
+      }
+
       if (!state.safeCellSet[destKey]) {
         state.players.forEach(function(p) {
           if (p.id === player.id) return;
