@@ -87,8 +87,6 @@
 .hc .roster-row.active-player { border-color: #14100b; box-shadow: 0 0 0 3px rgba(20,16,11,0.4); }
 .hc .roster-name { font-weight: 700; }
 .hc .count-badge { color: #3d3018; font-weight: 600; }
-.hc .log-line { color: #241c10; }
-.hc #log { border-color: #7a6740; }
 
 .hc .pool-chip { border-width: 2px; font-weight: 700; }
 .hc .pool-chip.selected { box-shadow: 0 0 0 3px rgba(20,16,11,0.5); }
@@ -103,6 +101,8 @@
 /* --------------------------------------------------------------- controls */
 .hc .segmented label { border-width: 2px; font-weight: 600; }
 .hc .new-game-btn { border-width: 2px; font-weight: 700; background: rgba(255,255,255,0.6); }
+.hc .history-bar { border-width: 2px; }
+.hc .history-step { border-width: 2px; font-weight: 700; }
 .hc .seat-edit-name { border-width: 2px; background: rgba(255,255,255,0.7); }
 .hc .swatch { border-width: 3px; }
 

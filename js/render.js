@@ -423,9 +423,13 @@ function renderHistoryControls() {
   if (fwd) fwd.disabled = historyLive() || at >= logEntries.length - 1;
   if (now) now.disabled = historyLive();
 
-  // The board says so too, since that is where you are looking.
-  var banner = document.getElementById("history-banner");
-  if (banner) banner.hidden = historyLive();
+  // The bar beside the board goes quiet when you are up to date and marks
+  // itself when you are not, since the pieces are then somewhere they are not.
+  var bar = document.getElementById("history-bar");
+  if (bar) {
+    bar.classList.toggle("past", !historyLive());
+    bar.hidden = !logEntries.length;
+  }
 }
 
 /* One entry as a sentence. Names are stored as seats and numbers as numbers, so
@@ -445,17 +449,10 @@ function logText(entry) {
   return t(entry.key, vals);
 }
 
+/* There is one log now, and it is the panel. The sidebar used to carry a
+   second, shorter copy of the same lines, which was a lot of room given over
+   to something you could not read back. */
 function renderLog() {
-  var log = document.getElementById("log");
-  if (!log) return;
-  log.innerHTML = "";
-  logEntries.forEach(function(entry) {
-    var line = document.createElement("div");
-    line.className = "log-line";
-    line.textContent = logText(entry);
-    log.appendChild(line);
-  });
-  log.scrollTop = log.scrollHeight;
   renderHistory();
 }
 

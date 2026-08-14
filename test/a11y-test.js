@@ -174,13 +174,21 @@ check('and a saved file that collides is repaired', /spare\.shift\(\)/.test(seat
 
 /* The log scrolls past faster than anyone can read while pieces are moving, so
    there is a panel that keeps all of it. */
-['history-drawer', 'history-list', 'history-btn', 'history-close'].forEach(function (id) {
+/* Walking the game back belongs beside the board, not only inside a panel. */
+check('the step controls sit with the board',
+      page.indexOf('id="history-bar"') > page.indexOf('class="board-col"'),
+      'the controls are not in the board column');
+['history-drawer', 'history-list', 'history-btn', 'history-close',
+ 'history-bar', 'history-back', 'history-forward', 'history-now'].forEach(function (id) {
   check('the game log has its ' + id, page.indexOf('id="' + id + '"') >= 0);
 });
 var renderSrc = read('js/render.js');
-check('the sidebar and the panel render from the same entries',
-      (renderSrc.match(/textContent = logText\(entry\)/g) || []).length === 2,
-      'they would be able to disagree');
+/* The sidebar used to carry a second, shorter copy of the log, which was a lot
+   of room given over to something you could not read back. There is one now. */
+check('there is one log, and it is the panel',
+      (renderSrc.match(/textContent = logText\(entry\)/g) || []).length === 1,
+      'a second copy of the log has come back');
+check('the sidebar no longer holds one', page.indexOf('id="log"') < 0);
 check('and a long game is not truncated to the last few lines',
       /logEntries\.length > 600/.test(renderSrc));
 ['history.title', 'history.hint', 'history.empty'].forEach(function (k) {

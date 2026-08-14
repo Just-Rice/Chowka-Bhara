@@ -207,22 +207,28 @@
   }
   .drawer-close:hover { background: rgba(255,255,255,0.4); }
 
-  /* Walking the log. The arrows step a line at a time and the button on the
-     right comes back to the present, which is the one people reach for after
-     they have found what they were looking for. */
-  .history-controls {
+  /* Walking the game back, beside the board. Quiet while you are up to date,
+     and marked when you are not — the pieces are then somewhere they are not,
+     which is worth saying loudly. */
+  .history-bar {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 14px 0 4px;
-    padding: 8px;
+    margin-bottom: 10px;
+    padding: 7px 9px;
     border: 1.5px solid var(--mat-edge);
     border-radius: 10px;
-    background: rgba(255,255,255,0.34);
+    background: rgba(255,255,255,0.28);
+  }
+  .history-bar[hidden] { display: none; }
+  .history-bar.past {
+    border-color: var(--home-ring);
+    background: rgba(201,147,47,0.18);
+    box-shadow: 0 0 0 2px rgba(201,147,47,0.25);
   }
   .history-step {
     flex: 0 0 auto;
-    width: 40px; height: 36px;
+    width: 42px; height: 36px;
     border: 1.5px solid var(--mat-edge);
     border-radius: 8px;
     background: rgba(255,255,255,0.5);
@@ -231,14 +237,15 @@
     line-height: 1;
   }
   .history-step:hover:not(:disabled) { background: #fff8e8; }
-  .history-step:disabled { opacity: 0.35; cursor: default; }
+  .history-step:disabled { opacity: 0.32; cursor: default; }
   .history-where {
     flex: 1 1 auto;
     text-align: center;
     font: 0.78rem/1.3 var(--font-mono);
     color: #5c4a2e;
+    min-width: 0;
   }
-  .history-where.past { color: var(--ink-text); font-weight: 700; }
+  .history-bar.past .history-where { color: var(--ink-text); font-weight: 700; }
   .history-now {
     flex: 0 0 auto;
     padding: 9px 12px;
@@ -249,7 +256,7 @@
     font-size: 0.8rem;
     font-weight: 600;
   }
-  .history-now:disabled { opacity: 0.35; cursor: default; }
+  .history-now:disabled { opacity: 0.32; cursor: default; }
 
   .history-line { cursor: pointer; border-radius: 5px; }
   .history-line:hover { background: rgba(255,255,255,0.4); }
@@ -320,18 +327,7 @@
   details.rules-toggle li { position:relative; padding-left:14px; margin-bottom:5px; }
   details.rules-toggle li::before { content:"–"; position:absolute; left:0; }
 
-  #log {
-    max-height: 130px;
-    overflow-y:auto;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    line-height:1.6;
-    color:#4a3a22;
-    border-top: 1px dashed var(--mat-edge);
-    padding-top:8px;
-  }
-  .log-line { opacity:0.85; }
-  .log-line:last-child { opacity:1; font-weight:600; }
+
 
   /* This sits on the pale mat and only ever has. It was wearing colours meant
      for the dark win overlay — pale khaki text on a pale ground, which measured

@@ -423,6 +423,61 @@ check('the page ships no fixed set of cowries',
 check('the tray is built instead', read('js/render.js').indexOf('function renderShellTray(') >= 0);
 check('and built when a game starts', read('js/game.js').indexOf('renderShellTray()') >= 0);
 
+/* -------------------------------------- one throw, one number of squares -- */
+
+/* Which move is being made used to be recorded twice: once as the selected
+   throw, and once as a list of highlights written by whichever call last
+   refreshed it. Two records of one decision can only agree by agreement, and
+   when they do not you spend one throw and move by another — a wrong number of
+   squares with nothing on screen to explain it. */
+state = makeState(5, 2);
+state.players[0].hasCaptured = true;
+state.poolSeq = 0;
+state.pool = [{ id: ++state.poolSeq, value: 4 }, { id: ++state.poolSeq, value: 3 }];
+
+/* Spending them one at a time on one piece must come to exactly their sum. */
+var piece = state.players[0].pieces[0];
+piece.pathIndex = 0;
+var spentTotal = 0;
+state.pool.slice().forEach(function (chip) {
+  state.selectedChipId = chip.id;
+  var entry = selectedEntry();
+  check('throw ' + chip.value + ' is playable', !!entry, String(chip.value));
+  if (!entry) return;
+  var move = entry.moves.filter(function (m) { return m.pieceId === 0; })[0];
+  check('and offers a move for the piece', !!move);
+  if (!move) return;
+  check('of exactly ' + chip.value + ' squares',
+        move.destIndex - piece.pathIndex === chip.value,
+        String(move.destIndex - piece.pathIndex));
+  spentTotal += chip.value;
+  piece.pathIndex = move.destIndex;
+  spendChip(chip.id);
+});
+check('a 4 and a 3 move seven squares, not eight',
+      piece.pathIndex === 7 && spentTotal === 7,
+      'ended at ' + piece.pathIndex);
+
+/* And every throw a board can produce agrees with itself. */
+[5, 7].forEach(function (N) {
+  var st = makeState(N, 2);
+  st.players[0].hasCaptured = true;
+  state = st;
+  rollOdds(N).forEach(function (o) {
+    state.pool = [{ id: 1, value: o.value }];
+    state.selectedChipId = 1;
+    var p0 = state.players[0].pieces[0];
+    p0.pathIndex = 0;
+    var entry = selectedEntry();
+    if (!entry) return;                     // overshoots the board, fairly
+    var move = entry.moves.filter(function (m) { return m.pieceId === 0; })[0];
+    if (!move) return;
+    check(N + 'x' + N + ': a throw of ' + o.value + ' moves ' + o.value,
+          move.destIndex - p0.pathIndex === o.value,
+          String(move.destIndex - p0.pathIndex));
+  });
+});
+
 /* ------------------------------------------------------- report ------- */
 
 print('');

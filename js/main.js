@@ -115,7 +115,6 @@ on("howto-btn", "click", function() {
 on("history-back", "click", function() { historyStep(-1); });
 on("history-forward", "click", function() { historyStep(1); });
 on("history-now", "click", historyLiveAgain);
-on("history-banner-now", "click", historyLiveAgain);
 
 on("history-btn", "click", function() {
   renderHistory();
@@ -134,6 +133,10 @@ function closeHowTo() { el("howto-drawer").classList.add("hidden"); }
 on("howto-close", "click", closeHowTo);
 on("howto-backdrop", "click", closeHowTo);
 document.addEventListener("keydown", function(e) {
+  // Only when a game is on screen and nothing is being typed into.
+  var typing = e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName || "");
+  if (!typing && state && e.key === "ArrowLeft") { historyStep(-1); return; }
+  if (!typing && state && e.key === "ArrowRight") { historyStep(1); return; }
   if (e.key !== "Escape") return;
   closeHowTo();
   closeHistory();

@@ -187,6 +187,12 @@ function beginSpending() {
   updateUI();
 }
 
+/* Where a piece stands, for the check below. */
+function piecePathIndex(player, pieceId) {
+  var pc = player.pieces[pieceId];
+  return pc ? pc.pathIndex : 0;
+}
+
 function onTokenClick(playerId, pieceId, fromCPU) {
   // The pieces on screen are a past position, not the one you would be moving.
   if (typeof historyLive === "function" && !historyLive()) return;
@@ -197,19 +203,28 @@ function onTokenClick(playerId, pieceId, fromCPU) {
   // be able to play its move for it.
   if (!fromCPU && currentPlayer().isCPU) return;
 
+  var player = currentPlayer();
   var entry = selectedEntry();
   if (!entry) return;
   var spentChipId = entry.chip.id;
 
+  /* The move comes from the throw being spent, not from the list of highlights.
+     Those were two separate records of the same decision — state.legalMoves is
+     written by refreshMoveOptions, and every caller had to remember to run it
+     after changing which throw is selected. They can only ever agree by
+     agreement, and when they disagree you spend one throw and move by another,
+     which is a wrong number of squares and nothing on screen to explain it. */
   var move = null;
-  for (var i = 0; i < state.legalMoves.length; i++) {
-    if (state.legalMoves[i].pieceId === pieceId) { move = state.legalMoves[i]; break; }
+  for (var i = 0; i < entry.moves.length; i++) {
+    if (entry.moves[i].pieceId === pieceId) { move = entry.moves[i]; break; }
   }
   if (!move) return;
+  // Belt and braces: never move further than the throw being spent.
+  if (move.destIndex - piecePathIndex(player, pieceId) !== entry.chip.value &&
+      move.type !== "finish") return;
 
   state.busy = true;
   clearHighlights();
-  var player = currentPlayer();
   var piece = player.pieces[pieceId];
   var token = document.getElementById("token-p" + player.id + "-" + pieceId);
 
