@@ -221,15 +221,33 @@ function showScreen(which) {
 /* A running account of what the connection is doing, so a failed join says
    something more useful than nothing at all. */
 var diagLines = [];
+
+/* Lines that mean something has gone wrong. A connection that simply works
+   should not have to explain itself, but one that does not must — so the log
+   stays out of sight until one of these appears, and then shows the lot. */
+var TROUBLE = {
+  "diag.noRelay": true, "diag.relayFailed": true,
+  "diag.closed": true, "diag.error": true,
+  "diag.signallingDropped": true, "diag.retry": true
+};
+var diagTrouble = false;
+
 function netDiag(key, params) {
   diagLines.push({ key: key, params: params || null });
   if (diagLines.length > 6) diagLines.shift();
+  if (TROUBLE[key]) diagTrouble = true;
+  // The path going anywhere other than up is the clearest sign of trouble.
+  if (key === "diag.path" && params &&
+      /failed|disconnected|closed/.test(String(params.state))) diagTrouble = true;
   renderDiag();
 }
 
 function renderDiag() {
   var n = el("lobby-diag");
   if (!n) return;
+  var always = typeof A11Y !== "undefined" && A11Y.settings &&
+               A11Y.get("netlog") === "always";
+  n.hidden = !(always || diagTrouble) || diagLines.length === 0;
   n.textContent = diagLines.map(function(line) {
     return t(line.key, line.params);
   }).join("  \u00b7  ");
@@ -250,6 +268,8 @@ function setLobbyStatus(key, params) {
    language it chose — so they are shown as given and not re-rendered. */
 function setLobbyError(text) {
   online.statusKey = null;
+  diagTrouble = true;          // an error is exactly when the log earns its place
+  renderDiag();
   var node = el("lobby-status");
   node.textContent = text;
   node.classList.add("error");

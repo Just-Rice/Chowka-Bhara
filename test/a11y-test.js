@@ -14,8 +14,8 @@ var i18n = read('js/i18n.js');
 var defaults = /defaults:\s*\{([^}]+)\}/.exec(js);
 check('the settings have defaults', !!defaults);
 var keys = (defaults ? defaults[1].match(/(\w+):/g) || [] : []).map(function (k) { return k.slice(0, -1); });
-check('four settings are offered', keys.length === 4, keys.join(','));
-['text', 'contrast', 'motion', 'messages'].forEach(function (k) {
+check('five settings are offered', keys.length === 5, keys.join(','));
+['text', 'contrast', 'motion', 'messages', 'netlog'].forEach(function (k) {
   check('"' + k + '" is one of them', keys.indexOf(k) >= 0);
 });
 

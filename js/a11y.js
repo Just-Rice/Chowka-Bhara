@@ -7,6 +7,7 @@
  *   contrast a scrim over the board so the pieces stand off it
  *   motion   whether pieces slide and cowries tumble, or simply arrive
  *   messages whether passing notices clear themselves or wait to be dismissed
+ *   netlog   whether the connection log is always on show or only when needed
  *
  * Anything the operating system already asks for is honoured as the default, so
  * somebody who has set their machine up once does not have to set this up too.
@@ -14,7 +15,8 @@
 "use strict";
 
 var A11Y = {
-  defaults: { text: "normal", contrast: "off", motion: "full", messages: "auto" },
+  defaults: { text: "normal", contrast: "off", motion: "full", messages: "auto",
+              netlog: "auto" },
   settings: null,
 
   load: function () {
@@ -68,6 +70,9 @@ var A11Y = {
       state.reducedMotion = s.motion === "reduced";
     }
 
+    // The connection log obeys this, and is on screen while it changes.
+    if (typeof renderDiag === "function") renderDiag();
+
     A11Y.syncControls();
   },
 
@@ -93,7 +98,9 @@ var A11Y = {
     { key: "motion", label: "a11y.motion", hint: "a11y.motionHint",
       options: [["full", "a11y.motionFull"], ["reduced", "a11y.motionReduced"]] },
     { key: "messages", label: "a11y.messages", hint: "a11y.messagesHint",
-      options: [["auto", "a11y.messagesAuto"], ["stay", "a11y.messagesStay"]] }
+      options: [["auto", "a11y.messagesAuto"], ["stay", "a11y.messagesStay"]] },
+    { key: "netlog", label: "a11y.netlog", hint: "a11y.netlogHint",
+      options: [["auto", "a11y.netlogAuto"], ["always", "a11y.netlogAlways"]] }
   ],
 
   build: function () {

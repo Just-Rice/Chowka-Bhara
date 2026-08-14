@@ -732,6 +732,23 @@ iceWith({
 }, function (c) { got = c; });
 check('nor one that answers with nothing', got && got.iceServers.length === 1);
 
+/* A connection that works should not have to explain itself; one that does not
+   must. So the log hides until something goes wrong, and then shows the lot. */
+var diagSrc = read('js/online.js');
+check('the log hides itself by default',
+      /n\.hidden = !\(always \|\| diagTrouble\)/.test(diagSrc));
+check('a lobby error brings it back',
+      /diagTrouble = true;[\s\S]{0,80}renderDiag\(\)/.test(
+        diagSrc.slice(diagSrc.indexOf('function setLobbyError'))));
+['diag.noRelay', 'diag.relayFailed', 'diag.error', 'diag.retry'].forEach(function (k) {
+  check('"' + k + '" counts as trouble',
+        diagSrc.indexOf('"' + k + '": true') > 0);
+});
+check('and so does a path that stops going up',
+      /failed\|disconnected\|closed/.test(diagSrc));
+check('changing the setting redraws it',
+      /renderDiag\(\)/.test(read('js/a11y.js')));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

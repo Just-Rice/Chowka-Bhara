@@ -253,6 +253,7 @@ system already asks for is honoured as the default.
 | **Text size** | Normal, Large, Largest — up to 132%. Every font size in the project is in `rem`, so one root change moves all of it together, and the sidebar widens to match |
 | **Contrast** | Darkens the board so the pieces stand off it |
 | **Movement** | Stops the tumbling cowries and sliding pieces. This reaches the game's own animation timings, not only the CSS |
+| **Connection details** | Whether the technical log under the lobby seats is always on show, or only once something goes wrong |
 | **Pop-up notices** | The bar that slides across the top of the board when something happens on another player's turn. Fade after a few seconds, or stay until closed |
 | **Language** | English, ಕನ್ನಡ, हिन्दी, Español — it belongs with the other display settings |
 
