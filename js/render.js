@@ -151,6 +151,13 @@ function renderSidebar() {
   });
 
   renderRoster();
+
+  /* Making the pieces and sizing them are one job, not two that every caller
+     has to remember to pair. They were two, and any redraw that forgot the
+     second — SEATS.applyToGame, which runs the moment an online game starts —
+     left every piece at its default size, so four of them sat full-size and
+     overlapping on one square. */
+  updateCellDensity();
 }
 
 function renderRoster() {

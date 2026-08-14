@@ -21,7 +21,12 @@ function Node(tag) {
   this.parentNode = null;
   this.className = '';
   this.id = '';
-  this.style = { setProperty: function () {}, removeProperty: function () {} };
+  this.props = {};
+  var self = this;
+  this.style = {
+    setProperty: function (k, v) { self.props[k] = v; },
+    removeProperty: function (k) { delete self.props[k]; }
+  };
   this.classList = {
     add: function () {}, remove: function () {}, toggle: function () {},
     contains: function () { return false; }
@@ -98,14 +103,13 @@ function grab(name) {
 
 eval(['ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC',
       'rotatePath', 'piecesPerPlayer', 'buildSafeCells',
-      'renderSidebar', 'logSnapshot', 'historyGoTo', 'historyStep',
+      'renderSidebar', 'updateCellDensity', 'logSnapshot', 'historyGoTo', 'historyStep',
       'historyLive', 'historyLiveAgain', 'showShells'].map(grab).join('\n'));
 
 /* render.js keeps these at the top of the file rather than inside a function,
    so they are declared here to match. */
 var logEntries = [];
 var history = { viewing: null };
-function updateCellDensity() {}
 function renderHistory() {}
 function updateUI() {}
 /* Lives in online.js. Redrawing the sidebar puts every piece where the game
@@ -225,6 +229,33 @@ check('and the start square holds only the pieces still on it',
 
 check('no piece is left without a home',
       tokens().every(function (t) { return t.parentNode !== null; }));
+
+/* Four pieces on one square have to shrink to fit. They are sized by the same
+   pass that draws them, because a redraw that forgot to size them left every
+   piece full-size and overlapping — which is what a fresh online game looked
+   like, since the seat list arrives and redraws the board a moment after it
+   starts. */
+buildBoard(5);
+state = makeState(5, 2);
+renderSidebar();
+
+var startCell = document.getElementById('pieces-' + state.players[0].path[0][0] +
+                                        '-' + state.players[0].path[0][1]);
+check('a square holding four pieces is told how big to draw them',
+      !!startCell && !!startCell.props['--tok'],
+      JSON.stringify(startCell && startCell.props));
+check('and they are shrunk rather than left at full size',
+      parseFloat(startCell.props['--tok']) < 64,
+      startCell.props['--tok']);
+
+var empty = document.getElementById('pieces-1-1');
+check('an empty square is not given a size at all', !empty.props['--tok']);
+
+/* Any redraw, not just the first: this is the path that was missing it. */
+startCell.props = {};
+renderSidebar();
+check('and a second redraw sizes them too', !!startCell.props['--tok'],
+      JSON.stringify(startCell.props));
 
 /* ------------------------------------------------- names and colours ---- */
 
