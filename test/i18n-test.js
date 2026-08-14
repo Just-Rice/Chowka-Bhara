@@ -104,6 +104,27 @@ check('language labels are in their own script',
       I18N.langs.map(function (l) { return l.label; }).join(' ')
         .indexOf('Kannada') < 0);
 
+/* ------------------------------------------- words that do not survive --- */
+
+/* Literal translation produces words that are technically correct and that
+   nobody uses. These are the ones that were actually found and replaced —
+   textbook coinages where the borrowed word is what people say, and abstract
+   nouns standing in for actions. Listing them stops them coming back.
+   \u0917\u0923\u0915 = "reckoner" for computer, \u0915\u0915\u094d\u0937 = a classroom, and so on. */
+var CALQUES = {
+  kn: ['\u0c97\u0ca3\u0c95', '\u0c95\u0cca\u0ca0\u0ca1\u0cbf', '\u0c86\u0ca4\u0cbf\u0ca5\u0ccd\u0caf ', '\u0cb8\u0c82\u0c9c\u0ccd\u0c9e\u0cc6', '\u0c97\u0ccd\u0cb0\u0c82\u0ca5\u0cbe\u0cb2\u0caf'],
+  hi: ['\u0915\u0915\u094d\u0937', '\u0922\u0940\u0932\u093e \u0916\u0947\u0932\u0924\u093e']
+};
+Object.keys(CALQUES).forEach(function (lang) {
+  CALQUES[lang].forEach(function (word) {
+    var found = Object.keys(STRINGS[lang]).filter(function (k) {
+      return String(STRINGS[lang][k]).indexOf(word) >= 0;
+    });
+    check(lang + ' does not use "' + word + '"', found.length === 0,
+          found.slice(0, 3).join(', '));
+  });
+});
+
 /* ----------------------------------- the game asks for keys that exist --- */
 
 /* Keys appear as t("...") in the modules and as data-i18n in the markup. */
