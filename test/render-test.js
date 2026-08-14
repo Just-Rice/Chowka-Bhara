@@ -312,6 +312,55 @@ try {
 } catch (e) { survived = false; }
 check('the seat readers load themselves rather than throwing', survived);
 
+/* ------------------------------------------- one colour to one seat ------ */
+
+/* Colours used to be a purely local setting, so two players could both choose
+   blue and each screen would draw the same seat in its own colour. The host
+   settles them now, and this is the rule it settles by. */
+function coloursOf(list) { return list.map(function (r) { return r.colour; }); }
+
+var settled = SEATS.resolve([
+  { name: 'A', colour: 'p-indigo' },
+  { name: 'B', colour: 'p-indigo' },
+  { name: 'C', colour: 'p-indigo' },
+  { name: 'D', colour: 'p-indigo' }
+]);
+check('everyone asking for the same colour still gets four different ones',
+      coloursOf(settled).sort().join() === SEATS.COLOURS.slice().sort().join(),
+      coloursOf(settled).join());
+check('and the first to ask keeps what they asked for',
+      settled[0].colour === 'p-indigo', settled[0].colour);
+check('names are left alone', settled.map(function (r) { return r.name; }).join() === 'A,B,C,D');
+
+settled = SEATS.resolve([
+  { name: '', colour: 'p-areca' },
+  { name: '', colour: null },
+  { name: '', colour: 'p-madder' },
+  { name: '', colour: undefined }
+]);
+check('a seat that asked for nothing is given something free',
+      coloursOf(settled).sort().join() === SEATS.COLOURS.slice().sort().join(),
+      coloursOf(settled).join());
+check('and the ones that did ask are honoured',
+      settled[0].colour === 'p-areca' && settled[2].colour === 'p-madder',
+      coloursOf(settled).join());
+
+settled = SEATS.resolve([{ name: '', colour: 'not-a-colour' }, { name: '', colour: 'p-indigo' }]);
+check('a colour that does not exist is ignored rather than drawn',
+      SEATS.COLOURS.indexOf(settled[0].colour) >= 0, settled[0].colour);
+
+/* What the host sends back is what this browser draws, whatever it wanted. */
+store = {};
+SEATS.load();
+SEATS.setColour(0, 'p-areca');
+SEATS.useRemote([{ name: 'Ravi', colour: 'p-turmeric' }, { name: '', colour: 'p-madder' }]);
+check("the host's answer wins over this browser's wish",
+      SEATS.colourOf(0) === 'p-turmeric', SEATS.colourOf(0));
+check('including the name', SEATS.nameOf(0) === 'Ravi', SEATS.nameOf(0));
+SEATS.useRemote(null);
+check('and a local game goes back to its own choices',
+      SEATS.colourOf(0) === 'p-areca', SEATS.colourOf(0));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

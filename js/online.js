@@ -56,6 +56,9 @@ function serializeState() {
     players: state.players.map(function(p) {
       return {
         id: p.id, slot: p.slot, hasCaptured: p.hasCaptured, isCPU: p.isCPU,
+        // Carried so a guest joining mid-game draws the same board as everyone
+        // else, without waiting for the next seat list.
+        colour: p.colorVar, name: SEATS.nameOf(p.id),
         pieces: p.pieces.map(function(pc) {
           return { id: pc.id, status: pc.status, pathIndex: pc.pathIndex };
         })
@@ -96,15 +99,21 @@ function applySnapshot(snap) {
   if (!state || state.N !== snap.N || state.players.length !== snap.numPlayers) {
     initGame(snap.N, snap.numPlayers, 0, "sharp");
   }
+  var identities = [];
   snap.players.forEach(function(sp, i) {
     var p = state.players[i];
     p.hasCaptured = sp.hasCaptured;
     p.isCPU = sp.isCPU;
+    if (sp.colour) {
+      p.colorVar = sp.colour;
+      identities[i] = { name: sp.name || "", colour: sp.colour };
+    }
     sp.pieces.forEach(function(spc, j) {
       p.pieces[j].status = spc.status;
       p.pieces[j].pathIndex = spc.pathIndex;
     });
   });
+  if (identities.length) SEATS.useRemote(identities);
   state.currentPlayerIndex = snap.currentPlayerIndex;
   state.turnState = snap.turnState;
   state.pool = snap.pool.slice();
@@ -197,13 +206,20 @@ function applyRemoteIntent(seatId, intent) {
 
 function hostGameAdapter() {
   return {
-    getSeats: function() {
-      // No name travels with a seat. PLAYER_DEFS has no `name` field, so this
-      // was sending undefined and the lobby was drawing an empty label; and a
-      // seat's name belongs to the person reading the screen, who renders it
-      // from their own settings.
+    getSeats: function(seatWishes) {
+      /* The host settles who is what. A guest's choice arrives as a wish and
+         the seats it does not own fall back to the host's own settings; then
+         SEATS.resolve makes sure no two hold the same colour. What comes out
+         is what every screen draws, which is the whole point — a colour names
+         a piece on a board both people are looking at. */
+      var wishes = online.config.seatKinds.map(function(kind, i) {
+        var asked = seatWishes && seatWishes[i];
+        if (asked && (asked.name || asked.colour)) return asked;
+        return { name: SEATS.list[i].name, colour: SEATS.list[i].colour };
+      });
+      var settled = SEATS.resolve(wishes);
       return online.config.seatKinds.map(function(kind, i) {
-        return { id: i, kind: kind };
+        return { id: i, kind: kind, name: settled[i].name, colour: settled[i].colour };
       });
     },
     getSnapshot: function() { return state ? serializeState() : null; },
@@ -432,7 +448,12 @@ function startHosting() {
       online.host = ChowkaNet.createHost({
         transport: online.transport,
         game: hostGameAdapter(),
-        onSeats: function(seats) { renderSeatList(seats); updateNetBadge(); },
+        onSeats: function(seats) {
+          SEATS.useRemote(seats);      // the host draws from its own answer too
+          renderSeatList(seats);
+          updateNetBadge();
+          if (state) SEATS.applyToGame();
+        },
         onPeerChange: updateNetBadge,
         onPaused: onSeatDropped,
         onResumed: onSeatReturned
@@ -484,8 +505,11 @@ function startJoining(code) {
       online.guest = ChowkaNet.createGuest({
         transport: transport,
         name: SEATS.myName(),
+        colour: function() { return SEATS.list[0].colour; },
         selfPeerId: id,
         onSeats: function(seats) {
+          // The host's answer on names and colours, not this browser's wish.
+          SEATS.useRemote(seats);
           // Trust the host's view of who sits where, not our own click.
           var mine = seats.filter(function(x) { return x.peerId === id; })[0];
           online.mySeat = mine ? mine.id : null;

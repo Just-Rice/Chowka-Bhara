@@ -76,7 +76,16 @@
     }
 
     function seatsPayload() {
-      return game.getSeats().map(function (seat) {
+      /* What each guest asked for, in seat order, handed to the game so it can
+         settle them. A colour identifies a piece on a shared board, so it
+         cannot be left to each browser to decide — two players both choosing
+         blue would see the same seat in different colours on each screen. */
+      var wishes = game.getSeats().map(function (seat) {
+        var owner = seatOwner(seat.id);
+        return owner ? { name: peers[owner].name, colour: peers[owner].colour } : null;
+      });
+
+      return game.getSeats(wishes).map(function (seat) {
         var owner = seatOwner(seat.id);
         return {
           id: seat.id,
@@ -87,6 +96,8 @@
           // crossing the network.
           occupied: !!owner,
           takenBy: owner ? (peers[owner].name || null) : null,
+          name: seat.name || null,
+          colour: seat.colour,
           ready: owner ? !!peers[owner].ready : false,
           peerId: owner
         };
@@ -143,6 +154,8 @@
         // No name means no name — the label is a translation each client
         // renders for itself, so no English default crosses the wire.
         peers[peerId].name = msg.name ? String(msg.name).slice(0, 20) : null;
+        // A colour is a request, not a decision. The game resolves it below.
+        peers[peerId].colour = msg.colour ? String(msg.colour).slice(0, 20) : null;
         transport.send(peerId, {
           t: M.WELCOME, protocol: PROTOCOL, seats: seatsPayload()
         });
@@ -289,7 +302,7 @@
     var gaveUp = false;
 
     transport.onPeerJoin(function () {
-      transport.broadcast({ t: M.HELLO, name: name });
+      transport.broadcast({ t: M.HELLO, name: name, colour: opts.colour && opts.colour() });
     });
 
     transport.onMessage(function (peerId, msg) {
@@ -343,7 +356,9 @@
 
     return {
       isHost: false,
-      hello: function () { transport.broadcast({ t: M.HELLO, name: name }); },
+      hello: function () {
+        transport.broadcast({ t: M.HELLO, name: name, colour: opts.colour && opts.colour() });
+      },
       claim: function (seatId) {
         mySeat = seatId;
         transport.broadcast({ t: M.CLAIM, seatId: seatId });

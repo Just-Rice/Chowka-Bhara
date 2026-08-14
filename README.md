@@ -254,6 +254,10 @@ system already asks for is honoured as the default.
 | **Contrast** | Darkens the board so the pieces stand off it |
 | **Movement** | Stops the tumbling cowries and sliding pieces. This reaches the game's own animation timings, not only the CSS |
 | **Connection details** | Whether the technical log under the lobby seats is always on show, or only once something goes wrong |
+
+A **Game log** panel beside How to play keeps every line of a game — every throw, every capture — so a move that went past while the pieces were animating can be read back afterwards. The sidebar log and the panel render from the same entries, so they cannot disagree.
+
+**Names and colours** are chosen in Settings. On this device one person names every seat; online you name only your own, because the others are being named by the people sitting at them. A colour identifies a piece on a board everybody is looking at, so online the **host settles them** — a guest's choice is a request, two players asking for the same colour are separated, and what the host sends back is what every screen draws.
 | **Pop-up notices** | The bar that slides across the top of the board when something happens on another player's turn. Fade after a few seconds, or stay until closed |
 | **Language** | English, ಕನ್ನಡ, हिन्दी, Español — it belongs with the other display settings |
 

@@ -172,6 +172,30 @@ var seats = read('js/seats.js');
 check('choosing a taken colour trades for it', /row\.colour = mine/.test(seats));
 check('and a saved file that collides is repaired', /spare\.shift\(\)/.test(seats));
 
+/* The log scrolls past faster than anyone can read while pieces are moving, so
+   there is a panel that keeps all of it. */
+['history-drawer', 'history-list', 'history-btn', 'history-close'].forEach(function (id) {
+  check('the game log has its ' + id, page.indexOf('id="' + id + '"') >= 0);
+});
+var renderSrc = read('js/render.js');
+check('the sidebar and the panel render from the same entries',
+      (renderSrc.match(/textContent = logText\(entry\)/g) || []).length === 2,
+      'they would be able to disagree');
+check('and a long game is not truncated to the last few lines',
+      /logEntries\.length > 600/.test(renderSrc));
+['history.title', 'history.hint', 'history.empty'].forEach(function (k) {
+  check('every language has ' + k,
+        (i18n.match(new RegExp('"' + k.replace('.', '\\.') + '"', 'g')) || []).length === 4);
+});
+
+/* Two players choosing one colour is the host's problem to settle, not each
+   browser's to guess. */
+var seatsSrc = read('js/seats.js');
+check('a browser can be told what the table settled on', /useRemote:/.test(seatsSrc));
+check('and prefers that to its own preference', /agreed: function/.test(seatsSrc));
+check('editing online offers only your own seat', /soloEditing:/.test(seatsSrc));
+check('and a change is sent rather than kept', /announce:/.test(seatsSrc));
+
 var assets = page.match(/(?:src|href)="(?:js|css|img)\/[^"]+"/g) || [];
 var unstamped = assets.filter(function (a) { return a.indexOf('?v=') < 0; });
 check('every asset is version-stamped, so markup and scripts cannot mismatch',

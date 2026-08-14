@@ -207,6 +207,17 @@
   }
   .drawer-close:hover { background: rgba(255,255,255,0.4); }
 
+  /* Numbered so you can say "line 40" rather than "the bit near the end". */
+  .history-list {
+    margin: 12px 0 0;
+    padding-left: 2.6em;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .history-line { margin-bottom: 7px; padding-left: 4px; }
+  .history-line::marker { font-family: var(--font-mono); font-size: 0.78em; opacity: 0.55; }
+  .history-empty { list-style: none; margin-left: -2.6em; opacity: 0.6; }
+
   #howto-list { font-size:0.92rem; line-height:1.6; }
   #howto-list li { position:relative; padding-left:16px; margin-bottom:9px; }
   #howto-list li::before { content:"\2013"; position:absolute; left:0; }

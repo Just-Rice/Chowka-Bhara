@@ -263,7 +263,7 @@ var logEntries = [];
 
 function addLog(key, params) {
   logEntries.push({ key: key, params: params || {} });
-  if (logEntries.length > 200) logEntries.shift();
+  if (logEntries.length > 600) logEntries.shift();
   renderLog();
   // The host is the only one that generates events, so it relays them.
   if (online.mode === "host" && online.host) online.host.note(key, params || {});
@@ -271,8 +271,49 @@ function addLog(key, params) {
 
 function addRemoteLog(key, params) {
   logEntries.push({ key: key, params: params || {} });
-  if (logEntries.length > 200) logEntries.shift();
+  if (logEntries.length > 600) logEntries.shift();
   renderLog();
+}
+
+/* The same entries the sidebar shows, all of them, numbered, in a panel you can
+   scroll. The sidebar log is a glance at the last few lines; this is for going
+   back and finding the throw you missed while the pieces were moving. */
+function renderHistory() {
+  var list = document.getElementById("history-list");
+  if (!list) return;
+  list.innerHTML = "";
+
+  if (!logEntries.length) {
+    var empty = document.createElement("li");
+    empty.className = "history-empty";
+    empty.textContent = t("history.empty");
+    list.appendChild(empty);
+    return;
+  }
+
+  logEntries.forEach(function(entry) {
+    var li = document.createElement("li");
+    li.className = "history-line";
+    li.textContent = logText(entry);
+    list.appendChild(li);
+  });
+}
+
+/* One entry as a sentence. Names are stored as seats and numbers as numbers, so
+   both the sidebar and the history read them in whatever language is current. */
+function logText(entry) {
+  var vals = {};
+  Object.keys(entry.params).forEach(function(k) {
+    var v = entry.params[k];
+    if (typeof v === "string" && v.indexOf("seat.") === 0) {
+      vals[k] = playerName(parseInt(v.slice(5), 10));
+    } else if (typeof v === "string" && v.indexOf("players.") === 0) {
+      vals[k] = t(v);
+    } else {
+      vals[k] = v;
+    }
+  });
+  return t(entry.key, vals);
 }
 
 function renderLog() {
@@ -282,22 +323,11 @@ function renderLog() {
   logEntries.forEach(function(entry) {
     var line = document.createElement("div");
     line.className = "log-line";
-    // Player names are stored as keys too, so they translate with everything.
-    var vals = {};
-    Object.keys(entry.params).forEach(function(k) {
-      var v = entry.params[k];
-      if (typeof v === "string" && v.indexOf("seat.") === 0) {
-        vals[k] = playerName(parseInt(v.slice(5), 10));
-      } else if (typeof v === "string" && v.indexOf("players.") === 0) {
-        vals[k] = t(v);
-      } else {
-        vals[k] = v;
-      }
-    });
-    line.textContent = t(entry.key, vals);
+    line.textContent = logText(entry);
     log.appendChild(line);
   });
   log.scrollTop = log.scrollHeight;
+  renderHistory();
 }
 
 /* ============================= ANIMATION ============================= */

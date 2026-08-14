@@ -46,6 +46,20 @@
 }
 .seat-edit-name::placeholder { opacity: 0.5; }
 
+/* Marks the one row that is yours, when the others belong to people at their
+   own screens. */
+.seat-edit-you {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5c4a2e;
+  padding: 4px 8px;
+  border: 1px solid var(--mat-edge);
+  border-radius: 999px;
+}
+
 .seat-edit-colours { display: flex; gap: 5px; flex: 0 0 auto; }
 .swatch {
   width: 30px; height: 30px;

@@ -749,6 +749,54 @@ check('and so does a path that stops going up',
 check('changing the setting redraws it',
       /renderDiag\(\)/.test(read('js/a11y.js')));
 
+/* ------------------------------------------ identity crosses the wire ---- */
+
+/* A colour names a piece on a board both people are looking at, so it cannot be
+   left to each browser. The seat list has to carry what the host settled. */
+var idNet = Net.createFakeNetwork({ schedule: schedule });
+var idHost = idNet.endpoint('IH'), idGuest = idNet.endpoint('IG');
+
+var wishesSeen = null;
+var idGame = {
+  turn: 0,
+  getSeats: function (wishes) {
+    if (wishes) wishesSeen = wishes;
+    // Stands in for the real resolver: seat 1 asked for blue and is given red,
+    // because seat 0 already holds blue.
+    return [
+      { id: 0, kind: 'local', name: 'Host', colour: 'p-indigo' },
+      { id: 1, kind: 'open',  name: (wishes && wishes[1] && wishes[1].name) || null,
+        colour: 'p-madder' }
+    ];
+  },
+  getSnapshot: function () { return { turn: 0 }; },
+  applyIntent: function () { return true; }
+};
+
+var seenSeats = null;
+Net.createHost({ transport: idHost, game: idGame,
+                 onSeats: function (s2) { seenSeats = s2; } });
+Net.createGuest({ transport: idGuest, name: 'Ravi', selfPeerId: 'IG',
+                  colour: function () { return 'p-indigo'; } });
+idNet.connect('IH', 'IG');
+pump();
+idGuest.broadcast({ t: Net.M.CLAIM, seatId: 1 });
+pump();
+
+check('the seat list carries a colour for every seat',
+      seenSeats && seenSeats.every(function (x) { return !!x.colour; }),
+      JSON.stringify(seenSeats));
+check('and a name', seenSeats && seenSeats[1].name === 'Ravi',
+      JSON.stringify(seenSeats && seenSeats[1]));
+check("the guest's wish reaches the game rather than being applied blind",
+      wishesSeen && wishesSeen[1] && wishesSeen[1].colour === 'p-indigo',
+      JSON.stringify(wishesSeen));
+check('and what comes back is what the game decided, not what was asked',
+      seenSeats && seenSeats[1].colour === 'p-madder',
+      seenSeats && seenSeats[1].colour);
+check('so no two seats share one', seenSeats &&
+      seenSeats[0].colour !== seenSeats[1].colour);
+
 /* -------------------------------------------------------------- report --- */
 
 print('');
