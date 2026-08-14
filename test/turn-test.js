@@ -32,7 +32,7 @@ eval([
   'layerOf', 'computeLegalMoves', 'currentPlayer',
   'playableChips', 'selectedEntry', 'ensureSelection', 'spendChip',
   'playerActive', 'ordinal', 'progressOf', 'standingsText',
-  'tieVoters', 'tieThreshold', 'hasVotedForTie'
+  'tieVoters', 'tieThreshold', 'hasVotedForTie', 'canVoteForTie', 'dropTieVote', 'requestTie'
 ].map(grab).join('\n'));
 
 /* The piece count, the cowrie count and the throw table are now board-
@@ -261,6 +261,12 @@ check('two players one square out rank equally',
    a draw is agreed at a chess board. The computer gets no say. */
 
 var online = { mode: 'host', config: { seatKinds: [] } };
+/* requestTie talks to the screen and to the other players; neither is what is
+   being tested here, so they are stubbed and the vote arithmetic is real. */
+function addLog() {}
+function notifyTieRequest() {}
+function updateUI() {}
+function callItATie() { state.turnState = 'GAME_OVER'; }
 
 function seatsOf(n, kinds) {
   state = makeState(5, n);
@@ -319,6 +325,50 @@ state.tieVotes = [1];
 check('a vote is remembered against its player', hasVotedForTie(1) === true);
 check('and nobody else is counted as having voted',
       hasVotedForTie(0) === false && hasVotedForTie(2) === false);
+
+/* A player already home has banked their place and has no say in ending the
+   game for everybody else. The threshold counts only the players still going,
+   so the votes must be counted from the same set — otherwise the two who have
+   finished can carry a tie that neither remaining player agreed to. */
+seatsOf(4, ['local', 'remote', 'remote', 'remote']);
+state.stalled = true;          // requestTie does nothing unless play is stuck
+state.turnState = 'AWAITING_ROLL';
+state.players[0].pieces.forEach(function (pc) { pc.status = 'finished'; });
+state.players[1].pieces.forEach(function (pc) { pc.status = 'finished'; });
+
+check('only the players still going may vote',
+      canVoteForTie(2) && canVoteForTie(3) &&
+      !canVoteForTie(0) && !canVoteForTie(1),
+      [0, 1, 2, 3].map(canVoteForTie).join(','));
+check('and the threshold counts the same two',
+      tieVoters().length === 2 && tieThreshold() === 2,
+      tieVoters().length + ' voters, threshold ' + tieThreshold());
+
+state.tieVotes = [];
+requestTie(0);
+requestTie(1);
+check('a finished player asking changes nothing',
+      state.tieVotes.length === 0 && state.turnState !== 'GAME_OVER',
+      JSON.stringify(state.tieVotes));
+
+requestTie(2);
+check('a player still going is heard', state.tieVotes.length === 1,
+      JSON.stringify(state.tieVotes) + ' stalled=' + state.stalled);
+requestTie(3);
+check('and two of the two still going carries it',
+      state.turnState === 'GAME_OVER', state.turnState);
+
+/* A vote cast while playing must not outlive the player casting it. */
+seatsOf(4, ['local', 'remote', 'remote', 'remote']);
+state.tieVotes = [1, 2];
+dropTieVote(1);
+check('finishing takes your vote with you',
+      state.tieVotes.length === 1 && state.tieVotes[0] === 2,
+      JSON.stringify(state.tieVotes));
+
+/* Nobody outside the table at all. */
+check('a seat that does not exist cannot vote', !canVoteForTie(9));
+check('and neither can nobody', !canVoteForTie(null) && !canVoteForTie(undefined));
 
 /* On this device alone there is nobody to ask. */
 online.mode = 'local';

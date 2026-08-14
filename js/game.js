@@ -365,6 +365,7 @@ function standingsText() {
 
 function recordFinish(player) {
   if (state.placements.indexOf(player.id) < 0) state.placements.push(player.id);
+  dropTieVote(player.id);       // they are home; the vote is no longer theirs
   addLog("log.isHome", { name: player.nameKey, place: ordinal(state.placements.length) });
 
   var remaining = state.players.filter(playerActive);
@@ -424,6 +425,21 @@ function tieThreshold() {
   return Math.floor(tieVoters().length / 2) + 1;
 }
 
+/* Whether this seat gets a say. The threshold is counted from the players still
+   going, so the votes have to be counted from the same set — otherwise somebody
+   who is already home can carry a tie that nobody still playing agreed to. */
+function canVoteForTie(playerId) {
+  if (playerId === null || playerId === undefined) return false;
+  return tieVoters().some(function(p) { return p.id === playerId; });
+}
+
+/* Called when a player reaches the centre: their vote goes with them. A vote
+   cast while playing must not keep counting after they have finished. */
+function dropTieVote(playerId) {
+  var at = state.tieVotes.indexOf(playerId);
+  if (at >= 0) state.tieVotes.splice(at, 1);
+}
+
 /* Which seat the person at this screen votes with. */
 function myVotingSeat() {
   if (online.mode === "guest") return online.mySeat;
@@ -445,7 +461,11 @@ function requestTie(playerId) {
   if (!state || state.turnState === "GAME_OVER" || !state.stalled) return;
   if (playerId === null || playerId === undefined) return;
 
+  // On this device one press ends it, and only a person can press it.
   if (online.mode === "local") return callItATie();
+
+  // Online it is a vote, and a vote belongs to someone still in the game.
+  if (!canVoteForTie(playerId)) return;
 
   var at = state.tieVotes.indexOf(playerId);
   if (at >= 0) {
