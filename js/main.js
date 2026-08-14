@@ -164,6 +164,7 @@ function selectTab(which) {
   if (settings && slot) slot.appendChild(settings);
 
   syncCPUOptions();
+  if (typeof SEATS !== "undefined") SEATS.build();
 }
 
 ["local", "host", "join"].forEach(function(name) {

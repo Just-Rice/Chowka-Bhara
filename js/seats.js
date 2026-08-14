@@ -195,8 +195,15 @@ var SEATS = {
     return picked ? parseInt(picked.value, 10) : 2;
   },
 
+  /* Rendered into every slot that asks for it — the settings panel, and the
+     host, join and lobby screens, because the moment you are deciding to play
+     online is the moment you want to say who you are. */
   build: function () {
-    var host = document.getElementById("seat-settings");
+    var slots = document.querySelectorAll(".seat-settings");
+    Array.prototype.forEach.call(slots, function (slot) { SEATS.fill(slot); });
+  },
+
+  fill: function (host) {
     if (!host) return;
     host.innerHTML = "";
 

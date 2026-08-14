@@ -492,6 +492,7 @@ function startHosting() {
 function startJoining(code) {
   online.mode = "guest";
   showScreen("lobby-screen");
+  online.hostPeerId = ChowkaNet.ROOM_PREFIX + code;
   setLobbyStatus("lobby.connecting", { code: code });
   el("code-display").hidden = true;
   el("start-online-btn").hidden = true;   // only the host starts the game
@@ -531,8 +532,19 @@ function startJoining(code) {
         },
         onHostLost: function() {
           if (gameIsOver()) return;      // the game is done; so is the host
+          // Losing the connection is not the same as the game being over, and
+          // sitting there saying so forever helps nobody. Dial back first.
+          if (rejoin()) return;
           setLobbyError(t("err.hostLost"));
           onSeatDropped(null, t("pause.host"));
+        },
+        onHostBack: function() {
+          online.rejoinTries = 0;
+          el("pause-overlay").classList.add("hidden");
+          online.pausedSeat = null;
+          netDiag("diag.reconnected");
+          updateNetBadge();
+          if (state) updateUI();
         },
         onConnectFailed: function() {
           // Never got through at all, which is a different problem from
@@ -566,6 +578,49 @@ function onGuestSnapshot(snap) {
   updateNetBadge();
 }
 
+/* Re-open the connection to the host. The room code is all that is needed —
+   the host is still sitting there under the same id — so a lost connection is
+   worth a few attempts before anyone is told the game has fallen over. Backed
+   off so a host who really has gone is not dialled forever. */
+function rejoin() {
+  if (online.mode !== "guest" || !online.hostPeerId || !online.transport) return false;
+  online.rejoinTries = (online.rejoinTries || 0) + 1;
+  if (online.rejoinTries > 4) return false;
+
+  netDiag("diag.rejoining", { n: online.rejoinTries });
+  try {
+    online.transport.connectTo(online.hostPeerId);
+  } catch (e) {
+    return false;
+  }
+  // Say who we are and take our seat back; the host reopened it when we went.
+  setTimeout(function() {
+    if (!online.guest) return;
+    online.guest.hello();
+    if (online.mySeat !== null && online.mySeat !== undefined) {
+      online.guest.claim(online.mySeat);
+    }
+  }, 1200);
+  return true;
+}
+
+/* Coming back to the page. Timers in a hidden tab are throttled to almost
+   nothing, so both sides can time each other out while the connection is
+   perfectly good — which is why a game left alone came back claiming everyone
+   had disconnected. The clocks are forgiven, and if the connection really did
+   go, this is the moment to rebuild it. */
+function onPageVisible() {
+  if (document.hidden) return;
+  if (online.host) online.host.nudge(Date.now());
+  else if (online.guest) {
+    online.guest.nudge(Date.now());
+    if (online.pausedSeat !== null || online.rejoinTries) rejoin();
+  }
+}
+document.addEventListener("visibilitychange", onPageVisible);
+window.addEventListener("focus", onPageVisible);
+window.addEventListener("pageshow", onPageVisible);
+
 /* ---------------------------------------------------- drops and pauses */
 /* Whether there is still a game to interrupt. PAUSED_WIN does not count: that
    is the "play on?" prompt, and the game is very much still going. */
@@ -596,6 +651,7 @@ function onSeatDropped(seatId, name) {
 
 function onSeatReturned(seatId) {
   online.pausedSeat = null;
+  online.rejoinTries = 0;
   if (online.mode === "host" && seatId !== undefined && seatId !== null) {
     online.config.seatKinds[seatId] = "remote";
   }

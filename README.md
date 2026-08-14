@@ -144,6 +144,13 @@ the first place.
   strangers.
 - If someone drops, the game pauses and waits. They can rejoin with the same code
   and pick their seat back up, or the host can hand it to the computer.
+- **A backgrounded tab is not a disconnection.** Browsers throttle timers in a
+  hidden tab to almost nothing, so both sides stop hearing from each other while
+  the connection is fine — which used to leave a game left alone reporting that
+  everybody had disconnected, with no way back. Returning to the page forgives
+  the silence rather than counting it, and a guest whose connection really did go
+  redials the host up to four times and takes its seat back before anyone is told
+  anything is wrong.
 - Matchmaking runs on PeerJS's free public cloud. It occasionally has downtime,
   and when it does a room code simply will not connect.
 - **There is no TURN relay.** STUN tells each browser its own public address and

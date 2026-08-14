@@ -226,6 +226,16 @@
       pushSeats: pushSeats,
       note: note,
       seats: seatsPayload,
+      /* A backgrounded tab has its timers throttled to almost nothing, so both
+         sides stop hearing from each other while nothing is actually wrong.
+         Coming back to the page therefore forgives the silence rather than
+         counting it: the clocks restart from now. */
+      nudge: function (at) {
+        at = at === undefined ? now() : at;
+        Object.keys(peers).forEach(function (pid) { peers[pid].lastSeen = at; });
+        transport.broadcast({ t: M.PING });
+      },
+
       peerCount: function () { return Object.keys(peers).length; },
       isPaused: function () { return paused; },
       pausedSeat: function () { return pausedFor; },
@@ -370,6 +380,19 @@
         var mine = (seats || []).filter(function (s) { return s.peerId === selfId; })[0];
         return mine ? mine.id : null;
       },
+      /* As above. Also clears a host we had given up on, because the silence
+         we counted was our own tab being asleep. */
+      nudge: function (at) {
+        at = at === undefined ? now() : at;
+        hostLastSeen = at;
+        startedAt = at;
+        if (hostLost) {
+          hostLost = false;
+          if (opts.onHostBack) opts.onHostBack();
+        }
+        transport.broadcast({ t: M.PING });
+      },
+
       seat: function () { return mySeat; },
       setSeat: function (s) { mySeat = s; },
       sendIntent: function (intent) {

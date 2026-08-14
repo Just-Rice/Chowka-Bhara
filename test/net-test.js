@@ -816,6 +816,86 @@ check('and the heartbeat stops rather than beating at nobody',
       /if \(gameIsOver\(\)\) return stopHeartbeat\(\);/.test(overSrc));
 check('there is something to stop it with', /function stopHeartbeat/.test(overSrc));
 
+/* --------------------------------------- a tab that went to sleep ------- */
+
+/* Timers in a hidden tab are throttled to almost nothing, so both sides stop
+   hearing from each other while the connection is perfectly good. Counting that
+   silence is what left a game claiming everybody had disconnected. */
+var wakeNet = Net.createFakeNetwork({ schedule: schedule });
+var wakeH = wakeNet.endpoint('WH'), wakeG = wakeNet.endpoint('WG');
+var wakeGame = makeGame(['local', 'open']);
+var wakePauses = [];
+/* A clock we control, so "an hour later" is a value rather than a wait. */
+var t0 = 1000000;
+var clock = t0;
+function nowStub() { return clock; }
+var wakeHost = Net.createHost({
+  transport: wakeH, game: wakeGame, now: nowStub,
+  onPaused: function (seatId) { wakePauses.push(seatId); }
+});
+var hostGone = 0, hostBack = 0;
+var wakeGuest = Net.createGuest({
+  transport: wakeG, name: 'W', selfPeerId: 'WG', now: nowStub,
+  onHostLost: function () { hostGone++; },
+  onHostBack: function () { hostBack++; }
+});
+wakeNet.connect('WH', 'WG');
+pump();
+wakeG.broadcast({ t: Net.M.CLAIM, seatId: 1 });
+pump();
+
+/* An hour of nothing, because nothing was running. */
+wakeGuest.tick(t0);
+pump();
+wakeGuest.tick(t0 + 60 * 60 * 1000);
+pump();
+check('a long silence does look like a lost host', hostGone >= 1, String(hostGone));
+
+/* Coming back to the page forgives it rather than counting it. */
+hostBack = 0;
+wakeGuest.nudge(t0 + 60 * 60 * 1000 + 10);
+pump();
+check('waking the page says the host is back', hostBack === 1, String(hostBack));
+
+var goneBefore = hostGone;
+wakeGuest.tick(t0 + 60 * 60 * 1000 + 20);
+pump();
+check('and the clock restarts rather than firing again',
+      hostGone === goneBefore, hostGone + ' vs ' + goneBefore);
+
+/* The host forgives its guests in the same way. */
+wakePauses.length = 0;
+wakeHost.tick(t0 + 2 * 60 * 60 * 1000);
+pump();
+check('a host also times out a guest that went quiet', wakePauses.length === 1,
+      JSON.stringify(wakePauses));
+
+var idleNet = Net.createFakeNetwork({ schedule: schedule });
+var iH = idleNet.endpoint('IH2'), iG = idleNet.endpoint('IG2');
+var idlePauses = [];
+var idleHost = Net.createHost({ transport: iH, game: makeGame(['local', 'open']),
+                                now: nowStub,
+                                onPaused: function (s2) { idlePauses.push(s2); } });
+Net.createGuest({ transport: iG, name: 'I', selfPeerId: 'IG2', now: nowStub });
+idleNet.connect('IH2', 'IG2');
+pump();
+iG.broadcast({ t: Net.M.CLAIM, seatId: 1 });
+pump();
+idleHost.nudge(t0 + 2 * 60 * 60 * 1000);
+idleHost.tick(t0 + 2 * 60 * 60 * 1000 + 10);
+pump();
+check('but not one it has just been woken beside', idlePauses.length === 0,
+      JSON.stringify(idlePauses));
+
+/* And the guest dials back rather than sitting on a message. */
+var onlineSrc2 = read('js/online.js');
+check('a lost host is redialled before anyone is told',
+      /if \(rejoin\(\)\) return;/.test(onlineSrc2));
+check('the redial gives up eventually', /rejoinTries > 4/.test(onlineSrc2));
+check('and takes its seat back', /online\.guest\.claim\(online\.mySeat\)/.test(onlineSrc2));
+check('coming back to the page is what triggers it',
+      /visibilitychange/.test(onlineSrc2) && /function onPageVisible/.test(onlineSrc2));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');
