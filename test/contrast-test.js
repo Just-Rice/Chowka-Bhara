@@ -87,6 +87,38 @@ if (panel && inkText) {
   check('sidebar text reads against the panel', r >= 7, r.toFixed(2) + ':1');
 }
 
+/* Every control on the mat has to be readable against it. The New game button
+   was wearing colours meant for the dark win overlay, which put it at 1.01:1
+   against the panel under high contrast — the background colour, in the mode
+   that exists to prevent exactly that. */
+var tokens = read('css/tokens.css');
+var GROUNDS = {
+  'the ordinary mat': /--mat:\s*(#[0-9a-fA-F]{6})/.exec(tokens),
+  'the high-contrast mat': /--mat:\s*(#[0-9a-fA-F]{6})/.exec(css)
+};
+var INKS = {
+  'the ordinary mat': /--ink-text:\s*(#[0-9a-fA-F]{6})/.exec(tokens),
+  'the high-contrast mat': /--ink-text:\s*(#[0-9a-fA-F]{6})/.exec(css)
+};
+Object.keys(GROUNDS).forEach(function (where) {
+  var ground = GROUNDS[where], ink = INKS[where];
+  if (!ground || !ink) { fails.push('no mat or ink colour for ' + where); return; }
+  var r = ratio(ink[1], ground[1]);
+  check('a control on ' + where + ' reads against it', r >= 4.5, r.toFixed(2) + ':1');
+});
+
+/* And it must not go back to borrowing the overlay's palette. */
+var sidebarCss = read('css/online.css');
+var block = /\.new-game-btn\s*\{[^}]*\}/.exec(sidebarCss);
+check('the New game button has a colour of its own', !!block);
+if (block) {
+  check('and does not use the dim overlay text on the pale mat',
+        block[0].indexOf('khaki-text-dim') < 0, block[0].slice(0, 120));
+  check('and has a fill and a solid edge like every other sidebar button',
+        /background:\s*rgba/.test(block[0]) && /1\.5px solid/.test(block[0]),
+        block[0].slice(0, 120));
+}
+
 /* Nothing may leak into the ordinary look. */
 var selectors = css.match(/^\.[^{@\/\s][^{]*\{/gm) || [];
 var unscoped = selectors.filter(function (s) { return s.indexOf('.hc') !== 0; });

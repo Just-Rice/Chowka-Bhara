@@ -797,6 +797,25 @@ check('and what comes back is what the game decided, not what was asked',
 check('so no two seats share one', seenSeats &&
       seenSeats[0].colour !== seenSeats[1].colour);
 
+/* ------------------------------------------- after the final result ----- */
+
+/* Somebody closing their tab once the game is finished is the expected end of
+   an evening, not an interruption. Announcing it minutes later reads as
+   something having gone wrong when nothing has. */
+var overSrc = read('js/online.js');
+var dropAt = overSrc.indexOf('function onSeatDropped');
+check('a drop is not announced once the result is in',
+      /if \(gameIsOver\(\)\) return;/.test(overSrc.slice(dropAt, dropAt + 700)),
+      'onSeatDropped runs regardless of whether the game finished');
+check('nor is losing the host',
+      /if \(gameIsOver\(\)\) return;\s*\/\/ the game is done/.test(overSrc));
+check('the "play on?" prompt does not count as finished',
+      /PAUSED_WIN does not count/.test(overSrc),
+      'a game paused on the win prompt is still a game');
+check('and the heartbeat stops rather than beating at nobody',
+      /if \(gameIsOver\(\)\) return stopHeartbeat\(\);/.test(overSrc));
+check('there is something to stop it with', /function stopHeartbeat/.test(overSrc));
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

@@ -530,6 +530,7 @@ function startJoining(code) {
           if (state) { state.lastRoll = result; animateShells(result); }
         },
         onHostLost: function() {
+          if (gameIsOver()) return;      // the game is done; so is the host
           setLobbyError(t("err.hostLost"));
           onSeatDropped(null, t("pause.host"));
         },
@@ -566,7 +567,19 @@ function onGuestSnapshot(snap) {
 }
 
 /* ---------------------------------------------------- drops and pauses */
+/* Whether there is still a game to interrupt. PAUSED_WIN does not count: that
+   is the "play on?" prompt, and the game is very much still going. */
+function gameIsOver() {
+  return !!state && state.turnState === "GAME_OVER";
+}
+
 function onSeatDropped(seatId, name) {
+  /* Once the game is finished, somebody closing their tab is not news — it is
+     the expected end of an evening. Telling you the other player dropped out,
+     minutes after you both saw the result, reads as something having gone
+     wrong when nothing has. */
+  if (gameIsOver()) return;
+
   online.pausedSeat = seatId;
   // Reopen the seat so the same player can walk back into it.
   if (online.mode === "host") online.config.seatKinds[seatId] = "open";
@@ -593,9 +606,17 @@ function onSeatReturned(seatId) {
 
 // Both sides beat every couple of seconds; the other end drops you after
 // roughly seven seconds of silence.
-function startHeartbeat() {
+function stopHeartbeat() {
   if (online.beat) clearInterval(online.beat);
+  online.beat = null;
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
   online.beat = setInterval(function() {
+    // Nothing to keep watch over once the result is in, and every beat is
+    // relayed traffic somebody is paying for.
+    if (gameIsOver()) return stopHeartbeat();
     if (online.host) online.host.tick(Date.now());
     else if (online.guest) online.guest.tick(Date.now());
   }, 2000);

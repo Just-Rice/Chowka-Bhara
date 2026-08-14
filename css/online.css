@@ -333,17 +333,23 @@
   .log-line { opacity:0.85; }
   .log-line:last-child { opacity:1; font-weight:600; }
 
+  /* This sits on the pale mat and only ever has. It was wearing colours meant
+     for the dark win overlay — pale khaki text on a pale ground, which measured
+     1.11:1, and 1.01:1 under high contrast, where the token it borrowed goes
+     almost white. That is the background colour, in the mode that exists to
+     stop exactly this. It now matches every other button in the sidebar. */
   .new-game-btn {
-    background:none;
-    border: 1px solid rgba(236,223,192,0.5);
-    color: var(--khaki-text-dim);
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size:0.78rem;
-    display:block;
-    margin: 14px auto 0;
+    border: 1.5px solid var(--mat-edge);
+    color: var(--ink-text);
+    background: rgba(255,255,255,0.34);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: block;
+    margin: 0;
   }
-  .new-game-btn:hover { color: var(--khaki-text); border-color: var(--khaki-text); }
+  .new-game-btn:hover { background: rgba(255,255,255,0.62); }
 
   /* ============================= WIN OVERLAY ============================= */
   #win-overlay {
