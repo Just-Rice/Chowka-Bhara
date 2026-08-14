@@ -638,7 +638,11 @@
    */
   var RELAY = {
     app: "chowka-bhara",
-    key: "",          // an API key, and the credentials are fetched with it
+    key: "903710510cc10e1b455217a78eaeade1ad1f",
+                      // A credential-scoped key. Metered documents this one as safe
+                      // for front-end use — it can only fetch an ICE config. The
+                      // account secretKey, which can create and delete credentials,
+                      // is not here and must never be.
     servers: []       // or a ready-made list, pasted straight from the dashboard
   };
 

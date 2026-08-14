@@ -155,13 +155,22 @@ the first place.
   answers on no port. They were removed rather than left in, because a dead
   relay is worse than none — the browser waits on it during gathering and gets
   nothing back.
-- The game is **wired for Metered**. Fill in `RELAY` at the top of `js/net.js`
-  with the app subdomain and API key from the dashboard and cross-network play
-  becomes reliable; leave it blank and the game behaves as it does now.
-  Credentials are fetched at connect time rather than written down, because
-  Metered issues short-lived ones, and every way that fetch can fail — no key,
-  refused, an HTTP error, an empty answer, no answer within four seconds — falls
-  back to STUN rather than stopping a game from starting.
+- **A Metered relay is configured**, so a connection that cannot be made
+  directly is carried by a relay instead. `RELAY` at the top of `js/net.js`
+  holds the app subdomain and a credential-scoped `apiKey`; the ICE servers are
+  fetched with it at connect time, because Metered issues short-lived
+  credentials and a fetched one is always current.
+- Metered issues **three kinds of key** and only one of them belongs in a public
+  file. The `apiKey` here is credential-scoped and can do nothing but fetch an
+  ICE config. The account `secretKey` — which creates and deletes credentials —
+  lives in Dashboard → Developers and must never be committed; a test fails if
+  anything is ever assigned to one in the files the site serves. Note that an
+  `apiKey` does not exist until a credential is created, which is why an
+  otherwise valid-looking account gives `401 Invalid API Key`.
+- Every way the fetch can fail — no key, refused, an HTTP error, an empty
+  answer, no answer within four seconds — falls back to STUN rather than
+  stopping a game from starting. A ready-made server list can be pasted into
+  `RELAY.servers` instead, and is then used with no request at all.
 - The lobby's connection log says which kinds of route were found. `host` and
   `srflx` mean the two are trying to reach each other directly; `relay` means a
   TURN server answered. A log that reaches `network path: disconnected` without

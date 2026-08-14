@@ -651,10 +651,24 @@ var urls = JSON.stringify(Net.ICE.iceServers);
 });
 check('several STUN servers are offered', (urls.match(/stun:/g) || []).length >= 3,
       String((urls.match(/stun:/g) || []).length));
-check('the relay slot is still there to be filled in',
-      /var RELAY = \{/.test(netSource) && /key:\s*"/.test(netSource) &&
-      /servers:\s*\[/.test(netSource),
-      'RELAY no longer offers both a key and a server list');
+/* A relay is configured now, so the checks are about it being the right kind of
+   secret. Metered issues three: a credential-scoped apiKey that can do nothing
+   but fetch an ICE config, and two account- and project-scoped keys that can
+   create and delete credentials. Only the first belongs in a file the whole
+   internet can read. */
+check('a relay is configured', /key: "\w{8,}"/.test(netSource),
+      'RELAY.key is empty');
+check('and the file still takes a pasted server list too',
+      /servers:\s*\[/.test(netSource));
+/* Prose about the secret is fine and worth having; a value assigned to one is
+   the thing that must never appear. */
+check('no account secret is assigned in here',
+      !/secretKey\s*[:=]\s*["'][^"']{8,}/.test(netSource),
+      'something is assigned to a secretKey in net.js');
+check('nor anywhere else the site serves',
+      ['js/online.js', 'js/main.js', 'index.html'].every(function (f) {
+        return !/secretKey\s*[:=]\s*["'][^"']{8,}/.test(read(f));
+      }));
 
 /* Credentials are fetched, because Metered issues short-lived ones. What
    matters is that no way of failing can stop a game starting: every path below
