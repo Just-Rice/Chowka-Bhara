@@ -98,7 +98,19 @@ function grab(name) {
 
 eval(['ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC',
       'rotatePath', 'piecesPerPlayer', 'buildSafeCells',
-      'renderSidebar'].map(grab).join('\n'));
+      'renderSidebar', 'logSnapshot', 'historyGoTo', 'historyStep',
+      'historyLive', 'historyLiveAgain', 'showShells'].map(grab).join('\n'));
+
+/* render.js keeps these at the top of the file rather than inside a function,
+   so they are declared here to match. */
+var logEntries = [];
+var history = { viewing: null };
+function updateCellDensity() {}
+function renderHistory() {}
+function updateUI() {}
+/* Lives in online.js. Redrawing the sidebar puts every piece where the game
+   says it is, which is the same thing for the purposes of these checks. */
+function syncTokensToState() { renderSidebar(); }
 
 // Everything renderSidebar leans on that is not the thing being tested.
 function renderRoster() {}
@@ -153,6 +165,7 @@ function makeState(N, numPlayers) {
 }
 
 function tokens() { return document.querySelectorAll('.token'); }
+function syncTokens() { renderSidebar(); }
 function tokensIn(id) {
   var host = document.getElementById(id);
   return host ? host.children.filter(function (c) {
@@ -360,6 +373,75 @@ check('including the name', SEATS.nameOf(0) === 'Ravi', SEATS.nameOf(0));
 SEATS.useRemote(null);
 check('and a local game goes back to its own choices',
       SEATS.colourOf(0) === 'p-areca', SEATS.colourOf(0));
+
+/* ------------------------------------------------- reading it back ------ */
+
+/* Stepping through the log has to move the pieces and the cowries, because the
+   board is what you are reading. It must also be able to come back. */
+buildBoard(5);
+state = makeState(5, 2);
+state.players.forEach(function (p) { p.colorVar = SEATS.colourOf(p.id); });
+renderSidebar();
+
+/* Three moments: everyone at home, one piece out, that piece further out. */
+logEntries = [];
+state.lastRoll = { shells: [true, false, true, false] };
+logEntries.push({ key: 'a', params: {}, at: logSnapshot() });
+
+state.players[0].pieces[0].pathIndex = 4;
+state.lastRoll = { shells: [false, false, false, false] };
+logEntries.push({ key: 'b', params: {}, at: logSnapshot() });
+
+state.players[0].pieces[0].pathIndex = 9;
+state.players[0].pieces[1].status = 'finished';
+state.lastRoll = { shells: [true, true, true, true] };
+logEntries.push({ key: 'c', params: {}, at: logSnapshot() });
+
+check('a line remembers where every piece stood',
+      logEntries[2].at.pieces[0][0] === 9 && logEntries[2].at.pieces[0][1] === -1,
+      JSON.stringify(logEntries[2].at.pieces[0]));
+check('and what the cowries showed',
+      logEntries[0].at.shells.join() === 'true,false,true,false',
+      String(logEntries[0].at.shells));
+
+/* Put the board where it is now, then walk back. */
+syncTokens();
+check('the game starts out showing the present', historyLive());
+
+historyGoTo(0);
+check('stepping back is no longer the present', !historyLive());
+var start = state.players[0].path[0];
+check('and the pieces go back with it',
+      tokensIn('pieces-' + start[0] + '-' + start[1]) === 4,
+      String(tokensIn('pieces-' + start[0] + '-' + start[1])));
+
+historyStep(1);
+check('forward one moves on', history.viewing === 1, String(history.viewing));
+var four = state.players[0].path[4];
+check('and the piece is where that line left it',
+      tokensIn('pieces-' + four[0] + '-' + four[1]) === 1,
+      String(tokensIn('pieces-' + four[0] + '-' + four[1])));
+
+historyStep(-5);
+check('walking back past the beginning stops there', history.viewing === 0);
+historyStep(9);
+check('and forward past the end stops at the last line',
+      history.viewing === logEntries.length - 1, String(history.viewing));
+
+historyGoTo(0);
+historyLiveAgain();
+check('coming back to now says so', historyLive());
+var nine = state.players[0].path[9];
+check('and puts the pieces where the game says they are',
+      tokensIn('pieces-' + nine[0] + '-' + nine[1]) === 1,
+      String(tokensIn('pieces-' + nine[0] + '-' + nine[1])));
+check('including the one that finished', tokensIn('finished-0') === 1,
+      String(tokensIn('finished-0')));
+
+/* A line written before there was a board cannot be stepped to. */
+logEntries.push({ key: 'd', params: {}, at: null });
+historyGoTo(logEntries.length - 1);
+check('a line with no position behind it is not jumped to', historyLive());
 
 /* -------------------------------------------------------------- report --- */
 

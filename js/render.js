@@ -200,7 +200,7 @@ function updateUI() {
   var mine = controlsSeat(player.id);
   var rollBtn = document.getElementById("roll-btn");
   rollBtn.disabled = state.busy || !mine || online.pausedSeat !== null ||
-                     state.turnState !== "AWAITING_ROLL";
+                     state.turnState !== "AWAITING_ROLL" || !historyLive();
   rollBtn.textContent =
       !mine ? (player.isCPU ? t("btn.computerPlaying")
                             : t("btn.waitingFor", { name: playerName(player.id) }))
@@ -261,18 +261,104 @@ function updateUI() {
 // event in Spanish.
 var logEntries = [];
 
-function addLog(key, params) {
-  logEntries.push({ key: key, params: params || {} });
+/* Where every piece stood and what the cowries showed when this line was
+   written. A few dozen small numbers, so six hundred of them cost nothing, and
+   it is what lets the log be stepped through rather than only read. */
+function logSnapshot() {
+  if (typeof state === "undefined" || !state) return null;
+  return {
+    pieces: state.players.map(function (p) {
+      return p.pieces.map(function (pc) {
+        return pc.status === "finished" ? -1 : pc.pathIndex;
+      });
+    }),
+    shells: state.lastRoll ? state.lastRoll.shells.slice() : null,
+    turn: state.currentPlayerIndex
+  };
+}
+
+function pushLog(key, params) {
+  logEntries.push({ key: key, params: params || {}, at: logSnapshot() });
   if (logEntries.length > 600) logEntries.shift();
+  // Reading the past while it grows is confusing; new lines return you to now.
+  history.viewing = null;
   renderLog();
+}
+
+function addLog(key, params) {
+  pushLog(key, params);
   // The host is the only one that generates events, so it relays them.
   if (online.mode === "host" && online.host) online.host.note(key, params || {});
 }
 
 function addRemoteLog(key, params) {
-  logEntries.push({ key: key, params: params || {} });
-  if (logEntries.length > 600) logEntries.shift();
-  renderLog();
+  pushLog(key, params);
+}
+
+/* ============================= LOOKING BACK ============================= */
+
+/* Stepping through the log moves the pieces and the cowries on the real board,
+   because that is the board you are trying to read. Nothing here touches the
+   game itself: only where the tokens are drawn, and only until you come back to
+   the present. */
+var history = { viewing: null };
+
+function historyLive() { return history.viewing === null; }
+
+function showShells(shells) {
+  var tray = document.querySelectorAll(".shell");
+  Array.prototype.forEach.call(tray, function (el, i) {
+    el.classList.remove("flipping");
+    var up = shells && shells[i];
+    el.classList.toggle("up", !!up);
+    el.classList.toggle("down", !up);
+  });
+}
+
+function historyGoTo(index) {
+  if (!logEntries.length) return;
+  index = Math.max(0, Math.min(index, logEntries.length - 1));
+  var entry = logEntries[index];
+  if (!entry || !entry.at) return;      // a line from before a board existed
+
+  history.viewing = index;
+
+  entry.at.pieces.forEach(function (positions, playerId) {
+    var player = state.players[playerId];
+    if (!player) return;
+    positions.forEach(function (at, pieceId) {
+      var token = document.getElementById("token-p" + playerId + "-" + pieceId);
+      if (!token) return;
+      var home = at < 0
+        ? document.getElementById("finished-" + playerId)
+        : (function () {
+            var rc = player.path[at];
+            return rc ? document.getElementById("pieces-" + rc[0] + "-" + rc[1]) : null;
+          })();
+      if (home) home.appendChild(token);
+    });
+  });
+
+  showShells(entry.at.shells);
+  updateCellDensity();
+  renderHistory();
+  updateUI();
+}
+
+function historyStep(delta) {
+  var from = history.viewing === null ? logEntries.length - 1 : history.viewing;
+  historyGoTo(from + delta);
+}
+
+/* Back to now: the pieces where the game says they are, the cowries showing the
+   throw that actually stands. */
+function historyLiveAgain() {
+  history.viewing = null;
+  syncTokensToState();
+  showShells(state && state.lastRoll ? state.lastRoll.shells : null);
+  updateCellDensity();
+  renderHistory();
+  updateUI();
 }
 
 /* The same entries the sidebar shows, all of them, numbered, in a panel you can
@@ -291,12 +377,48 @@ function renderHistory() {
     return;
   }
 
-  logEntries.forEach(function(entry) {
+  logEntries.forEach(function(entry, i) {
     var li = document.createElement("li");
-    li.className = "history-line";
+    li.className = "history-line" + (history.viewing === i ? " here" : "");
     li.textContent = logText(entry);
+    // Any line can be jumped to directly; the arrows are for walking.
+    if (entry.at) {
+      li.tabIndex = 0;
+      li.addEventListener("click", function () { historyGoTo(i); });
+      li.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); historyGoTo(i); }
+      });
+    }
     list.appendChild(li);
   });
+
+  if (history.viewing !== null) {
+    var here = list.children[history.viewing];
+    if (here && here.scrollIntoView) here.scrollIntoView({ block: "nearest" });
+  }
+  renderHistoryControls();
+}
+
+/* The arrows, and a word on whether you are looking at now or at then. */
+function renderHistoryControls() {
+  var at = history.viewing === null ? logEntries.length - 1 : history.viewing;
+  var where = document.getElementById("history-where");
+  if (where) {
+    where.textContent = historyLive()
+      ? t("history.live")
+      : t("history.at", { n: at + 1, total: logEntries.length });
+    where.classList.toggle("past", !historyLive());
+  }
+  var back = document.getElementById("history-back");
+  var fwd = document.getElementById("history-forward");
+  var now = document.getElementById("history-now");
+  if (back) back.disabled = !logEntries.length || at <= 0;
+  if (fwd) fwd.disabled = historyLive() || at >= logEntries.length - 1;
+  if (now) now.disabled = historyLive();
+
+  // The board says so too, since that is where you are looking.
+  var banner = document.getElementById("history-banner");
+  if (banner) banner.hidden = historyLive();
 }
 
 /* One entry as a sentence. Names are stored as seats and numbers as numbers, so

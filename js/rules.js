@@ -103,7 +103,7 @@ function renderPool() {
     var btn = document.createElement("button");
     btn.className = "pool-chip" +
       (chip.id === state.selectedChipId ? " selected" : "");
-    btn.disabled = !playableIds[chip.id] || state.busy ||
+    btn.disabled = !playableIds[chip.id] || state.busy || !historyLive() ||
       !controlsSeat(state.currentPlayerIndex) || online.pausedSeat !== null;
     btn.innerHTML = chip.value +
       (playableIds[chip.id] ? "" : '<span class="chip-sub">' + t("pool.noMove") + '</span>');

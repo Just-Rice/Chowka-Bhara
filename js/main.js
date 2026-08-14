@@ -112,6 +112,11 @@ on("howto-btn", "click", function() {
   el("howto-drawer").classList.remove("hidden");
 });
 
+on("history-back", "click", function() { historyStep(-1); });
+on("history-forward", "click", function() { historyStep(1); });
+on("history-now", "click", historyLiveAgain);
+on("history-banner-now", "click", historyLiveAgain);
+
 on("history-btn", "click", function() {
   renderHistory();
   el("history-drawer").classList.remove("hidden");
@@ -119,7 +124,10 @@ on("history-btn", "click", function() {
   var list = el("history-list");
   if (list && list.parentNode) list.parentNode.scrollTop = list.parentNode.scrollHeight;
 });
-function closeHistory() { el("history-drawer").classList.add("hidden"); }
+function closeHistory() {
+  el("history-drawer").classList.add("hidden");
+  if (!historyLive()) historyLiveAgain();   // closing means coming back
+}
 on("history-close", "click", closeHistory);
 on("history-backdrop", "click", closeHistory);
 function closeHowTo() { el("howto-drawer").classList.add("hidden"); }

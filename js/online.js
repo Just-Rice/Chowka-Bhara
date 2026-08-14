@@ -79,6 +79,10 @@ function serializeState() {
 // Put every token in the container its state says it belongs to. Guests do
 // not animate hops — they are shown the result, which cannot desync.
 function syncTokensToState() {
+  // While the log is being read back, the tokens are showing a past position
+  // on purpose. A snapshot arriving from the host, or the computer taking its
+  // turn, must not yank the board out from under that.
+  if (typeof history !== "undefined" && history && history.viewing !== null) return;
   state.players.forEach(function(p) {
     p.pieces.forEach(function(pc) {
       var token = el("token-p" + p.id + "-" + pc.id);

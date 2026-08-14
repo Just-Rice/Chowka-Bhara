@@ -188,6 +188,8 @@ function beginSpending() {
 }
 
 function onTokenClick(playerId, pieceId, fromCPU) {
+  // The pieces on screen are a past position, not the one you would be moving.
+  if (typeof historyLive === "function" && !historyLive()) return;
   if (state.busy) return;
   if (state.turnState !== "AWAITING_MOVE") return;
   if (playerId !== state.currentPlayerIndex) return;
