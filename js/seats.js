@@ -191,8 +191,10 @@ var SEATS = {
 
   visibleCount: function () {
     if (typeof state !== "undefined" && state) return state.players.length;
-    var picked = document.querySelector('input[name="num-players"]:checked');
-    return picked ? parseInt(picked.value, 10) : 2;
+    // Before a game there is only the setup screen to ask, and the table there
+    // is the humans and the computers added together.
+    if (typeof setupSeatCount === "function") return setupSeatCount();
+    return 2;
   },
 
   /* Rendered into every slot that asks for it — the settings panel, and the

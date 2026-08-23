@@ -239,20 +239,42 @@ on("pause-quit-btn", "click", function() {
   location.reload();
 });
 
-// Asking for more computers than there are seats is meaningless, so the
-// choices above the current player count are disabled rather than silently
-// clamped at Begin.
-function syncCPUOptions() {
-  var numPlayers = parseInt(document.querySelector('input[name="num-players"]:checked').value, 10);
-  [0, 1, 2, 3].forEach(function(n) {
-    var input = document.getElementById("cpu-" + n);
-    var tooMany = n > numPlayers;
-    input.disabled = tooMany;
-    if (tooMany && input.checked) document.getElementById("cpu-0").checked = true;
+/* The two counts on the setup screen are halves of one number: the humans and
+   the computers sit down at the same table, and the game only deals tables of
+   two or four. So a computer count is offered only when it adds up to one of
+   those — one human is given one computer or three, never two, because that
+   would seat three players on three consecutive sides. The count it starts on
+   is the smallest table the humans can make, which for a single player is a
+   game against the computer. */
+function cpuChoicesFor(numHumans) {
+  var allowed = [0, 1, 2, 3].filter(function(n) {
+    var seats = numHumans + n;
+    return seats === 2 || seats === 4;
   });
+  return { allowed: allowed, preferred: allowed.length ? allowed[0] : 0 };
+}
+
+// A count with no table for it is disabled rather than silently clamped at
+// Begin, and the choice moves to a workable one rather than staying on a
+// pressed option that no longer means anything.
+function syncCPUOptions() {
+  var numHumans = parseInt(document.querySelector('input[name="num-players"]:checked').value, 10);
+  var choice = cpuChoicesFor(numHumans);
+  var picked = document.querySelector('input[name="num-cpu"]:checked');
+  var numCPU = picked ? parseInt(picked.value, 10) : -1;
+
+  if (choice.allowed.indexOf(numCPU) < 0) {
+    numCPU = choice.preferred;
+    document.getElementById("cpu-" + numCPU).checked = true;
+  }
+  [0, 1, 2, 3].forEach(function(n) {
+    document.getElementById("cpu-" + n).disabled = choice.allowed.indexOf(n) < 0;
+  });
+
   // Skill is meaningless with nobody to apply it to.
-  var numCPU = parseInt(document.querySelector('input[name="num-cpu"]:checked').value, 10);
   document.getElementById("cpu-skill-section").hidden = numCPU === 0;
+  // The table just changed size, so the seat rows have to follow it.
+  if (typeof SEATS !== "undefined") SEATS.build();
 }
 Array.prototype.forEach.call(
   document.querySelectorAll('input[name="num-players"], input[name="num-cpu"]'),

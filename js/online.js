@@ -300,11 +300,25 @@ function refreshLobbyText() {
   renderDiag();
 }
 
+function setupChoice(name, fallback) {
+  var picked = document.querySelector('input[name="' + name + '"]:checked');
+  return picked ? parseInt(picked.value, 10) : fallback;
+}
+
+/* How many are at the table: the humans plus the computers filling the rest of
+   it. Every screen that needs a seat count asks here, so the two controls can
+   never be read as two separate tables. Online, the computers stand in for the
+   seats left open — a guest who joins takes one of them. */
+function setupSeatCount() {
+  return setupChoice("num-players", 1) + setupChoice("num-cpu", 1);
+}
+
 function readSetup() {
   return {
     N: parseInt(document.querySelector('input[name="board-size"]:checked').value, 10),
-    numPlayers: parseInt(document.querySelector('input[name="num-players"]:checked').value, 10),
-    numCPU: parseInt(document.querySelector('input[name="num-cpu"]:checked').value, 10),
+    numHumans: setupChoice("num-players", 1),
+    numPlayers: setupSeatCount(),
+    numCPU: setupChoice("num-cpu", 1),
     // Each playing tab has its own skill control, so read the one on show.
     cpuSkill: document.querySelector(
       currentMode() === "host" ? 'input[name="host-skill"]:checked'

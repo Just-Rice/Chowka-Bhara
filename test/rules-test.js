@@ -323,12 +323,38 @@ check('a stray count is rounded to a real table',
       seatCount(0) === 2 && seatCount(9) === 4,
       [0, 2, 3, 4, 9].map(seatCount).join(' '));
 
-/* And the setup screen must not offer what the game will not deal. */
+/* And the setup screen must not offer what the game will not deal. Humans and
+   computers are counted separately there, so what has to hold is that no
+   pairing it allows adds up to a table of three. */
 var markup = read('index.html');
-check('the setup screen offers two and four only',
-      (markup.match(/name="num-players"/g) || []).length === 2,
-      (markup.match(/name="num-players"/g) || []).length + ' options');
+check('the setup screen offers one, two and four humans',
+      ['np-1', 'np-2', 'np-4'].every(function (id) {
+        return markup.indexOf('id="' + id + '"') >= 0;
+      }));
 check('and three is not among them', markup.indexOf('id="np-3"') < 0);
+
+/* A player who opens the page and presses Begin should be playing the computer,
+   not staring at a hotseat game they have nobody to play. */
+check('it opens on one human and one computer',
+      /id="np-1"[^>]*\bchecked\b/.test(markup) && /id="cpu-1"[^>]*\bchecked\b/.test(markup) &&
+      !/id="np-2"[^>]*\bchecked\b/.test(markup) && !/id="cpu-0"[^>]*\bchecked\b/.test(markup));
+
+eval(grab('cpuChoicesFor'));
+[1, 2, 4].forEach(function (humans) {
+  var choice = cpuChoicesFor(humans);
+  var tag = humans + ' human' + (humans === 1 ? '' : 's') + ': ';
+  check(tag + 'every computer count offered seats a real table',
+        choice.allowed.length > 0 && choice.allowed.every(function (c) {
+          return humans + c === 2 || humans + c === 4;
+        }), JSON.stringify(choice.allowed));
+  check(tag + 'the count it starts on is one of them',
+        choice.allowed.indexOf(choice.preferred) >= 0, String(choice.preferred));
+});
+check('a lone human is given an opponent rather than an empty table',
+      cpuChoicesFor(1).preferred === 1, String(cpuChoicesFor(1).preferred));
+check('two humans are left to each other', cpuChoicesFor(2).preferred === 0);
+check('and a full table has no room for a computer',
+      cpuChoicesFor(4).allowed.join() === '0', cpuChoicesFor(4).allowed.join());
 
 /* ---------------------------------------------------- safe squares ----- */
 
