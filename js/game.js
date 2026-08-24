@@ -272,15 +272,20 @@ function onTokenClick(playerId, pieceId, fromCPU) {
          squares are safe from everyone — but in silence it reads as a piece
          being skipped over, or as a capture that failed. It says so now. */
       if (state.safeCellSet[destKey]) {
+        /* Once for each player standing there, not once for each of their
+           pieces. A safe square holds a whole set at the start of a game and
+           holds pairs all through one, so per-piece meant the same sentence six
+           times over — which buries the line it was written to make. */
         state.players.forEach(function(p) {
           if (p.id === player.id) return;
-          p.pieces.forEach(function(op) {
-            if (op.status !== "active") return;
+          var standing = p.pieces.some(function(op) {
+            if (op.status !== "active") return false;
             var opRC = p.path[op.pathIndex];
-            if (opRC[0] === destRC[0] && opRC[1] === destRC[1]) {
-              addLog("log.safeSquare", { name: player.nameKey, victim: p.nameKey });
-            }
+            return opRC[0] === destRC[0] && opRC[1] === destRC[1];
           });
+          if (standing) {
+            addLog("log.safeSquare", { name: player.nameKey, victim: p.nameKey });
+          }
         });
       }
 

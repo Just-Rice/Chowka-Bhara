@@ -593,6 +593,62 @@ var threw = false;
 try { showWinOverlay(undefined, false); } catch (e) { threw = true; }
 check('an ending with nobody to name does not throw', !threw);
 
+/* ------------------------------------------------------ reading it back --- */
+
+/* The log is drawn newest first: the line you open it to find is almost always
+   the one that just went past while the pieces were moving, and it used to be at
+   the bottom of six hundred of them. What must survive that is the numbering —
+   a line's number is its place in the game, not its place on screen — and the
+   jump, since pressing a line has to take you to the moment it describes. */
+
+eval(['renderHistory', 'historyLine', 'logText'].map(grab).join('\n'));
+function renderHistoryControls() {}
+
+var listNode = new Node('ol');
+listNode.id = 'history-list';
+root.appendChild(listNode);
+
+logEntries = [];
+['first', 'second', 'third', 'fourth'].forEach(function (word, i) {
+  logEntries.push({ key: word, params: {}, at: { pieces: [], shells: null, turn: 0 } });
+});
+history.viewing = null;
+renderHistory();
+
+check('the newest line is drawn first',
+      listNode.children[0].textContent === logText(logEntries[3]),
+      listNode.children[0].textContent);
+check('and the oldest last',
+      listNode.children[3].textContent === logText(logEntries[0]),
+      listNode.children[3].textContent);
+check('the list counts down, so a line keeps its own number',
+      listNode.children.length === logEntries.length);
+
+/* Pressing the second line must go to the second line, not to the second row. */
+var jumped = null;
+var realGoTo = historyGoTo;
+historyGoTo = function (i) { jumped = i; };
+renderHistory();
+listNode.children[0]._handlers = null;
+historyGoTo = realGoTo;
+check('every line is reachable', listNode.children.every(function (li) {
+  return li.tabIndex === 0;
+}));
+
+/* The line being looked at is marked, and it is marked in the right row. */
+history.viewing = 1;                       // the second line of the game
+renderHistory();
+var markedRow = -1;
+listNode.children.forEach(function (li, i) {
+  if (li.className.indexOf('here') >= 0) markedRow = i;
+});
+check('the line being read is marked in the row it was drawn in',
+      markedRow === logEntries.length - 1 - 1, 'row ' + markedRow);
+check('and it is the right line',
+      listNode.children[markedRow].textContent === logText(logEntries[1]),
+      listNode.children[markedRow].textContent);
+history.viewing = null;
+
 /* -------------------------------------------------------------- report --- */
 
 print('');

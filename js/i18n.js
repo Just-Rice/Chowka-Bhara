@@ -153,7 +153,7 @@
 
       "howto.title": "How to play",
       "history.title": "Game log",
-      "history.hint": "Everything that has happened, oldest first — every throw and every capture. The board moves quickly; this does not.",
+      "history.hint": "Everything that has happened, newest first — every throw and every capture. The board moves quickly; this does not.",
       "history.empty": "Nothing yet.",
       "history.now": "Back to now",
       "history.live": "Showing now",
@@ -352,7 +352,7 @@
 
       "howto.title": "ಹೇಗೆ ಆಡುವುದು",
       "history.title": "ಆಟದ ದಾಖಲೆ",
-      "history.hint": "ನಡೆದದ್ದೆಲ್ಲ, ಹಳೆಯದು ಮೊದಲು — ಪ್ರತಿ ಎಸೆತ ಮತ್ತು ಪ್ರತಿ ಹೊಡೆತ. ಹಲಗೆ ಬೇಗ ಸಾಗುತ್ತದೆ; ಇದು ಸಾಗುವುದಿಲ್ಲ.",
+      "history.hint": "ನಡೆದದ್ದೆಲ್ಲ, ಹೊಸತು ಮೊದಲು — ಪ್ರತಿ ಎಸೆತ ಮತ್ತು ಪ್ರತಿ ಹೊಡೆತ. ಹಲಗೆ ಬೇಗ ಸಾಗುತ್ತದೆ; ಇದು ಸಾಗುವುದಿಲ್ಲ.",
       "history.empty": "ಇನ್ನೂ ಏನೂ ಇಲ್ಲ.",
       "history.now": "ಈಗಿನದಕ್ಕೆ ಹಿಂತಿರುಗಿ",
       "history.live": "ಈಗಿನದನ್ನು ತೋರಿಸುತ್ತಿದೆ",
@@ -551,7 +551,7 @@
 
       "howto.title": "कैसे खेलें",
       "history.title": "खेल का ब्योरा",
-      "history.hint": "जो कुछ हुआ, पुराना पहले — हर फेंक और हर मार। बोर्ड तेज़ी से चलता है; यह नहीं।",
+      "history.hint": "जो कुछ हुआ, नया पहले — हर फेंक और हर मार। बोर्ड तेज़ी से चलता है; यह नहीं।",
       "history.empty": "अभी कुछ नहीं।",
       "history.now": "अभी पर लौटें",
       "history.live": "अभी का दिख रहा है",
@@ -750,7 +750,7 @@
 
       "howto.title": "Cómo se juega",
       "history.title": "Registro de la partida",
-      "history.hint": "Todo lo que ha pasado, lo más antiguo primero: cada tirada y cada captura. El tablero va deprisa; esto no.",
+      "history.hint": "Todo lo que ha pasado, lo más reciente primero: cada tirada y cada captura. El tablero va deprisa; esto no.",
       "history.empty": "Todavía nada.",
       "history.now": "Volver al presente",
       "history.live": "Mostrando el presente",

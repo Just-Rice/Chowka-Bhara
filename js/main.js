@@ -119,9 +119,10 @@ on("history-now", "click", historyLiveAgain);
 on("history-btn", "click", function() {
   renderHistory();
   el("history-drawer").classList.remove("hidden");
-  // Opened to look back, but the newest line is the one you just missed.
+  // Opened to look back, and the newest line — the one you just missed — is at
+  // the top of the list, so that is where it opens.
   var list = el("history-list");
-  if (list && list.parentNode) list.parentNode.scrollTop = list.parentNode.scrollHeight;
+  if (list && list.parentNode) list.parentNode.scrollTop = 0;
 });
 function closeHistory() {
   el("history-drawer").classList.add("hidden");

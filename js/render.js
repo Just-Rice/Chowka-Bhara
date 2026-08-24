@@ -433,26 +433,40 @@ function renderHistory() {
     return;
   }
 
-  logEntries.forEach(function(entry, i) {
-    var li = document.createElement("li");
-    li.className = "history-line" + (history.viewing === i ? " here" : "");
-    li.textContent = logText(entry);
-    // Any line can be jumped to directly; the arrows are for walking.
-    if (entry.at) {
-      li.tabIndex = 0;
-      li.addEventListener("click", function () { historyGoTo(i); });
-      li.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); historyGoTo(i); }
-      });
-    }
-    list.appendChild(li);
-  });
+  /* Newest first. The line you are opening this to find is almost always the
+     one that just went past while the pieces were moving, and it was at the
+     bottom of six hundred of them.
+
+     The numbers still count from the start of the game, so line 1 is the first
+     thing that happened wherever it is drawn — the list carries `reversed` and
+     the browser numbers it downward from the total. */
+  for (var i = logEntries.length - 1; i >= 0; i--) {
+    list.appendChild(historyLine(logEntries[i], i));
+  }
 
   if (history.viewing !== null) {
-    var here = list.children[history.viewing];
+    // Drawn back to front, so the line's place on screen is not its number.
+    var here = list.children[logEntries.length - 1 - history.viewing];
     if (here && here.scrollIntoView) here.scrollIntoView({ block: "nearest" });
   }
   renderHistoryControls();
+}
+
+/* One line, and what happens when it is pressed. `at` is its place in the game
+   rather than its place on screen, which are no longer the same thing. */
+function historyLine(entry, at) {
+  var li = document.createElement("li");
+  li.className = "history-line" + (history.viewing === at ? " here" : "");
+  li.textContent = logText(entry);
+  // Any line can be jumped to directly; the arrows are for walking.
+  if (entry.at) {
+    li.tabIndex = 0;
+    li.addEventListener("click", function () { historyGoTo(at); });
+    li.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); historyGoTo(at); }
+    });
+  }
+  return li;
 }
 
 /* The arrows, and a word on whether you are looking at now or at then. */
