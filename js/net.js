@@ -28,6 +28,10 @@
 
   var PROTOCOL = 1;
 
+  /* Nothing in here is a sentence. Names travel as names, and everything else
+     — refusals included — travels as a translation key the other end renders in
+     whatever language that player is reading. */
+
   /* Message kinds, host <-> guest. */
   var M = {
     HELLO: "hello",       // guest -> host, on connect
@@ -135,7 +139,7 @@
         paused = true;
         pausedFor = info.seatId;
         transport.broadcast({
-          t: M.PAUSED, seatId: info.seatId, name: info.name || "A player"
+          t: M.PAUSED, seatId: info.seatId, name: info.name || null
         });
         if (opts.onPaused) opts.onPaused(info.seatId, info.name);
       }
@@ -169,11 +173,11 @@
         var seatId = msg.seatId;
         var seat = game.getSeats().filter(function (s) { return s.id === seatId; })[0];
         if (!seat || seat.kind !== "open") {
-          return transport.send(peerId, { t: M.REJECT, reason: "That seat isn't open." });
+          return transport.send(peerId, { t: M.REJECT, reason: "err.seatClosed" });
         }
         var taken = seatOwner(seatId);
         if (taken && taken !== peerId) {
-          return transport.send(peerId, { t: M.REJECT, reason: "Someone just took that seat." });
+          return transport.send(peerId, { t: M.REJECT, reason: "err.seatGone" });
         }
         peers[peerId].seatId = seatId;
         peers[peerId].ready = false;   // a fresh seat has to be confirmed
@@ -203,18 +207,18 @@
 
       if (msg.t === M.INTENT) {
         if (paused) {
-          return transport.send(peerId, { t: M.REJECT, reason: "The game is paused." });
+          return transport.send(peerId, { t: M.REJECT, reason: "err.paused" });
         }
         var mySeat = peers[peerId].seatId;
         if (mySeat === null || mySeat === undefined) {
-          return transport.send(peerId, { t: M.REJECT, reason: "Take a seat first." });
+          return transport.send(peerId, { t: M.REJECT, reason: "err.needSeat" });
         }
         // applyIntent is where turn ownership is enforced; the host game refuses
         // anything from a seat that is not to move.
         var changed = game.applyIntent(mySeat, msg.intent);
         if (!changed) {
           onReject(mySeat, msg.intent);
-          return transport.send(peerId, { t: M.REJECT, reason: "Not your move." });
+          return transport.send(peerId, { t: M.REJECT, reason: "err.notYourMove" });
         }
         return;
       }

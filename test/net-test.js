@@ -816,6 +816,73 @@ check('and the heartbeat stops rather than beating at nobody',
       /if \(gameIsOver\(\)\) return stopHeartbeat\(\);/.test(overSrc));
 check('there is something to stop it with', /function stopHeartbeat/.test(overSrc));
 
+/* -------------------------------------------- nothing but keys on the wire */
+
+/* This layer has no idea what language anybody is reading in, so a refusal
+   travels as a key and is rendered at the other end. Five of them went out as
+   finished English sentences while the translations for all five sat unused in
+   the table, which meant a guest reading Kannada was told "Not your move." */
+var netSrc = read('js/net.js');
+var sentences = netSrc.match(/reason:\s*"([^"]+)"/g) || [];
+check('every refusal travels as a key',
+      sentences.every(function (line) { return /"err\.[a-zA-Z]+"/.test(line); }),
+      sentences.join(' | '));
+check('and a player who sent no name travels as no name, not as English',
+      /name: info\.name \|\| null/.test(netSrc),
+      'the pause message carries an English default');
+
+var table = (function () { load('js/i18n.js'); return this.I18N._strings.en; }).call(this);
+var keysSent = (netSrc.match(/reason:\s*"(err\.[a-zA-Z]+)"/g) || [])
+  .map(function (m) { return m.replace(/.*"(err\.[a-zA-Z]+)".*/, '$1'); });
+check('and every key it sends is one the table can render',
+      keysSent.length >= 5 && keysSent.every(function (k) { return k in table; }),
+      keysSent.join(', '));
+
+/* ------------------------------------------ one handler, one name ------- */
+
+/* An object literal keeps the last of two keys with the same name and drops the
+   first without a word. The guest's options had two onHostBack handlers, so the
+   one that said the connection was back never ran. */
+function duplicateKeys(file) {
+  var src = read(file);
+  var stack = [], out = [], i = 0, line = 1, inStr = 0, comment = 0;
+  while (i < src.length) {
+    var ch = src[i], next = src[i + 1];
+    if (ch === '\n') line++;
+    if (comment === 1) { if (ch === '\n') comment = 0; i++; continue; }
+    if (comment === 2) { if (ch === '*' && next === '/') { comment = 0; i += 2; continue; } i++; continue; }
+    if (inStr) {
+      if (ch === '\\') { i += 2; continue; }
+      if (ch === inStr) inStr = 0;
+      i++; continue;
+    }
+    if (ch === '/' && next === '/') { comment = 1; i += 2; continue; }
+    if (ch === '/' && next === '*') { comment = 2; i += 2; continue; }
+    if (ch === '"' || ch === "'" || ch === '`') { inStr = ch; i++; continue; }
+    if (ch === '{') { stack.push({}); i++; continue; }
+    if (ch === '}') { stack.pop(); i++; continue; }
+    var m = /^(["']?)([A-Za-z_$][\w$.]*)\1\s*:/.exec(src.slice(i, i + 60));
+    if (m && stack.length) {
+      var before = src.slice(0, i).replace(/\s+$/, '');
+      var prev = before[before.length - 1];
+      if (prev === '{' || prev === ',') {
+        var seen = stack[stack.length - 1];
+        if (seen[m[2]]) out.push(file + ':' + line + ' "' + m[2] + '" (first at ' + seen[m[2]] + ')');
+        else seen[m[2]] = line;
+      }
+      i += m[0].length;
+      continue;
+    }
+    i++;
+  }
+  return out;
+}
+
+var dupes = [];
+['i18n', 'a11y', 'seats', 'net', 'config', 'path', 'rules', 'ai', 'render', 'game', 'online', 'main']
+  .forEach(function (n) { dupes = dupes.concat(duplicateKeys('js/' + n + '.js')); });
+check('no object literal names the same key twice', dupes.length === 0, dupes.join(' | '));
+
 /* --------------------------------------- a tab that went to sleep ------- */
 
 /* Timers in a hidden tab are throttled to almost nothing, so both sides stop

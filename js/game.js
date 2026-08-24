@@ -97,6 +97,9 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
     // the players choose to play on, so this can grow past one entry.
     placements: [],
     playOn: false,
+    // Set when the players agree to stop. A tie ranks nobody, so it cannot be
+    // told from a win by the placings alone.
+    drawn: false,
     movedThisTurn: false,
     deadTurns: 0,
     stalled: false,
@@ -543,6 +546,7 @@ function callItATie() {
   if (drawn.length < 2) return;          // only one left: that is a win, not a tie
 
   state.turnState = "GAME_OVER";
+  state.drawn = true;
   state.stalled = false;
   state.tieVotes = [];
   clearHighlights();
@@ -553,6 +557,15 @@ function callItATie() {
     names: drawn.map(function(p) { return playerName(p.id); }).join(", ")
   });
 
+  showDrawOverlay();
+  updateUI();
+}
+
+/* The draw screen. Built from the state rather than from whatever callItATie
+   happened to be holding, because a guest has to raise the same screen from a
+   snapshot and it never called anything. */
+function showDrawOverlay() {
+  var drawn = state.players.filter(playerActive);
   var overlay = document.getElementById("win-overlay");
   var nameEl = overlay.querySelector(".win-name");
   nameEl.textContent = drawn.map(function(p) { return playerName(p.id); }).join("  ·  ");
@@ -570,22 +583,28 @@ function callItATie() {
   document.getElementById("play-on-btn").hidden = true;
   document.getElementById("play-again-btn").textContent = t("win.playAgain");
   overlay.classList.remove("hidden");
-  updateUI();
 }
 
+/* A player has a seat and a colour; the name belongs to the seat and is looked
+   up, because it can be changed mid-game and is read in whatever language this
+   browser is set to. Reading it off the player object read a property no player
+   has, and textContent turns that into an empty string rather than complaining
+   — so every game ended on a card with a blank line where the winner's name
+   goes, and nothing anywhere said why. */
 function showWinOverlay(player, offerPlayOn) {
+  if (!player) return;
   var overlay = document.getElementById("win-overlay");
   var nameEl = overlay.querySelector(".win-name");
-  nameEl.textContent = player.name;
+  nameEl.textContent = playerName(player.id);
   nameEl.style.color = "var(--" + player.colorVar + ")";
 
   document.getElementById("win-eyebrow").textContent =
-    offerPlayOn ? "First one home" : "Final placings";
+    t(offerPlayOn ? "win.firstHome" : "win.finalPlacings");
   document.getElementById("win-standings").textContent =
-    offerPlayOn ? "Do you want to play on for the remaining places?" : standingsText();
+    offerPlayOn ? t("win.playOnQ") : standingsText();
   document.getElementById("play-on-btn").hidden = !offerPlayOn;
   document.getElementById("play-again-btn").textContent =
-    offerPlayOn ? "End here" : "Play again";
+    t(offerPlayOn ? "win.endHere" : "win.playAgain");
 
   overlay.classList.remove("hidden");
 }

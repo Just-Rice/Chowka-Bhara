@@ -23,13 +23,6 @@
     en: {
       "app.tagline": "A cowrie race to the centre",
 
-      "setup.play": "Play",
-      "setup.local": "On this device",
-      "setup.localSub": "local & computer",
-      "setup.host": "Host online",
-      "setup.hostSub": "get a room code",
-      "setup.join": "Join online",
-      "setup.joinSub": "enter a code",
       "setup.roomCode": "Room code",
       "setup.board": "Board",
       "setup.spaces": "{n} spaces · {p} pieces each",
@@ -146,6 +139,7 @@
       "log.tieAsked": "{name} asked to call it a tie ({have}/{need}).",
       "log.tieWithdrawn": "{name} withdrew their tie request.",
       "btn.newGame": "New game",
+      "btn.close": "Close",
       "status.spending": "Spending {n}",
       "status.banked": " · {n} throws banked",
       "status.tapPiece": " — tap a glowing piece",
@@ -164,7 +158,6 @@
       "history.now": "Back to now",
       "history.live": "Showing now",
       "history.at": "Line {n} of {total}",
-      "history.banner": "You are looking at an earlier moment. The pieces are not where they are now.",
       "howto.1": "All your pieces start on your own square — the one ringed in your colour. Four each on the 5×5 board, six each on the 7×7.",
       "howto.2": "Your pieces travel round the outer ring, then round each ring inside it, and finally into the centre. Every lap finishes back on your own side of the board before turning inward.",
       "howto.3": "Every move is straight, never diagonal — with one exception. On the 7×7 board, the turn off the outer ring into the next one is a single diagonal step onto a safe corner.",
@@ -228,13 +221,6 @@
     kn: {
       "app.tagline": "ಮಧ್ಯಭಾಗದತ್ತ ಕವಡೆಗಳ ಓಟ",
 
-      "setup.play": "ಆಟ",
-      "setup.local": "ಈ ಸಾಧನದಲ್ಲಿ",
-      "setup.localSub": "ಮುಖಾಮುಖಿ ಮತ್ತು ಕಂಪ್ಯೂಟರ್",
-      "setup.host": "ಆನ್‌ಲೈನ್ ಆಟ ತೆರೆಯಿರಿ",
-      "setup.hostSub": "ರೂಮ್ ಕೋಡ್ ಪಡೆಯಿರಿ",
-      "setup.join": "ಆನ್‌ಲೈನ್ ಸೇರಿ",
-      "setup.joinSub": "ಕೋಡ್ ನಮೂದಿಸಿ",
       "setup.roomCode": "ರೂಮ್ ಕೋಡ್",
       "setup.board": "ಹಲಗೆ",
       "setup.spaces": "{n} ಮನೆಗಳು · ತಲಾ {p} ಕಾಯಿ",
@@ -351,6 +337,7 @@
       "log.tieAsked": "{name} ಸಮಬಲ ಎಂದು ಕೇಳಿದರು ({have}/{need}).",
       "log.tieWithdrawn": "{name} ತಮ್ಮ ಸಮಬಲ ಕೋರಿಕೆಯನ್ನು ಹಿಂಪಡೆದರು.",
       "btn.newGame": "ಹೊಸ ಆಟ",
+      "btn.close": "ಮುಚ್ಚಿ",
       "status.spending": "{n} ಬಳಸಲಾಗುತ್ತಿದೆ",
       "status.banked": " · {n} ಎಸೆತಗಳು ಉಳಿದಿವೆ",
       "status.tapPiece": " — ಹೊಳೆಯುವ ಕಾಯಿ ಒತ್ತಿರಿ",
@@ -369,7 +356,6 @@
       "history.now": "ಈಗಿನದಕ್ಕೆ ಹಿಂತಿರುಗಿ",
       "history.live": "ಈಗಿನದನ್ನು ತೋರಿಸುತ್ತಿದೆ",
       "history.at": "{total} ರಲ್ಲಿ {n} ನೇ ಸಾಲು",
-      "history.banner": "ನೀವು ಹಿಂದಿನ ಕ್ಷಣವನ್ನು ನೋಡುತ್ತಿದ್ದೀರಿ. ಕಾಯಿಗಳು ಈಗ ಇರುವಲ್ಲಿ ಇಲ್ಲ.",
       "howto.1": "ನಿಮ್ಮ ಎಲ್ಲಾ ಕಾಯಿಗಳು ನಿಮ್ಮ ಬಣ್ಣದ ಗುರುತಿರುವ ನಿಮ್ಮದೇ ಮನೆಯಿಂದ ಆರಂಭವಾಗುತ್ತವೆ. 5×5 ಹಲಗೆಯಲ್ಲಿ ತಲಾ ನಾಲ್ಕು, 7×7 ಹಲಗೆಯಲ್ಲಿ ತಲಾ ಆರು.",
       "howto.2": "ನಿಮ್ಮ ಕಾಯಿಗಳು ಹೊರಗಿನ ಸುತ್ತಿನಲ್ಲಿ, ನಂತರ ಒಳಗಿನ ಪ್ರತಿ ಸುತ್ತಿನಲ್ಲಿ ಸಾಗಿ ಕೊನೆಗೆ ಮಧ್ಯಕ್ಕೆ ತಲುಪುತ್ತವೆ. ಪ್ರತಿ ಸುತ್ತೂ ಒಳಕ್ಕೆ ತಿರುಗುವ ಮೊದಲು ನಿಮ್ಮದೇ ಬದಿಯಲ್ಲಿ ಮುಗಿಯುತ್ತದೆ.",
       "howto.3": "ಪ್ರತಿ ನಡೆಯೂ ನೇರ, ಎಂದಿಗೂ ಕರ್ಣವಲ್ಲ — ಒಂದು ಹೊರತು. 7×7 ಹಲಗೆಯಲ್ಲಿ ಹೊರಗಿನ ಸುತ್ತಿನಿಂದ ಒಳಗಿನದಕ್ಕೆ ತಿರುಗುವುದು ಸುರಕ್ಷಿತ ಮೂಲೆಗೆ ಒಂದೇ ಕರ್ಣ ನಡೆ.",
@@ -433,13 +419,6 @@
     hi: {
       "app.tagline": "केंद्र तक कौड़ियों की दौड़",
 
-      "setup.play": "खेल",
-      "setup.local": "इसी डिवाइस पर",
-      "setup.localSub": "आमने-सामने और कंप्यूटर",
-      "setup.host": "ऑनलाइन खेल खोलें",
-      "setup.hostSub": "रूम कोड पाएँ",
-      "setup.join": "ऑनलाइन जुड़ें",
-      "setup.joinSub": "कोड डालें",
       "setup.roomCode": "रूम कोड",
       "setup.board": "बोर्ड",
       "setup.spaces": "{n} घर · प्रत्येक को {p} गोटियाँ",
@@ -556,6 +535,7 @@
       "log.tieAsked": "{name} ने बराबरी माँगी ({have}/{need}).",
       "log.tieWithdrawn": "{name} ने अपनी बराबरी की माँग वापस ली.",
       "btn.newGame": "नया खेल",
+      "btn.close": "बंद करें",
       "status.spending": "{n} लगाया जा रहा है",
       "status.banked": " · {n} फेंक बची हैं",
       "status.tapPiece": " — चमकती गोटी दबाएँ",
@@ -574,7 +554,6 @@
       "history.now": "अभी पर लौटें",
       "history.live": "अभी का दिख रहा है",
       "history.at": "{total} में से {n}वीं पंक्ति",
-      "history.banner": "आप पहले का कोई क्षण देख रहे हैं। गोटियाँ अभी वहाँ नहीं हैं।",
       "howto.1": "आपकी सभी गोटियाँ आपके अपने घर से शुरू होती हैं — वही जिस पर आपके रंग का घेरा है। 5×5 बोर्ड पर चार, 7×7 बोर्ड पर छह।",
       "howto.2": "आपकी गोटियाँ बाहरी घेरे में, फिर भीतर के हर घेरे में चलकर अंत में केंद्र तक पहुँचती हैं। हर चक्कर भीतर मुड़ने से पहले आपकी अपनी ओर आकर समाप्त होता है।",
       "howto.3": "हर चाल सीधी होती है, कभी तिरछी नहीं — एक अपवाद के साथ। 7×7 बोर्ड पर बाहरी घेरे से अगले घेरे में मुड़ना एक तिरछी चाल है, जो सीधे सुरक्षित कोने पर पड़ती है।",
@@ -638,13 +617,6 @@
     es: {
       "app.tagline": "Una carrera de cauris hacia el centro",
 
-      "setup.play": "Jugar",
-      "setup.local": "En este dispositivo",
-      "setup.localSub": "local y ordenador",
-      "setup.host": "Crear partida online",
-      "setup.hostSub": "obtén un código",
-      "setup.join": "Unirse online",
-      "setup.joinSub": "introduce un código",
       "setup.roomCode": "Código de sala",
       "setup.board": "Tablero",
       "setup.spaces": "{n} casillas · {p} fichas cada uno",
@@ -761,6 +733,7 @@
       "log.tieAsked": "{name} pidió declarar empate ({have}/{need}).",
       "log.tieWithdrawn": "{name} retiró su petición de empate.",
       "btn.newGame": "Nueva partida",
+      "btn.close": "Cerrar",
       "status.spending": "Usando {n}",
       "status.banked": " · {n} lanzamientos guardados",
       "status.tapPiece": " — toca una ficha iluminada",
@@ -779,7 +752,6 @@
       "history.now": "Volver al presente",
       "history.live": "Mostrando el presente",
       "history.at": "Línea {n} de {total}",
-      "history.banner": "Estás viendo un momento anterior. Las fichas no están donde están ahora.",
       "howto.1": "Todas tus fichas empiezan en tu propia casilla, la del anillo de tu color. Cuatro en el tablero de 5×5, seis en el de 7×7.",
       "howto.2": "Tus fichas recorren el anillo exterior, después cada anillo interior, y por fin el centro. Cada vuelta termina de nuevo en tu propio lado antes de girar hacia dentro.",
       "howto.3": "Todo movimiento es recto, nunca diagonal, con una excepción: en el tablero de 7×7, el giro del anillo exterior al siguiente es un único paso en diagonal, y cae en una esquina segura.",
@@ -856,7 +828,9 @@
   }
 
   /* Fill every element tagged in the markup. data-i18n sets text, data-i18n-html
-   * sets markup (for the few strings carrying <strong>). */
+   * sets markup (for the few strings carrying <strong>), and data-i18n-aria sets
+   * the label a screen reader announces — the close buttons say nothing but
+   * "×" on screen, so that label is the only name they have. */
   function apply(root2) {
     var scope = root2 || document;
     Array.prototype.forEach.call(scope.querySelectorAll("[data-i18n]"), function (el) {
@@ -864,6 +838,9 @@
     });
     Array.prototype.forEach.call(scope.querySelectorAll("[data-i18n-html]"), function (el) {
       el.innerHTML = t(el.getAttribute("data-i18n-html"));
+    });
+    Array.prototype.forEach.call(scope.querySelectorAll("[data-i18n-aria]"), function (el) {
+      el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
     });
     document.documentElement.lang = current;
   }

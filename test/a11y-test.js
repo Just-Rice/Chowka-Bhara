@@ -96,6 +96,28 @@ check('no listener is attached without checking the element exists',
 
 var page = read('index.html');
 
+/* Pinch-zoom is the oldest accessibility setting there is and the only one that
+   helps with the board, since the board is sized to the viewport rather than to
+   the font — the text control cannot make it bigger. The viewport tag switched
+   it off. */
+var viewport = (/<meta name="viewport"[^>]*>/.exec(page) || [''])[0];
+check('the page can be pinched to zoom',
+      viewport.indexOf('maximum-scale') < 0 &&
+      !/user-scalable\s*=\s*no/.test(viewport), viewport);
+
+/* The close buttons say "×" and nothing else, so the label a screen reader
+   announces is the only name they have — and it was English in every language. */
+check('every drawer closes with a button that names itself',
+      (page.match(/class="drawer-close"/g) || []).length ===
+      (page.match(/class="drawer-close"[^>]*data-i18n-aria=/g) || []).length,
+      'a close button carries no translated label');
+check('and the words for it are in the table',
+      (i18n.match(/"btn\.close"/g) || []).length === 4,
+      String((i18n.match(/"btn\.close"/g) || []).length));
+check('a label written into the markup is applied',
+      /data-i18n-aria/.test(read('js/i18n.js')),
+      'I18N.apply ignores data-i18n-aria');
+
 /* The setup screen's spacing comes from the panel, so the shared settings block
    only sits at the right distance from everything else once it has been moved
    into a panel. That used to happen on the first tab click, which meant the

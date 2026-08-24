@@ -138,8 +138,8 @@ var used = {};
    business knowing what language anyone reads in. */
 var re = /\b(?:I18N\.)?t\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"|\bdiag\(\s*"([a-zA-Z][a-zA-Z0-9.]*)"/g, m;
 while ((m = re.exec(SRC))) used[m[1] || m[2]] = true;
-/* data-i18n attributes count too. */
-var re2 = /data-i18n(?:-html)?="([^"]+)"/g;
+/* data-i18n attributes count too — text, markup and aria labels alike. */
+var re2 = /data-i18n(?:-html|-aria)?="([^"]+)"/g;
 while ((m = re2.exec(SRC))) used[m[1]] = true;
 
 var unknown = Object.keys(used).filter(function (k) {
@@ -152,6 +152,29 @@ check('every key the game looks up exists', unknown.length === 0,
 
 check('the game actually uses the table', Object.keys(used).length > 50,
       Object.keys(used).length + ' keys referenced');
+
+/* ------------------------------------- and every key it has, it asks for -- */
+
+/* The other direction, which is the one that catches a translated string the
+   game has quietly stopped using — or, worse, never started. Five refusal
+   messages and four lines of the end-of-game card were sitting here fully
+   translated into four languages while the code that should have looked them up
+   said the English out loud instead. Nothing in the game failed; it simply
+   spoke English to everybody, and the table said otherwise.
+
+   Keys the game builds rather than writes out are exempt, and listed here so
+   that the exemption is a decision rather than a hole. */
+var BUILT_UP = /^(ord|howto|seat|players|diag)\./;
+var everything = read('index.html') + '\n' +
+  ['config','path','rules','ai','render','game','online','main','seats','a11y','net']
+  .map(function (n) { return read('js/' + n + '.js'); }).join('\n');
+
+var unused = enKeys.filter(function (k) {
+  if (BUILT_UP.test(k)) return false;
+  return everything.indexOf('"' + k + '"') < 0;
+});
+check('every string in the table is one the game asks for', unused.length === 0,
+      unused.join(', '));
 
 /* How to play is built from a numbered run; make sure it has no holes. */
 var howto = enKeys.filter(function (k) { return k.indexOf('howto.') === 0; });

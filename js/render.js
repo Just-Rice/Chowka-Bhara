@@ -1,12 +1,17 @@
 /* A brief notice across the top of the board. Used when something happens on
    someone else's turn that you would otherwise only find in the log. */
 var noticeTimer = null;
+var noticeHideTimer = null;
 
 function hideNotice() {
   var n = document.getElementById("notice");
   if (!n) return;
   n.classList.remove("show");
-  setTimeout(function() { n.hidden = true; }, 250);
+  if (noticeHideTimer) clearTimeout(noticeHideTimer);
+  noticeHideTimer = setTimeout(function() {
+    noticeHideTimer = null;
+    n.hidden = true;
+  }, 250);
 }
 
 function showNotice(text) {
@@ -16,6 +21,8 @@ function showNotice(text) {
   n.hidden = false;
   n.classList.add("show");
   if (noticeTimer) clearTimeout(noticeTimer);
+  // The one still fading out must not take this one down with it.
+  if (noticeHideTimer) { clearTimeout(noticeHideTimer); noticeHideTimer = null; }
 
   // Five seconds is not long enough for everybody, so it can be set to wait
   // until it is dismissed instead.
@@ -242,14 +249,14 @@ function updateUI() {
     } else {
       // Online it is a vote, so the button reports where the vote stands and
       // pressing again takes yours back.
-      var mine = seat !== null && hasVotedForTie(seat);
-      tieBtn.textContent = mine
+      var voted = seat !== null && hasVotedForTie(seat);
+      tieBtn.textContent = voted
         ? t("btn.tieWaiting", { have: state.tieVotes.length, need: tieThreshold() })
         : state.tieVotes.length
           ? t("btn.tieAgree", { have: state.tieVotes.length, need: tieThreshold() })
           : t("btn.callTie");
       tieBtn.disabled = seat === null || seat === undefined;
-      tieBtn.classList.toggle("voted", !!mine);
+      tieBtn.classList.toggle("voted", !!voted);
     }
   }
 

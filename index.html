@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<!-- No maximum-scale: it switched off pinch-zoom, which is the first thing
+     anybody who needs a closer look reaches for, and the text-size control
+     cannot stand in for it — the board is sized to the viewport, not to the
+     font. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chowka-Bhara</title>
 
 <!-- Home-screen identity. Without an icon of its own a phone invents one — iOS
@@ -11,21 +15,21 @@
      platforms round it themselves, and an already-rounded icon gets rounded
      twice and shows wedges at the corners. -->
 <meta name="theme-color" content="#241a13">
-<link rel="apple-touch-icon" href="img/icon-180.png?v=1.19.0">
-<link rel="apple-touch-icon" sizes="167x167" href="img/icon-167.png?v=1.19.0">
-<link rel="apple-touch-icon" sizes="152x152" href="img/icon-152.png?v=1.19.0">
-<link rel="apple-touch-icon" sizes="120x120" href="img/icon-120.png?v=1.19.0">
-<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png?v=1.19.0">
-<link rel="icon" type="image/png" sizes="512x512" href="img/icon-512.png?v=1.19.0">
+<link rel="apple-touch-icon" href="img/icon-180.png?v=1.19.1">
+<link rel="apple-touch-icon" sizes="167x167" href="img/icon-167.png?v=1.19.1">
+<link rel="apple-touch-icon" sizes="152x152" href="img/icon-152.png?v=1.19.1">
+<link rel="apple-touch-icon" sizes="120x120" href="img/icon-120.png?v=1.19.1">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png?v=1.19.1">
+<link rel="icon" type="image/png" sizes="512x512" href="img/icon-512.png?v=1.19.1">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="css/tokens.css?v=1.19.0">
-<link rel="stylesheet" href="css/layout.css?v=1.19.0">
-<link rel="stylesheet" href="css/screens.css?v=1.19.0">
-<link rel="stylesheet" href="css/board.css?v=1.19.0">
-<link rel="stylesheet" href="css/sidebar.css?v=1.19.0">
-<link rel="stylesheet" href="css/online.css?v=1.19.0">
-<link rel="stylesheet" href="css/contrast.css?v=1.19.0">
-<link rel="stylesheet" href="css/a11y.css?v=1.19.0">
+<link rel="stylesheet" href="css/tokens.css?v=1.19.1">
+<link rel="stylesheet" href="css/layout.css?v=1.19.1">
+<link rel="stylesheet" href="css/screens.css?v=1.19.1">
+<link rel="stylesheet" href="css/board.css?v=1.19.1">
+<link rel="stylesheet" href="css/sidebar.css?v=1.19.1">
+<link rel="stylesheet" href="css/online.css?v=1.19.1">
+<link rel="stylesheet" href="css/contrast.css?v=1.19.1">
+<link rel="stylesheet" href="css/a11y.css?v=1.19.1">
 </head>
 <body>
 <div id="app">
@@ -239,7 +243,7 @@
   <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-heading">
     <div class="drawer-head">
       <h2 id="a11y-heading" data-i18n="a11y.title"></h2>
-      <button class="drawer-close" id="a11y-close" aria-label="Close">&times;</button>
+      <button class="drawer-close" id="a11y-close" data-i18n-aria="btn.close">&times;</button>
     </div>
     <div class="seat-settings"></div>
     <div id="a11y-rows"></div>
@@ -257,7 +261,7 @@
   <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="history-heading">
     <div class="drawer-head">
       <h2 id="history-heading" data-i18n="history.title"></h2>
-      <button class="drawer-close" id="history-close" aria-label="Close">&times;</button>
+      <button class="drawer-close" id="history-close" data-i18n-aria="btn.close">&times;</button>
     </div>
     <p class="a11y-hint" data-i18n="history.hint"></p>
 
@@ -270,7 +274,7 @@
   <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="howto-heading">
     <div class="drawer-head">
       <h2 id="howto-heading" data-i18n="howto.title"></h2>
-      <button class="drawer-close" id="howto-close" aria-label="Close">&times;</button>
+      <button class="drawer-close" id="howto-close" data-i18n-aria="btn.close">&times;</button>
     </div>
     <ul id="howto-list"></ul>
   </aside>
@@ -290,7 +294,7 @@
 
 <div id="win-overlay" class="hidden">
   <div class="win-card">
-    <p class="eyebrow" id="win-eyebrow">Reached the center</p>
+    <p class="eyebrow" id="win-eyebrow" data-i18n="win.finalPlacings"></p>
     <p class="win-name"></p>
     <p class="win-standings" id="win-standings"></p>
     <div class="win-actions">
@@ -300,17 +304,17 @@
   </div>
 </div>
 
-<script src="js/i18n.js?v=1.19.0"></script>
-<script src="js/a11y.js?v=1.19.0"></script>
-<script src="js/seats.js?v=1.19.0"></script>
-<script src="js/net.js?v=1.19.0"></script>
-<script src="js/config.js?v=1.19.0"></script>
-<script src="js/path.js?v=1.19.0"></script>
-<script src="js/rules.js?v=1.19.0"></script>
-<script src="js/ai.js?v=1.19.0"></script>
-<script src="js/render.js?v=1.19.0"></script>
-<script src="js/game.js?v=1.19.0"></script>
-<script src="js/online.js?v=1.19.0"></script>
-<script src="js/main.js?v=1.19.0"></script>
+<script src="js/i18n.js?v=1.19.1"></script>
+<script src="js/a11y.js?v=1.19.1"></script>
+<script src="js/seats.js?v=1.19.1"></script>
+<script src="js/net.js?v=1.19.1"></script>
+<script src="js/config.js?v=1.19.1"></script>
+<script src="js/path.js?v=1.19.1"></script>
+<script src="js/rules.js?v=1.19.1"></script>
+<script src="js/ai.js?v=1.19.1"></script>
+<script src="js/render.js?v=1.19.1"></script>
+<script src="js/game.js?v=1.19.1"></script>
+<script src="js/online.js?v=1.19.1"></script>
+<script src="js/main.js?v=1.19.1"></script>
 </body>
 </html>

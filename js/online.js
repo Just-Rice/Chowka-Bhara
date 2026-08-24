@@ -70,6 +70,7 @@ function serializeState() {
     selectedChipId: state.selectedChipId,
     placements: state.placements.slice(),
     playOn: state.playOn,
+    drawn: !!state.drawn,
     stalled: state.stalled,
     tieVotes: state.tieVotes.slice(),
     lastRoll: state.lastRoll
@@ -124,6 +125,7 @@ function applySnapshot(snap) {
   state.selectedChipId = snap.selectedChipId;
   state.placements = snap.placements.slice();
   state.playOn = snap.playOn;
+  state.drawn = !!snap.drawn;
   state.stalled = !!snap.stalled;
 
   // A vote that is new to us, and not our own, is worth announcing.
@@ -143,7 +145,8 @@ function applySnapshot(snap) {
   updateUI();
 
   if (state.turnState === "GAME_OVER") {
-    showWinOverlay(state.players[state.placements[0]], false);
+    if (state.drawn) showDrawOverlay();
+    else showWinOverlay(state.players[state.placements[0]], false);
   }
 }
 
@@ -506,6 +509,7 @@ function startHosting() {
 function startJoining(code) {
   online.mode = "guest";
   showScreen("lobby-screen");
+  online.roomCode = code;
   online.hostPeerId = ChowkaNet.ROOM_PREFIX + code;
   setLobbyStatus("lobby.connecting", { code: code });
   el("code-display").hidden = true;
@@ -553,23 +557,16 @@ function startJoining(code) {
           onSeatDropped(null, t("pause.host"));
         },
         onHostBack: function() {
-          online.rejoinTries = 0;
-          el("pause-overlay").classList.add("hidden");
-          online.pausedSeat = null;
           netDiag("diag.reconnected");
-          updateNetBadge();
-          if (state) updateUI();
+          onSeatReturned(null);     // clears the pause, the tries and the badge
         },
         onConnectFailed: function() {
           // Never got through at all, which is a different problem from
           // having been connected and lost them.
           setLobbyError(t("err.noReach"));
         },
-        onHostBack: function() {
-          onSeatReturned(null);
-        },
         onNote: addRemoteLog,
-        onReject: function(reason) { setLobbyError(reason); },
+        onReject: function(reason) { setLobbyError(t(reason)); },
         onPaused: onSeatDropped,
         onResumed: onSeatReturned
       });

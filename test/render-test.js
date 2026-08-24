@@ -46,6 +46,14 @@ Node.prototype.removeChild = function (n) {
 };
 Node.prototype.setAttribute = function () {};
 Node.prototype.addEventListener = function () {};
+Node.prototype.querySelector = function (sel) {
+  var want = sel.replace('.', ''), found = null;
+  walk(this, function (n) {
+    if (found === null && n !== this &&
+        n.className.split(/\s+/).indexOf(want) >= 0) found = n;
+  });
+  return found;
+};
 
 /* Only enough HTML parsing to find the ids a fragment declares — which is all
    the roster rows use it for. */
@@ -473,6 +481,85 @@ check('including the one that finished', tokensIn('finished-0') === 1,
 logEntries.push({ key: 'd', params: {}, at: null });
 historyGoTo(logEntries.length - 1);
 check('a line with no position behind it is not jumped to', historyLive());
+
+/* ------------------------------------------------- the end of the game --- */
+
+/* The last thing anybody sees, and the least exercised: it is drawn once, and
+   only when a game is already over. It named the winner by reading a property
+   the players do not have — every game ended by announcing that "undefined" had
+   won — and it said the rest of the card in English whatever language the game
+   was being read in. Both are the kind of thing only a test that actually draws
+   the card will catch, so here it is drawn.
+
+   I18N.t is stubbed to echo the key it is given, so a line that reads as a key
+   went through the table and a line that reads as a sentence is hard-coded. */
+
+eval(['showWinOverlay', 'showDrawOverlay', 'standingsText', 'ordinal', 'playerActive']
+     .map(grab).join('\n'));
+function t(k, p) { return I18N.t(k, p); }
+
+function buildOverlay() {
+  ['win-overlay', 'win-eyebrow', 'win-standings', 'play-on-btn', 'play-again-btn']
+    .forEach(function (id) {
+      var n = new Node('div');
+      n.id = id;
+      root.appendChild(n);
+    });
+  var name = new Node('p');
+  name.className = 'win-name';
+  document.getElementById('win-overlay').appendChild(name);
+}
+function overlayText(id) { return document.getElementById(id).textContent; }
+function winnerName() {
+  return document.getElementById('win-overlay').querySelector('.win-name').textContent;
+}
+
+buildOverlay();
+state = makeState(5, 2);
+state.placements = [1, 0];
+
+showWinOverlay(state.players[1], false);
+check('the winner is named', winnerName() === playerName(1), String(winnerName()));
+check('and named by asking, not by reading a property off the player',
+      String(winnerName()).indexOf('undefined') < 0, String(winnerName()));
+check('the final card is looked up, not written out',
+      overlayText('win-eyebrow') === 'win.finalPlacings', overlayText('win-eyebrow'));
+check('and lists the placings, winner first',
+      overlayText('win-standings').indexOf(playerName(1)) <
+      overlayText('win-standings').indexOf(playerName(0)),
+      JSON.stringify(overlayText('win-standings')));
+check('with nothing to play on for',
+      document.getElementById('play-on-btn').hidden === true);
+check('the button underneath offers another game',
+      overlayText('play-again-btn') === 'win.playAgain', overlayText('play-again-btn'));
+
+showWinOverlay(state.players[0], true);
+check('the first-one-home card is looked up too',
+      overlayText('win-eyebrow') === 'win.firstHome', overlayText('win-eyebrow'));
+check('and asks the question rather than stating it',
+      overlayText('win-standings') === 'win.playOnQ', overlayText('win-standings'));
+check('with the option to play on', document.getElementById('play-on-btn').hidden === false);
+check('and to stop there', overlayText('play-again-btn') === 'win.endHere',
+      overlayText('play-again-btn'));
+
+/* A game nobody won. The host reaches this by calling the tie; a guest reaches
+   it by being handed a snapshot, which is why it is drawn from the state rather
+   than from what the caller happened to be holding. */
+state.placements = [];
+showDrawOverlay();
+check('a draw names everyone still playing',
+      winnerName().indexOf(playerName(0)) >= 0 && winnerName().indexOf(playerName(1)) >= 0,
+      winnerName());
+check('and says it was drawn', overlayText('win-eyebrow') === 'win.drawn',
+      overlayText('win-eyebrow'));
+check('a draw offers nothing to play on for',
+      document.getElementById('play-on-btn').hidden === true);
+
+/* Called with a player that is not there — a tie snapshot has no placings, so
+   players[placements[0]] is undefined — it must not take the screen down. */
+var threw = false;
+try { showWinOverlay(undefined, false); } catch (e) { threw = true; }
+check('an ending with nobody to name does not throw', !threw);
 
 /* -------------------------------------------------------------- report --- */
 
