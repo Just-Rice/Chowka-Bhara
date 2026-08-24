@@ -238,10 +238,17 @@ function updateUI() {
   var tieBtn = document.getElementById("tie-btn");
   if (tieBtn) {
     var seat = myVotingSeat();
-    // Offered only while play is genuinely stuck, and only to someone whose
-    // vote would count — a player already home has no say in ending it.
-    tieBtn.hidden = !state.stalled || state.turnState === "GAME_OVER" ||
+    /* Agreeing to stop is something players may do at any point in a game, not
+       only once it has jammed — so the offer stands the whole way through. The
+       stall is still worth noticing, and still says so in the log, but it no
+       longer decides whether there is a button to press.
+
+       Who may press it is unchanged: someone whose vote would count. A player
+       already home has no say in ending a game they have finished. */
+    tieBtn.hidden = state.turnState === "GAME_OVER" ||
                     (online.mode !== "local" && !canVoteForTie(seat));
+    // A jammed position is the moment it matters, so it says so then.
+    tieBtn.classList.toggle("urged", !!state.stalled);
     if (online.mode === "local") {
       tieBtn.textContent = t("btn.callTie");
       tieBtn.disabled = false;

@@ -510,7 +510,7 @@ function hasVotedForTie(playerId) {
 /* One player asking. On this device alone there is nobody to ask, so it simply
    ends; online it takes a majority, and asking again withdraws your vote. */
 function requestTie(playerId) {
-  if (!state || state.turnState === "GAME_OVER" || !state.stalled) return;
+  if (!state || state.turnState === "GAME_OVER") return;
   if (playerId === null || playerId === undefined) return;
 
   // On this device one press ends it, and only a person can press it.

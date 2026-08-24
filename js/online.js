@@ -193,7 +193,6 @@ function applyRemoteIntent(seatId, intent) {
   }
   if (intent.kind === "tie") {
     // The guest is voting, not deciding — the majority decides.
-    if (!state.stalled) return false;
     requestTie(seatId);
     return true;
   }

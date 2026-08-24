@@ -133,6 +133,14 @@
 .tie-btn:hover:not(:disabled) { background: rgba(255,255,255,0.62); }
 .tie-btn:disabled { opacity: 0.4; cursor: default; }
 
+/* The offer stands all game, so it sits quietly most of the time. When nobody
+   can move it is the way out, and it says so rather than waiting to be found
+   among the other footer buttons. */
+.tie-btn.urged {
+  border-color: var(--home-ring);
+  background: rgba(255,255,255,0.62);
+}
+
 /* The high-contrast toggle sits with the other footer controls. */
 #contrast-btn { padding: 11px 13px; font-size: 1rem; line-height: 1; }
 #contrast-btn.on {
