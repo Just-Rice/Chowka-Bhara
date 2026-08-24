@@ -42,6 +42,30 @@ function buildSafeCells(N, allSlotPaths) {
   return safe;
 }
 
+/* Where two of a player's own pieces may stand on one square.
+ *
+ * Everywhere except the outermost ring, plus the safe squares wherever they
+ * are. So the long first lap is walked in single file and pairing up is
+ * something you do once you have captured and got inside — which is also the
+ * only way to reach the inner rings at all.
+ *
+ * A pair standing on a square where it could have been captured cannot be:
+ * there is nowhere for an opponent to land. On a safe square nothing was ever
+ * at risk, so a pair there changes nothing and anyone may still land beside it,
+ * which is what keeps the opening exactly as it has always played — every game
+ * begins with a player's whole set stacked on their own start.
+ */
+function buildStackCells(N, safeCellSet) {
+  var cells = {};
+  for (var r = 0; r < N; r++) {
+    for (var c = 0; c < N; c++) {
+      var key = r + "," + c;
+      if (safeCellSet[key] || physicalRing(r, c, N) > 0) cells[key] = true;
+    }
+  }
+  return cells;
+}
+
 function initGame(N, numPlayers, numCPU, cpuSkill) {
   numPlayers = seatCount(numPlayers);
   // Computers take the last seats, so a lone human is always the first to move.
@@ -81,6 +105,7 @@ function initGame(N, numPlayers, numCPU, cpuSkill) {
     ringBoundaries: ringBoundaries,
     pathLength: built.path.length,
     safeCellSet: safeCellSet,
+    stackCellSet: buildStackCells(N, safeCellSet),
     players: players,
     currentPlayerIndex: 0,
     turnState: "AWAITING_ROLL",

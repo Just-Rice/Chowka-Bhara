@@ -22,21 +22,64 @@ function throwShells(N) {
 function sleep(ms) { return new Promise(function(res){ setTimeout(res, ms); }); }
 
 /* ============================= RULES ENGINE ============================= */
+
+/* Who is standing on a square, counted by player. Only pieces still on the
+   board: one that has finished is in its tray, not on a square. */
+function piecesOnCell(rc) {
+  var counts = {};
+  state.players.forEach(function(p) {
+    p.pieces.forEach(function(pc) {
+      if (pc.status !== "active") return;
+      var at = p.path[pc.pathIndex];
+      if (at && at[0] === rc[0] && at[1] === rc[1]) {
+        counts[p.id] = (counts[p.id] || 0) + 1;
+      }
+    });
+  });
+  return counts;
+}
+
+/* A pair that cannot be taken. Two or more of one player's pieces on a square
+   where they could have been captured — which is to say, anywhere but a safe
+   square, where nothing was at risk to begin with. */
+function immortalOwner(rc) {
+  if (state.safeCellSet[rc[0] + "," + rc[1]]) return null;
+  var here = piecesOnCell(rc);
+  var owner = null;
+  Object.keys(here).forEach(function(pid) {
+    if (here[pid] > 1) owner = parseInt(pid, 10);
+  });
+  return owner;
+}
+
 function computeLegalMoves(player, moveValue) {
   var moves = [];
   var lastIndex = state.pathLength - 1;
   player.pieces.forEach(function(piece) {
-    if (piece.status === "active") {
-      var d = piece.pathIndex + moveValue;
-      if (d > lastIndex) return; // overshoot: illegal
-      if (d === lastIndex) {
-        moves.push({ pieceId: piece.id, type: "finish", destIndex: d });
-      } else {
-        var layer = layerOf(d, state.ringBoundaries);
-        if (layer > 0 && !player.hasCaptured) return; // gated: illegal
-        moves.push({ pieceId: piece.id, type: "move", destIndex: d });
-      }
+    if (piece.status !== "active") return;
+
+    var d = piece.pathIndex + moveValue;
+    if (d > lastIndex) return;                       // overshoot: illegal
+    if (d === lastIndex) {                           // the centre is not a square
+      moves.push({ pieceId: piece.id, type: "finish", destIndex: d });
+      return;
     }
+
+    var layer = layerOf(d, state.ringBoundaries);
+    if (layer > 0 && !player.hasCaptured) return;    // gated: illegal
+
+    var rc = player.path[d];
+    var key = rc[0] + "," + rc[1];
+    var here = piecesOnCell(rc);
+
+    // Your own second piece, only where a stack is allowed to stand.
+    if (here[player.id] && !state.stackCellSet[key]) return;
+
+    // Somebody else's pair, which cannot be landed on at all.
+    var immortal = immortalOwner(rc);
+    if (immortal !== null && immortal !== player.id) return;
+
+    moves.push({ pieceId: piece.id, type: "move", destIndex: d });
   });
   return moves;
 }

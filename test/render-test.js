@@ -110,9 +110,9 @@ function grab(name) {
 }
 
 eval(['ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC',
-      'rotatePath', 'piecesPerPlayer', 'buildSafeCells',
+      'rotatePath', 'piecesPerPlayer', 'buildSafeCells', 'buildStackCells', 'physicalRing',
       'renderSidebar', 'updateCellDensity', 'logSnapshot', 'historyGoTo', 'historyStep',
-      'historyLive', 'historyLiveAgain', 'showShells'].map(grab).join('\n'));
+      'historyLive', 'historyLiveAgain', 'showShells', 'pairHolds'].map(grab).join('\n'));
 
 /* render.js keeps these at the top of the file rather than inside a function,
    so they are declared here to match. */
@@ -172,7 +172,8 @@ function makeState(N, numPlayers) {
   }
   return {
     N: N, pathLength: built.path.length, ringBoundaries: built.ringBoundaries,
-    safeCellSet: buildSafeCells(N, all), players: players
+    safeCellSet: buildSafeCells(N, all),
+    stackCellSet: buildStackCells(N, buildSafeCells(N, all)), players: players
   };
 }
 
@@ -481,6 +482,37 @@ check('including the one that finished', tokensIn('finished-0') === 1,
 logEntries.push({ key: 'd', params: {}, at: null });
 historyGoTo(logEntries.length - 1);
 check('a line with no position behind it is not jumped to', historyLive());
+
+/* ------------------------------------------------- a pair on the board --- */
+
+/* Two pieces sharing a square already look like two pieces sharing a square.
+   What makes a pair different is that nobody may land on it, and that is
+   invisible unless it is drawn — so the container is marked, and only where the
+   pair actually buys something. */
+state = makeState(5, 2);
+buildBoard(5);
+state.stackCellSet = buildStackCells(5, state.safeCellSet);
+
+/* An inner-ring square, which takes a stack and is open to capture. */
+var openIdx = state.ringBoundaries[0] + 1;
+var openRC = state.players[0].path[openIdx];
+state.players[0].pieces[0].pathIndex = openIdx;
+state.players[0].pieces[1].pathIndex = openIdx;
+renderSidebar();
+function cell(rc) { return document.getElementById('pieces-' + rc[0] + '-' + rc[1]); }
+check('setup: the square is open to capture',
+      !state.safeCellSet[openRC[0] + ',' + openRC[1]]);
+check('a pair on an open square is marked', pairHolds(cell(openRC)) === true);
+
+/* The start square: safe, and where every game begins with the whole set. */
+var startRC = state.players[0].path[0];
+check('a set on its own start is not', pairHolds(cell(startRC)) === false,
+      'safe squares shelter everyone already');
+
+/* One piece alone is not a pair. */
+state.players[0].pieces[1].pathIndex = openIdx + 1;
+renderSidebar();
+check('and one piece alone is not', pairHolds(cell(openRC)) === false);
 
 /* ------------------------------------------------- the end of the game --- */
 

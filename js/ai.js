@@ -31,6 +31,13 @@ function threatMap(againstPlayer) {
         var destIndex = d;
         var rc = p.path[destIndex];
         if (isSafeCell(rc)) return;
+        // A square they cannot legally land on is not a square they threaten:
+        // a pair of somebody's is closed to them, and so is a square of their
+        // own where a second piece may not stand.
+        var blocker = immortalOwner(rc);
+        if (blocker !== null && blocker !== p.id) return;
+        var standing = piecesOnCell(rc);
+        if (standing[p.id] && !state.stackCellSet[cellKey(rc)]) return;
         reachable[cellKey(rc)] = true;
       });
     });
@@ -64,6 +71,9 @@ function threatCreated(player, destIndex) {
     if (layerOf(d, state.ringBoundaries) > 0 && !player.hasCaptured) return;
     var rc = player.path[d];
     if (isSafeCell(rc)) return;
+    // Threatening a pair is not a threat: there is nowhere to land.
+    var held = immortalOwner(rc);
+    if (held !== null && held !== player.id) return;
     var victims = opponentsOn(rc, player);
     if (victims.length) total += roll.p * victims.length;
   });
@@ -86,6 +96,8 @@ function scoreMove(player, move, threats) {
 
   var destRC = player.path[move.destIndex];
   var destSafe = isSafeCell(destRC);
+  // Landing beside one of your own, where that pair cannot be taken.
+  var pairs = !destSafe && (piecesOnCell(destRC)[player.id] || 0) > 0;
 
   var victims = destSafe ? [] : opponentsOn(destRC, player);
   if (victims.length) {
@@ -99,14 +111,25 @@ function scoreMove(player, move, threats) {
     });
   }
 
-  var risk = destSafe ? 0 : (threats[cellKey(destRC)] || 0);
+  var risk = (destSafe || pairs) ? 0 : (threats[cellKey(destRC)] || 0);
   score -= risk * 800;
   if (destSafe) score += 120;
+  // Worth more than a safe square, because you chose where to put it.
+  if (pairs) score += 260;
 
-  // Credit for vacating a square that is currently in danger.
   var fromRC = player.path[piece.pathIndex];
   if (fromRC && !isSafeCell(fromRC)) {
-    score += (threats[cellKey(fromRC)] || 0) * 600;
+    var danger = threats[cellKey(fromRC)] || 0;
+    var mine = piecesOnCell(fromRC)[player.id] || 0;
+    if (mine > 1) {
+      /* Standing in a pair was already safe, so there is nothing to escape.
+         Breaking the last pair is the opposite of an escape: the piece that
+         stays is left in the open. */
+      if (mine === 2) score -= danger * 500;
+    } else {
+      // Credit for vacating a square that is currently in danger.
+      score += danger * 600;
+    }
   }
 
   score += threatCreated(player, move.destIndex) * 300;

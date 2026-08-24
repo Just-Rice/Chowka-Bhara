@@ -189,14 +189,38 @@ function updateCellDensity() {
   var els = document.querySelectorAll(".pieces");
   els.forEach(function(el) {
     var n = el.children.length;
-    if (!n) { el.style.removeProperty("--tok"); return; }
+    if (!n) {
+      el.style.removeProperty("--tok");
+      el.classList.remove("immortal");
+      return;
+    }
     var cols = Math.ceil(Math.sqrt(n));
     // Reserve a little of the box for the gutters, and cap a lone piece so
     // it does not swell to fill the whole square.
     var size = Math.min(64, (96 - 6 * (cols - 1)) / cols);
     el.style.setProperty("--tok", size.toFixed(1) + "%");
     el.classList.toggle("tri", n === 3);
+    el.classList.toggle("immortal", pairHolds(el));
   });
+}
+
+/* Whether the pieces drawn on this square are a pair nobody can land on.
+ *
+ * Counted from the tokens rather than from the game, so that stepping back
+ * through the log marks the squares that were closed then rather than the ones
+ * that are closed now. On a safe square nothing was ever at risk, so a pair
+ * there is just two pieces sharing a square and is not marked. */
+function pairHolds(el) {
+  var at = /^pieces-(\d+)-(\d+)$/.exec(el.id || "");
+  if (!at || !state || state.safeCellSet[at[1] + "," + at[2]]) return false;
+  var byPlayer = {}, paired = false;
+  Array.prototype.forEach.call(el.children, function(token) {
+    var who = /^token-p(\d+)-/.exec(token.id || "");
+    if (!who) return;
+    byPlayer[who[1]] = (byPlayer[who[1]] || 0) + 1;
+    if (byPlayer[who[1]] > 1) paired = true;
+  });
+  return paired;
 }
 
 /* ============================= UI STATE ============================= */

@@ -20,13 +20,13 @@ function grab(name) {
 }
 
 var NAMES = ['ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC', 'rotatePath',
-             'physicalRing', 'layerOf', 'throwShells', 'computeLegalMoves'];
+             'physicalRing', 'layerOf', 'throwShells', 'computeLegalMoves', 'piecesOnCell', 'immortalOwner'];
 eval(NAMES.map(grab).join('\n'));
 
 /* The piece count, the cowrie count and the throw table are now board-
    dependent, so take the real ones rather than a stub that can drift. */
 eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
-      'buildSafeCells', 'seatCount']
+      'buildSafeCells', 'buildStackCells', 'seatCount']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
@@ -254,7 +254,8 @@ function makeState(N, numPlayers) {
   }
   return {
     N: N, ringBoundaries: built.ringBoundaries, pathLength: built.path.length,
-    safeCellSet: safe, players: players, currentPlayerIndex: 0
+    safeCellSet: safe, stackCellSet: buildStackCells(N, safe),
+    players: players, currentPlayerIndex: 0
   };
 }
 
@@ -355,6 +356,115 @@ check('a lone human is given an opponent rather than an empty table',
 check('two humans are left to each other', cpuChoicesFor(2).preferred === 0);
 check('and a full table has no room for a computer',
       cpuChoicesFor(4).allowed.join() === '0', cpuChoicesFor(4).allowed.join());
+
+/* ------------------------------------------------------ stacking -------- */
+
+/* Two of a player's own pieces on one square. Allowed on any ring but the
+   outermost, and on any safe square wherever it is — so the long first lap is
+   walked in single file, and pairing up is something you do once you have
+   captured and got inside. A pair standing where it could have been taken
+   cannot be: there is nowhere for an opponent to land. */
+[5, 7].forEach(function (N) {
+  var st = makeState(N, 2);
+  var tag = N + 'x' + N + ': ';
+  var wrong = [];
+  for (var r = 0; r < N; r++) {
+    for (var c = 0; c < N; c++) {
+      var key = r + ',' + c;
+      var want = !!st.safeCellSet[key] || physicalRing(r, c, N) > 0;
+      if (!!st.stackCellSet[key] !== want) wrong.push(key);
+    }
+  }
+  check(tag + 'a stack stands anywhere but the outermost ring, and on any safe square',
+        wrong.length === 0, wrong.join(' '));
+
+  /* Every start square takes one, which it has to: a game opens with a
+     player's whole set standing on theirs. */
+  check(tag + 'and always on a starting square',
+        st.players.every(function (p) {
+          return !!st.stackCellSet[p.path[0][0] + ',' + p.path[0][1]];
+        }));
+});
+
+/* The refusals themselves, asked of the real computeLegalMoves. */
+(function () {
+  var st = makeState(5, 2);
+  state = st;
+  var me = st.players[0], foe = st.players[1];
+  me.hasCaptured = true;
+  foe.hasCaptured = true;
+
+  function only(pieceIds) {
+    st.players.forEach(function (p) {
+      p.pieces.forEach(function (pc) { pc.status = 'finished'; pc.pathIndex = -2; });
+    });
+    pieceIds.forEach(function (spec) {
+      var p = st.players[spec[0]];
+      p.pieces[spec[1]].status = 'active';
+      p.pieces[spec[1]].pathIndex = spec[2];
+    });
+  }
+  function moved(player, value, pieceId) {
+    return computeLegalMoves(player, value).some(function (m) { return m.pieceId === pieceId; });
+  }
+
+  /* An outer-ring square that is not one of the four starts. */
+  var outer = null;
+  for (var i = 1; i < st.ringBoundaries[0]; i++) {
+    var rc = me.path[i];
+    if (!st.safeCellSet[rc[0] + ',' + rc[1]]) { outer = i; break; }
+  }
+  only([[0, 0, outer], [0, 1, outer - 1]]);
+  check('a second piece may not join one on the outer ring',
+        !moved(me, 1, 1), 'index ' + outer);
+
+  /* The same pair of moves one ring in, where a stack is allowed. */
+  var inner = st.ringBoundaries[0] + 1;
+  only([[0, 0, inner], [0, 1, inner - 1]]);
+  check('but may join one on an inner ring', moved(me, 1, 1), 'index ' + inner);
+
+  /* And on a safe square, which is where every game starts. */
+  var safeIdx = null;
+  for (i = 1; i < st.ringBoundaries[0]; i++) {
+    rc = me.path[i];
+    if (st.safeCellSet[rc[0] + ',' + rc[1]]) { safeIdx = i; break; }
+  }
+  only([[0, 0, safeIdx], [0, 1, safeIdx - 1]]);
+  check('and on a safe square', moved(me, 1, 1), 'index ' + safeIdx);
+
+  /* An opponent's pair, standing where it could have been captured. */
+  var open = st.ringBoundaries[0] + 2;          // an inner-ring square, unsafe
+  var openRC = me.path[open];
+  check('setup: the square is open to capture',
+        !st.safeCellSet[openRC[0] + ',' + openRC[1]]);
+  var foeAt = null;
+  for (i = 0; i < foe.path.length; i++) {
+    if (foe.path[i][0] === openRC[0] && foe.path[i][1] === openRC[1]) { foeAt = i; break; }
+  }
+  only([[0, 0, open - 1], [1, 0, foeAt], [1, 1, foeAt]]);
+  check('an opponent standing alone can be landed on', true);
+  check('setup: two of theirs are standing there',
+        immortalOwner(openRC) === foe.id, String(immortalOwner(openRC)));
+  check('a pair of theirs cannot be landed on', !moved(me, 1, 0));
+
+  only([[0, 0, open - 1], [1, 0, foeAt]]);
+  check('one of theirs still can be', moved(me, 1, 0));
+
+  /* On a safe square nothing was ever at risk, so a pair there shelters
+     nobody extra and anybody may still land beside it. */
+  var safeRC = me.path[safeIdx];
+  var foeSafe = null;
+  for (i = 0; i < foe.path.length; i++) {
+    if (foe.path[i][0] === safeRC[0] && foe.path[i][1] === safeRC[1]) { foeSafe = i; break; }
+  }
+  if (foeSafe !== null) {
+    only([[0, 0, safeIdx - 1], [1, 0, foeSafe], [1, 1, foeSafe]]);
+    check('a pair on a safe square blocks nobody', moved(me, 1, 0));
+    check('and is not counted as a pair that cannot be taken',
+          immortalOwner(safeRC) === null);
+  }
+  state = null;
+})();
 
 /* ---------------------------------------------------- safe squares ----- */
 

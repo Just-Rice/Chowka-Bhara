@@ -29,7 +29,7 @@ function grab(name) {
 
 eval([
   'ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
-  'layerOf', 'computeLegalMoves', 'currentPlayer',
+  'layerOf', 'computeLegalMoves', 'piecesOnCell', 'immortalOwner', 'currentPlayer',
   'playableChips', 'selectedEntry', 'ensureSelection', 'spendChip',
   'playerActive', 'ordinal', 'progressOf', 'standingsText',
   'tieVoters', 'tieThreshold', 'hasVotedForTie', 'canVoteForTie', 'dropTieVote', 'requestTie'
@@ -38,7 +38,7 @@ eval([
 /* The piece count, the cowrie count and the throw table are now board-
    dependent, so take the real ones rather than a stub that can drift. */
 eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
-      'buildSafeCells']
+      'buildSafeCells', 'buildStackCells']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
@@ -67,7 +67,8 @@ function makeState(N, numPlayers) {
   }
   return {
     N: N, ringBoundaries: built.ringBoundaries, pathLength: built.path.length,
-    safeCellSet: safe, players: players, currentPlayerIndex: 0,
+    safeCellSet: safe, stackCellSet: buildStackCells(N, safe),
+    players: players, currentPlayerIndex: 0,
     pool: [], poolSeq: 0, selectedChipId: null, placements: [],
     playOn: false, movedThisTurn: false, deadTurns: 0
   };

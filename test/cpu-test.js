@@ -20,7 +20,7 @@ function grab(name) {
 
 eval([
   'ringLoop', 'ringCorners', 'turnInward', 'buildCanonicalPath', 'rotateRC', 'rotatePath', 'physicalRing',
-  'layerOf', 'computeLegalMoves', 'currentPlayer',
+  'layerOf', 'computeLegalMoves', 'piecesOnCell', 'immortalOwner', 'currentPlayer',
   'cellKey', 'isSafeCell', 'threatMap', 'opponentsOn', 'threatCreated',
   'scoreMove', 'playableChips', 'selectedEntry', 'chooseCPUPlay'
 ].map(grab).join('\n'));
@@ -29,7 +29,7 @@ eval([
 /* The piece count, the cowrie count and the throw table are now board-
    dependent, so take the real ones rather than a stub that can drift. */
 eval(['piecesPerPlayer', 'shellCount', 'throwOutcome', 'binomial', 'rollOdds',
-      'buildSafeCells']
+      'buildSafeCells', 'buildStackCells']
      .map(grab).join('\n'));
 var ROLL_ODDS_BY_N = {};
 var SLOT_SETS = { 2: [0, 2], 4: [0, 1, 2, 3] };
@@ -67,7 +67,8 @@ function makeState(N, numPlayers, skill) {
   }
   return {
     N: N, ringBoundaries: built.ringBoundaries, pathLength: built.path.length,
-    safeCellSet: safe, players: players, currentPlayerIndex: 0,
+    safeCellSet: safe, stackCellSet: buildStackCells(N, safe),
+    players: players, currentPlayerIndex: 0,
     cpuSkill: skill || 'sharp',
     pool: [], poolSeq: 0, selectedChipId: null
   };
@@ -132,11 +133,16 @@ for (var a = 1; a < state.ringBoundaries[0] - 2; a++) {
       break;
     }
   }
-  if (hotFrom !== null && hotFrom !== a && quietFrom === null) quietFrom = a;
+  /* Not one two steps behind the other. A piece may not land on a square its
+     own side already holds, so that pairing would quietly take one of the two
+     candidate moves away and leave this testing nothing. */
+  if (hotFrom !== null && hotFrom !== a && quietFrom === null &&
+      a + 2 !== hotFrom && hotFrom + 2 !== a) quietFrom = a;
 }
 /* Pick a quiet origin the enemy piece cannot reach at all. */
 for (a = 1; quietFrom === null && a < state.ringBoundaries[0] - 2; a++) {
   if (a === hotFrom) continue;
+  if (a + 2 === hotFrom || hotFrom + 2 === a) continue;
   var rcQ = me.path[a + 2];
   if (state.safeCellSet[cellKey(rcQ)]) continue;
   var reachable = false;

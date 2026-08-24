@@ -116,6 +116,16 @@
      pair and they form a proper triangle. The 0.866 is sin(60 degrees) — the
      vertical spacing of touching circles — and 1.866 is the cluster's total
      height in piece-widths, halved to centre it. */
+  /* A pair standing where it could have been captured cannot be — an opponent
+     may not land on the square at all. Two pieces sharing a square already look
+     like two pieces sharing a square, so the one thing that makes this
+     different has to be drawn, or it is invisible. */
+  .pieces.immortal {
+    border-radius: 999px;
+    background: rgba(255, 236, 190, 0.14);
+    box-shadow: 0 0 0 2px var(--home-ring), 0 0 12px rgba(0, 0, 0, 0.4);
+  }
+
   .pieces.tri .token { position: absolute; }
   .pieces.tri .token:nth-child(1) {
     left: calc(50% - var(--tok));
