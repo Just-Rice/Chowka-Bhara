@@ -50,11 +50,11 @@
    own screens. */
 .seat-edit-you {
   flex: 0 0 auto;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #5c4a2e;
+  color: var(--ink-text);
   padding: 4px 8px;
   border: 1px solid var(--mat-edge);
   border-radius: 999px;
@@ -80,6 +80,9 @@
 .a11y-head { display: flex; align-items: baseline; gap: 8px; }
 .a11y-label { font-weight: 700; font-size: 1rem; }
 .a11y-hint { margin: 3px 0 10px; font-size: 0.85rem; opacity: 0.75; line-height: 1.5; }
+/* The same hint also sits on the setup screen's textured mat, which is darker
+   than the drawer's flat one; faded, it drops under 4.5:1 there. */
+.mat-panel .a11y-hint { opacity: 1; }
 
 .a11y-options { display: flex; gap: 7px; flex-wrap: wrap; }
 .a11y-opt {

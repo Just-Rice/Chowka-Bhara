@@ -73,6 +73,15 @@ function renderBoardStructure() {
       piecesEl.className = "pieces";
       piecesEl.id = "pieces-" + r + "-" + c;
       cell.appendChild(piecesEl);
+      // A piece can be smaller than a fingertip, so a tap anywhere on its
+      // square counts. Pieces of yours sharing a square are interchangeable,
+      // so taking the first playable one is the move tapping it would make.
+      // Tapping a piece itself still goes straight to that piece.
+      cell.addEventListener("click", function(e) {
+        var token = e.currentTarget.querySelector(".token.legal");
+        var who = token && /^token-p(\d+)-(\d+)$/.exec(token.id);
+        if (who) requestMove(+who[1], +who[2]);
+      });
 
       // Its own element rather than a pseudo-element, because both of the
       // cell's are already spoken for — the diamond and the high-contrast
