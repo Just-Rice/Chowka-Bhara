@@ -135,8 +135,8 @@
       <!-- --------------------------------------------------------- join online -->
       <div class="setup-panel" id="panel-join" role="tabpanel" hidden>
         <div class="setup-section">
-          <span class="setup-label" data-i18n="setup.roomCode"></span>
-          <input id="join-code" class="code-input" maxlength="9" placeholder="BCDFH"
+          <span class="setup-label" id="join-code-label" data-i18n="setup.roomCode"></span>
+          <input id="join-code" class="code-input" aria-labelledby="join-code-label" maxlength="9" placeholder="BCDFH"
                  autocomplete="off" autocapitalize="characters" spellcheck="false">
         </div>
 
@@ -190,8 +190,8 @@
              what it moves. It is quiet while you are up to date and speaks up
              when you are not. -->
         <div class="history-bar" id="history-bar">
-          <button type="button" class="history-step" id="history-back" aria-keyshortcuts="ArrowLeft">&#9664;</button>
-          <button type="button" class="history-step" id="history-forward" aria-keyshortcuts="ArrowRight">&#9654;</button>
+          <button type="button" class="history-step" id="history-back" data-i18n-aria="history.back" aria-keyshortcuts="ArrowLeft">&#9664;</button>
+          <button type="button" class="history-step" id="history-forward" data-i18n-aria="history.forward" aria-keyshortcuts="ArrowRight">&#9654;</button>
           <span class="history-where" id="history-where"></span>
           <button type="button" class="history-now" id="history-now" data-i18n="history.now"></button>
         </div>

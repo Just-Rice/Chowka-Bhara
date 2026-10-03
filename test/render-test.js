@@ -127,6 +127,9 @@ function syncTokensToState() { renderSidebar(); }
 // Everything renderSidebar leans on that is not the thing being tested.
 function renderRoster() {}
 function playerName(id) { return 'P' + id; }
+/* Pieces are named through the table, and SEATS reads it too, so it is stubbed
+   before the first redraw. */
+var I18N = { t: function (k, p) { return p ? k + JSON.stringify(p) : k; } };
 function requestMove() {}
 var PLAYER_DEFS = [
   { key: 'players.madder', colorVar: 'p-madder' },
@@ -277,7 +280,6 @@ var localStorage = {
   setItem: function (k, v) { store[k] = String(v); },
   removeItem: function (k) { delete store[k]; }
 };
-var I18N = { t: function (k, p) { return p ? k + JSON.stringify(p) : k; } };
 /* The module declares itself with "use strict", which would confine its var to
    the eval rather than letting the suite see it. */
 eval(read('js/seats.js').replace('"use strict";', ''));

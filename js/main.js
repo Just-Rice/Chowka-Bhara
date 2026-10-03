@@ -144,6 +144,27 @@ document.addEventListener("keydown", function(e) {
   A11Y.close();
 });
 
+/* The drawers are modal, so opening one puts the keyboard inside it, on its
+   close button, and closing it puts the keyboard back where it was. Watched
+   rather than wired into each open and close, since there are several of
+   each, and A11Y opens its own. */
+["a11y-drawer", "history-drawer", "howto-drawer"].forEach(function(id) {
+  var drawer = el(id), opener = null;
+  if (!drawer || !window.MutationObserver) return;
+  new MutationObserver(function(records) {
+    var wasHidden = /\bhidden\b/.test(records[0].oldValue || "");
+    var isHidden = drawer.classList.contains("hidden");
+    if (wasHidden && !isHidden) {
+      opener = document.activeElement;
+      var close = drawer.querySelector(".drawer-close");
+      if (close) close.focus();
+    } else if (!wasHidden && isHidden) {
+      if (opener && document.contains(opener) && opener.focus) opener.focus();
+      opener = null;
+    }
+  }).observe(drawer, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
+});
+
 /* One tab is showing at a time; that is the mode. */
 var setupTab = "local";
 function currentMode() { return setupTab; }

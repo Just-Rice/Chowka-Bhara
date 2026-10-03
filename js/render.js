@@ -139,6 +139,8 @@ function renderSidebar() {
       token.id = "token-p" + p.id + "-" + piece.id;
       token.setAttribute("role", "button");
       token.tabIndex = 0;
+      // Without a name a screen reader announces every piece as just "button".
+      token.setAttribute("aria-label", t("token.label", { name: playerName(p.id), n: piece.id + 1 }));
       token.addEventListener("click", function(e){ e.stopPropagation(); requestMove(p.id, piece.id); });
       token.addEventListener("keydown", function(e){
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestMove(p.id, piece.id); }
