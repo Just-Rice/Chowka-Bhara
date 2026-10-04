@@ -8,6 +8,17 @@
     font-size: 1.3rem;
     letter-spacing:0.02em;
     text-align:center;
+    color: var(--ink-text);
+  }
+  .turn-banner:not(:empty)::before {
+    content: "";
+    display: inline-block;
+    width: 0.6em; height: 0.6em;
+    margin-right: 0.4em;
+    border-radius: 50%;
+    background: var(--turn-colour, transparent);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+    vertical-align: 0.05em;
   }
   .status-line {
     text-align:center;

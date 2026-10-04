@@ -255,7 +255,9 @@ function updateUI() {
   var banner = document.getElementById("turn-banner");
   banner.textContent = t("game.turn", { name: playerName(player.id) }) +
     (player.isCPU ? t("game.computerSuffix") : "");
-  banner.style.color = "var(--" + player.colorVar + ")";
+  // The colour goes on a dot beside the words rather than on the words: a
+  // player colour on the mat was as low as 1.4:1.
+  banner.style.setProperty("--turn-colour", "var(--" + player.colorVar + ")");
 
   var mine = controlsSeat(player.id);
   var rollBtn = document.getElementById("roll-btn");

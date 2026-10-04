@@ -39,7 +39,10 @@
   .cell {
     background-image: url("../img/board-tile.jpg");
     background-size: 180% 180%;
-    background-blend-mode: multiply;
+    /* Soft light rather than multiply: the tile is already navy, and
+       multiplying it over the navy ring colours took every ring to near
+       black, so the rings could no longer be told apart. */
+    background-blend-mode: soft-light;
   }
   .cell.layer-0 { background-color: var(--ink-0); }
   .cell.layer-1 { background-color: var(--ink-1); }
