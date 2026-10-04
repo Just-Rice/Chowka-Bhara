@@ -73,6 +73,15 @@ function renderBoardStructure() {
       piecesEl.className = "pieces";
       piecesEl.id = "pieces-" + r + "-" + c;
       cell.appendChild(piecesEl);
+      // A piece can be smaller than a fingertip, so a tap anywhere on its
+      // square counts. Pieces of yours sharing a square are interchangeable,
+      // so taking the first playable one is the move tapping it would make.
+      // Tapping a piece itself still goes straight to that piece.
+      cell.addEventListener("click", function(e) {
+        var token = e.currentTarget.querySelector(".token.legal");
+        var who = token && /^token-p(\d+)-(\d+)$/.exec(token.id);
+        if (who) requestMove(+who[1], +who[2]);
+      });
 
       // Its own element rather than a pseudo-element, because both of the
       // cell's are already spoken for — the diamond and the high-contrast
@@ -139,6 +148,8 @@ function renderSidebar() {
       token.id = "token-p" + p.id + "-" + piece.id;
       token.setAttribute("role", "button");
       token.tabIndex = 0;
+      // Without a name a screen reader announces every piece as just "button".
+      token.setAttribute("aria-label", t("token.label", { name: playerName(p.id), n: piece.id + 1 }));
       token.addEventListener("click", function(e){ e.stopPropagation(); requestMove(p.id, piece.id); });
       token.addEventListener("keydown", function(e){
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestMove(p.id, piece.id); }
@@ -244,7 +255,9 @@ function updateUI() {
   var banner = document.getElementById("turn-banner");
   banner.textContent = t("game.turn", { name: playerName(player.id) }) +
     (player.isCPU ? t("game.computerSuffix") : "");
-  banner.style.color = "var(--" + player.colorVar + ")";
+  // The colour goes on a dot beside the words rather than on the words: a
+  // player colour on the mat was as low as 1.4:1.
+  banner.style.setProperty("--turn-colour", "var(--" + player.colorVar + ")");
 
   var mine = controlsSeat(player.id);
   var rollBtn = document.getElementById("roll-btn");

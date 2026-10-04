@@ -50,11 +50,11 @@
    own screens. */
 .seat-edit-you {
   flex: 0 0 auto;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #5c4a2e;
+  color: var(--ink-text);
   padding: 4px 8px;
   border: 1px solid var(--mat-edge);
   border-radius: 999px;
@@ -80,6 +80,9 @@
 .a11y-head { display: flex; align-items: baseline; gap: 8px; }
 .a11y-label { font-weight: 700; font-size: 1rem; }
 .a11y-hint { margin: 3px 0 10px; font-size: 0.85rem; opacity: 0.75; line-height: 1.5; }
+/* The same hint also sits on the setup screen's textured mat, which is darker
+   than the drawer's flat one; faded, it drops under 4.5:1 there. */
+.mat-panel .a11y-hint { opacity: 1; }
 
 .a11y-options { display: flex; gap: 7px; flex-wrap: wrap; }
 .a11y-opt {
@@ -162,4 +165,41 @@
   padding: 10px 8px;
   text-align: center;
   line-height: 1.25;
+}
+
+/* ------------------------------------------------------------- focus ring */
+
+/* The page-wide ring is the gold accent, which reads well on the dark page but
+   only 1.6:1 against the mat that nearly every control sits on — under the 3:1
+   a focus indicator needs. On the mat and in the drawers it takes the ink
+   colour instead. The board is dark, so the pieces keep the gold. */
+.mat-panel :focus-visible,
+.drawer-panel :focus-visible,
+.win-card :focus-visible,
+.mat-panel .segmented input:focus-visible + label { outline-color: var(--ink-text); }
+#board :focus-visible { outline-color: var(--accent-hover); }
+
+/* ------------------------------------------------------------- touch targets */
+
+/* On a touchscreen every control is at least 44px tall, the size a fingertip
+   can hit without a second try. Only for coarse pointers, so the desktop
+   layout is exactly as it was. */
+@media (pointer: coarse) {
+  .setup-tab,
+  .segmented label,
+  .a11y-btn,
+  .a11y-opt,
+  .howto-btn,
+  .history-now,
+  .pool-chip,
+  .tie-btn,
+  .new-game-btn,
+  .seat-edit-name { min-height: 44px; }
+  .history-step { height: 44px; width: 44px; }
+  .drawer-close { width: 44px; height: 44px; }
+  .pool-chip { min-width: 44px; }
+  /* Swatches stay the size they are drawn at; an invisible margin round each
+     one takes the hit area to the full height without crowding the row. */
+  .swatch { position: relative; }
+  .swatch::after { content: ""; position: absolute; inset: -9px -3px; }
 }

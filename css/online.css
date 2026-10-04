@@ -144,7 +144,7 @@
   .dot { width:11px; height:11px; border-radius:50%; flex:0 0 auto; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3); }
   .roster-name { font-weight:600; font-size:0.92rem; }
   .roster-counts { margin-left:auto; display:flex; gap:8px; }
-  .count-badge { font-family: var(--font-mono); font-size:0.72rem; color:#5c4a2e; white-space:nowrap; }
+  .count-badge { font-family: var(--font-mono); font-size:0.8rem; color: var(--ink-text); white-space:nowrap; }
   .tray-row { display:flex; gap:14px; margin-top:6px; flex-wrap:wrap; }
   .tray.hand .token, .tray.finished .token { width:18px; height:18px; }
   .tray.finished .token { opacity:0.85; }
@@ -212,6 +212,7 @@
      which is worth saying loudly. */
   .history-bar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     margin-bottom: 10px;
@@ -242,8 +243,8 @@
     flex: 1 1 auto;
     text-align: center;
     font: 0.78rem/1.3 var(--font-mono);
-    color: #5c4a2e;
-    min-width: 0;
+    color: var(--ink-text);
+    min-width: min-content;
   }
   .history-bar.past .history-where { color: var(--ink-text); font-weight: 700; }
   .history-now {
@@ -264,7 +265,7 @@
     background: var(--ink-0);
     color: var(--khaki-text);
     font-weight: 600;
-    padding: 2px 6px;
+    padding: 7px 6px;
     margin-left: -6px;
   }
 
@@ -293,16 +294,16 @@
     font-weight: 600;
   }
 
-  /* Numbered so you can say "line 40" rather than "the bit near the end". */
+  /* Numbered for anything that reads the list rather than looks at it. The
+     markers are off, so there is no gutter held open for them. */
   .history-list {
     margin: 12px 0 0;
-    padding-left: 2.6em;
     font-size: 0.88rem;
     line-height: 1.55;
   }
-  .history-line { margin-bottom: 7px; padding-left: 4px; }
+  .history-line { padding: 7px 0 7px 4px; }
   .history-line::marker { font-family: var(--font-mono); font-size: 0.78em; opacity: 0.55; }
-  .history-empty { list-style: none; margin-left: -2.6em; opacity: 0.6; }
+  .history-empty { list-style: none; opacity: 0.6; }
 
   #howto-list { font-size:0.92rem; line-height:1.6; }
   #howto-list li { position:relative; padding-left:16px; margin-bottom:9px; }
@@ -321,7 +322,7 @@
     font-size:0.8rem;
     text-transform:uppercase;
     letter-spacing:0.08em;
-    color:#5c4a2e;
+    color: var(--ink-text);
   }
   details.rules-toggle ul { margin-top:8px; }
   details.rules-toggle li { position:relative; padding-left:14px; margin-bottom:5px; }
@@ -366,7 +367,7 @@
     animation: win-pop .45s cubic-bezier(.2,1.4,.4,1);
   }
   @keyframes win-pop { from{ transform:scale(0.8); opacity:0; } to{ transform:scale(1); opacity:1; } }
-  .win-card p.eyebrow { text-transform:uppercase; letter-spacing:0.18em; font-size:0.75rem; color:#5c4a2e; margin:0 0 8px; }
+  .win-card p.eyebrow { text-transform:uppercase; letter-spacing:0.18em; font-size:0.75rem; color: var(--ink-text); margin:0 0 8px; }
   .win-name { font-family: var(--font-display); font-size: 2.2rem; margin: 0 0 18px; }
   .win-card button { padding:10px 20px; border-radius:8px; border:1.5px solid #8a6420; background:var(--home-ring); font-weight:600; }
 
@@ -396,7 +397,7 @@
   box-shadow: 0 2px 8px -3px rgba(51,65,90,0.45);
   font-size: 0.8rem;
   line-height: 1.4;
-  color: #5c4a2e;
+  color: var(--ink-text);
   text-align: center;
   animation: hint-in 0.22s ease-out;
 }

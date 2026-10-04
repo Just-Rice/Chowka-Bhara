@@ -342,6 +342,12 @@ The logic is verified headlessly. The tests read the real function source out of
 | `net-test.js` | Seat claiming, ready gating, turn ownership, snapshot fan-out, disconnect/pause, rejoining, CPU substitution, room-code hygiene, and that no lobby label is written straight into the page |
 | `render-test.js` | Board drawing against a small stub document: redrawing never multiplies the pieces, a piece is drawn where it stands rather than where it began, and the seat colour rules — a taken colour trades rather than clones, a corrupt saved file is repaired |
 
+`browser-smoke.js` is the one suite that needs Node and Playwright, so it is run on
+its own with `node test/browser-smoke.js`. It opens the real page at a phone size
+(390×844) and a desktop size and fails on any console error, any sideways scroll,
+or any control left without a name. `URL=… node test/browser-smoke.js` points it at
+the live site instead of this checkout.
+
 `net-test.js` runs the real sync layer over an in-memory transport, with two fake
 browsers talking to each other. **It does not and cannot test the peer connection
 itself** — that needs two real devices. `js/net.js` is deliberately split so the

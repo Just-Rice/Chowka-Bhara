@@ -144,6 +144,41 @@ document.addEventListener("keydown", function(e) {
   A11Y.close();
 });
 
+/* The drawers are modal, so opening one puts the keyboard inside it, on its
+   close button, Tab stays inside it while it is open, and closing it puts the
+   keyboard back where it was. Watched rather than wired into each open and
+   close, since there are several of each, and A11Y opens its own. */
+["a11y-drawer", "history-drawer", "howto-drawer"].forEach(function(id) {
+  var drawer = el(id), opener = null;
+  if (!drawer || !window.MutationObserver) return;
+  drawer.addEventListener("keydown", function(e) {
+    if (e.key !== "Tab") return;
+    var stops = Array.prototype.filter.call(
+      drawer.querySelectorAll("button, input, select, textarea, a[href], [tabindex]"),
+      function(n) {
+        // A radio group is one stop, at its checked option.
+        if (n.type === "radio" && !n.checked) return false;
+        return n.tabIndex >= 0 && !n.disabled && n.getClientRects().length;
+      });
+    if (!stops.length) return;
+    var first = stops[0], last = stops[stops.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  new MutationObserver(function(records) {
+    var wasHidden = /\bhidden\b/.test(records[0].oldValue || "");
+    var isHidden = drawer.classList.contains("hidden");
+    if (wasHidden && !isHidden) {
+      opener = document.activeElement;
+      var close = drawer.querySelector(".drawer-close");
+      if (close) close.focus();
+    } else if (!wasHidden && isHidden) {
+      if (opener && document.contains(opener) && opener.focus) opener.focus();
+      opener = null;
+    }
+  }).observe(drawer, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
+});
+
 /* One tab is showing at a time; that is the mode. */
 var setupTab = "local";
 function currentMode() { return setupTab; }
